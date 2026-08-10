@@ -17,6 +17,22 @@ export const appRoutes: Route[] = [
       ),
   },
   {
+    path: 'projects',
+    canActivate: [authGuard, permissionGuard('projects.read')],
+    loadComponent: () =>
+      import('./features/projects/projects.page').then(
+        (module) => module.ProjectsPage,
+      ),
+  },
+  {
+    path: 'projects/:projectId',
+    canActivate: [authGuard, permissionGuard('projects.read')],
+    loadComponent: () =>
+      import('./features/projects/project-detail.page').then(
+        (module) => module.ProjectDetailPage,
+      ),
+  },
+  {
     path: 'users',
     canActivate: [authGuard, permissionGuard('users.read')],
     loadComponent: () =>

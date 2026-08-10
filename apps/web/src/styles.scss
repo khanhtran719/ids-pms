@@ -27,3 +27,115 @@ select,
 textarea {
   font: inherit;
 }
+
+app-projects-page,
+app-project-detail-page {
+  .primary-button,
+  .secondary-button {
+    min-height: 2.6rem;
+    border-radius: 0.45rem;
+    padding: 0.6rem 0.9rem;
+    font-size: 0.8rem;
+    font-weight: 750;
+    cursor: pointer;
+  }
+
+  .primary-button {
+    border: 0;
+    color: #fff;
+    background: #176e59;
+  }
+
+  .secondary-button {
+    border: 1px solid #d4ddda;
+    color: #344a44;
+    background: #fff;
+  }
+
+  button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .field {
+    display: grid;
+    align-content: start;
+    gap: 0.4rem;
+  }
+
+  .field--wide {
+    grid-column: 1 / -1;
+  }
+
+  label {
+    color: #46534f;
+    font-size: 0.75rem;
+    font-weight: 750;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    min-height: 2.6rem;
+    border: 1px solid #ced8d4;
+    border-radius: 0.42rem;
+    padding: 0.58rem 0.68rem;
+    color: #293833;
+    background: #fff;
+  }
+
+  input:focus,
+  select:focus,
+  textarea:focus {
+    border-color: #16896c;
+    outline: 3px solid rgb(22 137 108 / 12%);
+  }
+
+  textarea {
+    resize: vertical;
+  }
+
+  .state-panel {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    border: 1px solid #dce3e0;
+    border-radius: 0.7rem;
+    color: #71807a;
+    background: #fff;
+  }
+
+  .state-panel--error {
+    color: #963c3c;
+  }
+
+  .state-panel button {
+    border: 1px solid #d4dcda;
+    border-radius: 0.4rem;
+    padding: 0.45rem 0.7rem;
+    background: #fff;
+    cursor: pointer;
+  }
+}
+
+app-project-detail-page {
+  .back-link {
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    color: #58736c;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+
+  .operation-error {
+    border: 1px solid #edcaca;
+    border-radius: 0.5rem;
+    padding: 0.7rem 0.9rem;
+    color: #913838;
+    background: #fff5f5;
+    font-size: 0.82rem;
+  }
+}

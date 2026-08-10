@@ -3,6 +3,8 @@ import * as argon2 from 'argon2';
 
 export const TEST_ADMIN_EMAIL = 'admin.e2e@example.test';
 export const TEST_ADMIN_PASSWORD = 'E2e-only-password-123!';
+export const TEST_MEMBER_EMAIL = 'member.e2e@example.test';
+export const TEST_MEMBER_PASSWORD = 'Member-e2e-password-123!';
 
 export const DEFAULT_TEST_DATABASE_URI =
   'mongodb://localhost:27017/project_ql_test?replicaSet=rs0&directConnection=true';
@@ -67,20 +69,36 @@ export async function seedTestAuthData(uri: string): Promise<void> {
         permissions: ['projects.read', 'tasks.read'],
       },
     ]);
-    await connection.collection('users').insertOne({
-      email: TEST_ADMIN_EMAIL,
-      displayName: 'E2E Administrator',
-      passwordHash: await argon2.hash(TEST_ADMIN_PASSWORD, {
-        type: argon2.argon2id,
-        memoryCost: 19_456,
-        timeCost: 2,
-        parallelism: 1,
-      }),
-      status: 'active',
-      roleCodes: ['admin'],
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    });
+    const hashOptions = {
+      type: argon2.argon2id,
+      memoryCost: 19_456,
+      timeCost: 2,
+      parallelism: 1,
+    } as const;
+    const [adminPasswordHash, memberPasswordHash] = await Promise.all([
+      argon2.hash(TEST_ADMIN_PASSWORD, hashOptions),
+      argon2.hash(TEST_MEMBER_PASSWORD, hashOptions),
+    ]);
+    await connection.collection('users').insertMany([
+      {
+        email: TEST_ADMIN_EMAIL,
+        displayName: 'E2E Administrator',
+        passwordHash: adminPasswordHash,
+        status: 'active',
+        roleCodes: ['admin'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        email: TEST_MEMBER_EMAIL,
+        displayName: 'E2E Member',
+        passwordHash: memberPasswordHash,
+        status: 'active',
+        roleCodes: ['member'],
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+    ]);
   } finally {
     await connection.close();
   }

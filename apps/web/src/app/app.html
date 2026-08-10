@@ -11,7 +11,11 @@
       <a routerLink="/dashboard" routerLinkActive="active"
         ><span aria-hidden="true">⌂</span>Tổng quan</a
       >
-      @if (auth.hasPermission('users.read')) {
+      @if (auth.hasPermission('projects.read')) {
+      <a routerLink="/projects" routerLinkActive="active"
+        ><span aria-hidden="true">◇</span>Dự án</a
+      >
+      } @if (auth.hasPermission('users.read')) {
       <a routerLink="/users" routerLinkActive="active"
         ><span aria-hidden="true">♙</span>Người dùng</a
       >

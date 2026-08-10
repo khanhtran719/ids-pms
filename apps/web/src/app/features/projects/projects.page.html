@@ -1,0 +1,141 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Project portfolio</p>
+    <h1>Dự án</h1>
+    <p>Theo dõi phạm vi, tiến độ và đội ngũ của từng dự án.</p>
+  </div>
+  @if (auth.hasPermission('projects.manage')) {
+  <button
+    class="primary-button"
+    type="button"
+    (click)="createPanelOpen.set(!createPanelOpen())"
+  >
+    {{ createPanelOpen() ? 'Đóng biểu mẫu' : 'Tạo dự án' }}
+  </button>
+  }
+</header>
+
+@if (createPanelOpen()) {
+<section class="create-panel" aria-labelledby="create-project-title">
+  <div class="panel-intro">
+    <p class="eyebrow">Khởi tạo</p>
+    <h2 id="create-project-title">Dự án mới</h2>
+    <p>Bạn sẽ tự động trở thành owner đầu tiên.</p>
+  </div>
+  <form [formGroup]="createForm" (ngSubmit)="createProject()" novalidate>
+    <div class="field field--code">
+      <label for="projectCode">Mã dự án</label>
+      <input
+        id="projectCode"
+        formControlName="code"
+        placeholder="VD: IDS-PMS"
+      />
+    </div>
+    <div class="field field--name">
+      <label for="projectName">Tên dự án</label>
+      <input id="projectName" formControlName="name" />
+    </div>
+    <div class="field field--wide">
+      <label for="projectDescription">Mô tả</label>
+      <textarea
+        id="projectDescription"
+        formControlName="description"
+        rows="3"
+      ></textarea>
+    </div>
+    <div class="field">
+      <label for="projectStatus">Trạng thái</label>
+      <select id="projectStatus" formControlName="status">
+        <option value="planning">Lập kế hoạch</option>
+        <option value="active">Đang thực hiện</option>
+        <option value="on_hold">Tạm dừng</option>
+        <option value="completed">Hoàn thành</option>
+        <option value="archived">Lưu trữ</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="projectStartDate">Ngày bắt đầu</label>
+      <input id="projectStartDate" type="date" formControlName="startDate" />
+    </div>
+    <div class="field">
+      <label for="projectDueDate">Hạn hoàn thành</label>
+      <input id="projectDueDate" type="date" formControlName="dueDate" />
+    </div>
+    <div class="form-actions field--wide">
+      @if (createError()) {
+      <p class="form-error" role="alert">{{ createError() }}</p>
+      }
+      <button
+        class="primary-button"
+        type="submit"
+        [disabled]="createForm.invalid || creating()"
+      >
+        {{ creating() ? 'Đang tạo…' : 'Tạo dự án' }}
+      </button>
+    </div>
+  </form>
+</section>
+}
+
+<section class="toolbar" aria-label="Bộ lọc dự án">
+  <label for="statusFilter">Trạng thái</label>
+  <select id="statusFilter" [formControl]="statusFilter">
+    <option value="">Tất cả dự án</option>
+    <option value="planning">Lập kế hoạch</option>
+    <option value="active">Đang thực hiện</option>
+    <option value="on_hold">Tạm dừng</option>
+    <option value="completed">Hoàn thành</option>
+    <option value="archived">Lưu trữ</option>
+  </select>
+</section>
+
+@switch (state().kind) { @case ('loading') {
+<div class="state-panel" aria-busy="true">Đang tải danh sách dự án…</div>
+} @case ('error') {
+<div class="state-panel state-panel--error" role="alert">
+  <span>Không thể tải danh sách dự án.</span>
+  <button type="button" (click)="load()">Thử lại</button>
+</div>
+} @case ('ready') { @if (state(); as current) { @if (current.kind === 'ready') {
+@if (current.value.data.length === 0) {
+<section class="empty-state">
+  <span aria-hidden="true">P</span>
+  <h2>Chưa có dự án</h2>
+  <p>Tạo dự án đầu tiên để bắt đầu tổ chức công việc và thành viên.</p>
+  @if (auth.hasPermission('projects.manage')) {
+  <button
+    class="primary-button"
+    type="button"
+    (click)="createPanelOpen.set(true)"
+  >
+    Tạo dự án
+  </button>
+  }
+</section>
+} @else {
+<div class="project-list" role="list">
+  @for (project of current.value.data; track project.id) {
+  <a
+    class="project-row"
+    [routerLink]="['/projects', project.id]"
+    role="listitem"
+  >
+    <span class="project-code">{{ project.code }}</span>
+    <span class="project-main">
+      <strong>{{ project.name }}</strong>
+      <small>{{ project.description || 'Chưa có mô tả' }}</small>
+    </span>
+    <span class="status-badge" [attr.data-status]="project.status"
+      >{{ statusLabel(project.status) }}</span
+    >
+    <span class="members"
+      ><strong>{{ project.memberCount }}</strong><small>thành viên</small></span
+    >
+    <span class="updated"
+      ><small>Cập nhật</small>{{ project.updatedAt | date: 'dd/MM/yyyy' }}</span
+    >
+    <span class="row-arrow" aria-hidden="true">→</span>
+  </a>
+  }
+</div>
+} } } } }

@@ -77,6 +77,8 @@
 - Browser e2e dành cho critical user journey; không biến mọi chi tiết UI thành e2e test dễ vỡ.
 - Bug fix phải có regression test nếu có thể tái tạo ổn định.
 - Không xóa/skip test để làm pipeline xanh nếu chưa giải thích và được chấp thuận.
+- Unit coverage của API và Web được đo riêng và có threshold trong Jest config; thay đổi mới không được làm giảm baseline nếu chưa có lý do được ghi nhận.
+- Coverage là tín hiệu tìm nhánh thiếu test, không phải mục tiêu 100%; không viết assertion hình thức hoặc loại source có logic khỏi mẫu số chỉ để tăng tỷ lệ.
 
 ## 8. Security và dữ liệu
 

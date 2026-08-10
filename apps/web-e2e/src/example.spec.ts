@@ -32,6 +32,31 @@ test('logs an administrator in and exposes authorized navigation', async ({
   await expect(page).toHaveURL(/\/users$/);
   await expect(page.getByText('admin.e2e@example.test')).toBeVisible();
 
+  await page.getByRole('link', { name: 'Dự án' }).click();
+  await expect(page).toHaveURL(/\/projects$/);
+  await page
+    .locator('header')
+    .getByRole('button', { name: 'Tạo dự án' })
+    .click();
+  await page.getByLabel('Mã dự án').fill('WEB-E2E');
+  await page.getByLabel('Tên dự án').fill('Web E2E Project');
+  await page
+    .getByLabel('Mô tả')
+    .fill('Project created through the Angular workflow');
+  await page.locator('form').getByRole('button', { name: 'Tạo dự án' }).click();
+
+  await expect(page).toHaveURL(/\/projects\/[a-f0-9]{24}$/);
+  await expect(
+    page.getByRole('heading', { name: 'Web E2E Project' }),
+  ).toBeVisible();
+  await expect(page.getByText('WEB-E2E')).toBeVisible();
+  await expect(
+    page.locator('.member-row').getByText('E2E Administrator'),
+  ).toBeVisible();
+  await expect(page.getByLabel('Vai trò của E2E Administrator')).toHaveValue(
+    'owner',
+  );
+
   await page
     .locator('aside')
     .getByRole('button', { name: 'Đăng xuất' })

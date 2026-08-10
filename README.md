@@ -69,10 +69,13 @@ Trong local dùng `AUTH_COOKIE_SECURE=false`; môi trường HTTPS/production ph
 
 ```bash
 npm test
+npm run test:coverage
 npm run lint
 npm run build
 npm run test:e2e
 ```
+
+Coverage report riêng được tạo tại `coverage/apps/api` và `coverage/apps/web`. CI chạy `test:coverage` để chặn regression dưới baseline hiện tại; xem chiến lược và mục tiêu tăng dần trong `docs/testing.md`.
 
 ## Phiên làm việc với AI
 
@@ -91,6 +94,7 @@ Log được tạo trong `.ai-work/`. Toàn bộ thư mục này đã được G
 - E2E dùng cổng `3100` và MongoDB `project_ql_test`, tách khỏi dữ liệu dev.
 - Mongoose quản lý schema và truy cập MongoDB; GraphQL chưa đưa vào giai đoạn đầu.
 - MongoDB chạy replica set ngay từ local để hỗ trợ transaction cho các luồng nghiệp vụ nhiều collection.
-- Module nghiệp vụ sẽ tách theo domain, dự kiến bắt đầu với `auth`, `users`, `projects`, `tasks` và `documents`.
+- Module nghiệp vụ tách theo domain; `auth`, `users` và lát cắt đầu tiên của `projects` đã có, `tasks` là bước tiếp theo.
 - Auth hiện dùng access JWT 15 phút trong memory và refresh cookie HttpOnly xoay vòng; frontend không lưu token vào `localStorage`/`sessionStorage`.
+- Project dùng membership `owner`/`manager`/`member`; creator là owner đầu tiên trong transaction và không thể xóa hoặc hạ vai trò owner cuối cùng.
 - File service dùng adapter local trước; đường dẫn vật lý không được lưu rải rác trong logic nghiệp vụ để sau này đổi sang S3/MinIO mà không sửa toàn hệ thống.

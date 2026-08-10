@@ -2,6 +2,8 @@ import axios from 'axios';
 import {
   TEST_ADMIN_EMAIL,
   TEST_ADMIN_PASSWORD,
+  TEST_MEMBER_EMAIL,
+  TEST_MEMBER_PASSWORD,
 } from '../support/test-database';
 
 const CSRF_HEADERS = { 'x-csrf-protection': '1' };
@@ -144,7 +146,7 @@ describe('Auth and user management lifecycle', () => {
       meta: {
         page: 1,
         limit: 20,
-        totalItems: 1,
+        totalItems: 2,
         totalPages: 1,
         hasNextPage: false,
         hasPreviousPage: false,
@@ -154,7 +156,7 @@ describe('Auth and user management lifecycle', () => {
     const created = await axios.post(
       '/api/v1/users',
       {
-        email: '  Member.E2E@Example.Test ',
+        email: '  Created.User.E2E@Example.Test ',
         displayName: 'E2E Member',
         password: 'Member-only-password-123!',
         roleCodes: ['member'],
@@ -163,7 +165,7 @@ describe('Auth and user management lifecycle', () => {
     );
     expect(created.status).toBe(201);
     expect(created.data).toMatchObject({
-      email: 'member.e2e@example.test',
+      email: 'created.user.e2e@example.test',
       displayName: 'E2E Member',
       status: 'active',
       roleCodes: ['member'],
@@ -195,5 +197,153 @@ describe('Auth and user management lifecycle', () => {
       validateStatus: () => true,
     });
     expect(afterLogout.status).toBe(401);
+  });
+});
+
+describe('Projects and memberships lifecycle', () => {
+  it('enforces project scope, membership roles, and the final-owner invariant', async () => {
+    const [adminLogin, memberLogin] = await Promise.all([
+      axios.post(
+        '/api/v1/auth/login',
+        { email: TEST_ADMIN_EMAIL, password: TEST_ADMIN_PASSWORD },
+        { headers: CSRF_HEADERS },
+      ),
+      axios.post(
+        '/api/v1/auth/login',
+        { email: TEST_MEMBER_EMAIL, password: TEST_MEMBER_PASSWORD },
+        { headers: CSRF_HEADERS },
+      ),
+    ]);
+    const adminAuthorization = {
+      Authorization: `Bearer ${adminLogin.data.accessToken as string}`,
+    };
+    const memberAuthorization = {
+      Authorization: `Bearer ${memberLogin.data.accessToken as string}`,
+    };
+
+    const created = await axios.post(
+      '/api/v1/projects',
+      {
+        code: '  pms-e2e ',
+        name: '  E2E Project  ',
+        description: '  Project membership contract  ',
+        startDate: '2026-08-10',
+        dueDate: '2026-09-10',
+      },
+      { headers: adminAuthorization },
+    );
+    expect(created.status).toBe(201);
+    expect(created.data).toMatchObject({
+      code: 'PMS-E2E',
+      name: 'E2E Project',
+      description: 'Project membership contract',
+      status: 'planning',
+      memberCount: 1,
+      myRole: 'owner',
+      createdBy: adminLogin.data.user.id,
+    });
+    const projectId = created.data.id as string;
+
+    const duplicate = await axios.post(
+      '/api/v1/projects',
+      { code: 'PMS-E2E', name: 'Duplicate' },
+      { headers: adminAuthorization, validateStatus: () => true },
+    );
+    expect(duplicate.status).toBe(409);
+    expect(duplicate.data.code).toBe('PROJECT_CODE_EXISTS');
+
+    const beforeMembership = await axios.get('/api/v1/projects', {
+      headers: memberAuthorization,
+    });
+    expect(beforeMembership.data.meta.totalItems).toBe(0);
+
+    const candidates = await axios.get(
+      `/api/v1/projects/${projectId}/member-candidates?search=member&limit=10`,
+      { headers: adminAuthorization },
+    );
+    expect(candidates.data).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          userId: memberLogin.data.user.id,
+          email: TEST_MEMBER_EMAIL,
+        }),
+      ]),
+    );
+
+    const addedMember = await axios.post(
+      `/api/v1/projects/${projectId}/members`,
+      { userId: memberLogin.data.user.id, role: 'member' },
+      { headers: adminAuthorization },
+    );
+    expect(addedMember.status).toBe(200);
+    expect(addedMember.data).toMatchObject({
+      userId: memberLogin.data.user.id,
+      email: TEST_MEMBER_EMAIL,
+      role: 'member',
+      status: 'active',
+    });
+
+    const memberProjects = await axios.get('/api/v1/projects', {
+      headers: memberAuthorization,
+    });
+    expect(memberProjects.data).toMatchObject({
+      data: [
+        expect.objectContaining({
+          id: projectId,
+          memberCount: 2,
+          myRole: 'member',
+        }),
+      ],
+      meta: expect.objectContaining({ totalItems: 1 }),
+    });
+
+    const forbiddenDirectory = await axios.get(
+      `/api/v1/projects/${projectId}/member-candidates`,
+      { headers: memberAuthorization, validateStatus: () => true },
+    );
+    expect(forbiddenDirectory.status).toBe(403);
+    expect(forbiddenDirectory.data.code).toBe('PROJECT_MANAGEMENT_FORBIDDEN');
+
+    const forbiddenUpdate = await axios.patch(
+      `/api/v1/projects/${projectId}`,
+      { name: 'Member cannot update' },
+      { headers: memberAuthorization, validateStatus: () => true },
+    );
+    expect(forbiddenUpdate.status).toBe(403);
+    expect(forbiddenUpdate.data.code).toBe('PROJECT_MANAGEMENT_FORBIDDEN');
+
+    const updated = await axios.patch(
+      `/api/v1/projects/${projectId}`,
+      { name: 'E2E Project Updated', status: 'active' },
+      { headers: adminAuthorization },
+    );
+    expect(updated.data).toMatchObject({
+      id: projectId,
+      name: 'E2E Project Updated',
+      status: 'active',
+      memberCount: 2,
+      myRole: 'owner',
+    });
+
+    const members = await axios.get(`/api/v1/projects/${projectId}/members`, {
+      headers: adminAuthorization,
+    });
+    expect(members.data).toEqual([
+      expect.objectContaining({
+        userId: adminLogin.data.user.id,
+        role: 'owner',
+      }),
+      expect.objectContaining({
+        userId: memberLogin.data.user.id,
+        role: 'member',
+      }),
+    ]);
+
+    const lastOwnerRemoval = await axios.delete(
+      `/api/v1/projects/${projectId}/members/${adminLogin.data.user.id as string}`,
+      { headers: adminAuthorization, validateStatus: () => true },
+    );
+    expect(lastOwnerRemoval.status).toBe(409);
+    expect(lastOwnerRemoval.data.code).toBe('PROJECT_LAST_OWNER_REQUIRED');
   });
 });

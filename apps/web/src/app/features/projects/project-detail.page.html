@@ -1,0 +1,209 @@
+<a class="back-link" routerLink="/projects">← Danh sách dự án</a>
+
+@switch (state().kind) { @case ('loading') {
+<div class="state-panel" aria-busy="true">Đang tải dự án và thành viên…</div>
+} @case ('error') {
+<div class="state-panel state-panel--error" role="alert">
+  <span>Không thể tải dự án hoặc bạn không có quyền truy cập.</span>
+  <button type="button" (click)="load()">Thử lại</button>
+</div>
+} @case ('ready') { @if (state(); as current) { @if (current.kind === 'ready') {
+<header class="project-header">
+  <div>
+    <div class="title-meta">
+      <span class="code">{{ current.project.code }}</span>
+      <span class="status" [attr.data-status]="current.project.status"
+        >{{ statusLabel(current.project.status) }}</span
+      >
+    </div>
+    <h1>{{ current.project.name }}</h1>
+    <p>{{ current.project.description || 'Chưa có mô tả cho dự án này.' }}</p>
+  </div>
+  @if (canManage(current.project)) {
+  <button
+    class="secondary-button"
+    type="button"
+    (click)="editOpen.set(!editOpen())"
+  >
+    {{ editOpen() ? 'Đóng chỉnh sửa' : 'Chỉnh sửa dự án' }}
+  </button>
+  }
+</header>
+
+@if (operationError()) {
+<p class="operation-error" role="alert">{{ operationError() }}</p>
+} @if (editOpen()) {
+<section class="edit-panel" aria-labelledby="edit-title">
+  <h2 id="edit-title">Thông tin dự án</h2>
+  <form [formGroup]="editForm" (ngSubmit)="saveProject()">
+    <div class="field field--wide">
+      <label for="editName">Tên dự án</label
+      ><input id="editName" formControlName="name" />
+    </div>
+    <div class="field field--wide">
+      <label for="editDescription">Mô tả</label
+      ><textarea
+        id="editDescription"
+        formControlName="description"
+        rows="3"
+      ></textarea>
+    </div>
+    <div class="field">
+      <label for="editStatus">Trạng thái</label
+      ><select id="editStatus" formControlName="status">
+        <option value="planning">Lập kế hoạch</option>
+        <option value="active">Đang thực hiện</option>
+        <option value="on_hold">Tạm dừng</option>
+        <option value="completed">Hoàn thành</option>
+        <option value="archived">Lưu trữ</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="editStart">Ngày bắt đầu</label
+      ><input id="editStart" type="date" formControlName="startDate" />
+    </div>
+    <div class="field">
+      <label for="editDue">Hạn hoàn thành</label
+      ><input id="editDue" type="date" formControlName="dueDate" />
+    </div>
+    <button
+      class="primary-button"
+      type="submit"
+      [disabled]="editForm.invalid || saving()"
+    >
+      {{ saving() ? 'Đang lưu…' : 'Lưu thay đổi' }}
+    </button>
+  </form>
+</section>
+}
+
+<section class="summary-grid" aria-label="Tóm tắt dự án">
+  <div>
+    <small>Vai trò của bạn</small
+    ><strong>{{ current.project.myRole || 'Quản trị hệ thống' }}</strong>
+  </div>
+  <div>
+    <small>Thành viên</small><strong>{{ current.project.memberCount }}</strong>
+  </div>
+  <div>
+    <small>Ngày bắt đầu</small
+    ><strong
+      >{{ current.project.startDate ? (current.project.startDate | date:
+      'dd/MM/yyyy') : 'Chưa đặt' }}</strong
+    >
+  </div>
+  <div>
+    <small>Hạn hoàn thành</small
+    ><strong
+      >{{ current.project.dueDate ? (current.project.dueDate | date:
+      'dd/MM/yyyy') : 'Chưa đặt' }}</strong
+    >
+  </div>
+</section>
+
+<section class="members-card" aria-labelledby="members-title">
+  <div class="card-heading">
+    <div>
+      <p class="eyebrow">Project team</p>
+      <h2 id="members-title">Thành viên</h2>
+    </div>
+    @if (canManage(current.project)) {
+    <button
+      class="secondary-button"
+      type="button"
+      (click)="toggleMemberPanel()"
+    >
+      {{ memberPanelOpen() ? 'Đóng' : 'Thêm thành viên' }}
+    </button>
+    }
+  </div>
+
+  @if (memberPanelOpen()) {
+  <form class="member-form" [formGroup]="memberForm" (ngSubmit)="saveMember()">
+    <div class="candidate-search">
+      <label for="candidateSearch">Tìm người dùng</label>
+      <div>
+        <input
+          id="candidateSearch"
+          [formControl]="candidateSearch"
+          placeholder="Tên hoặc email"
+        /><button type="button" (click)="loadCandidates()">Tìm</button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="candidateUser">Người dùng</label>
+      <select id="candidateUser" formControlName="userId">
+        <option value="">
+          {{ candidatesLoading() ? 'Đang tải…' : 'Chọn người dùng' }}
+        </option>
+        @for (candidate of candidates(); track candidate.userId) {
+        <option [value]="candidate.userId">
+          {{ candidate.displayName }} · {{ candidate.email }}
+        </option>
+        }
+      </select>
+    </div>
+    <div class="field">
+      <label for="candidateRole">Vai trò</label
+      ><select id="candidateRole" formControlName="role">
+        <option value="member">Member</option>
+        <option value="manager">Manager</option>
+        <option value="owner">Owner</option>
+      </select>
+    </div>
+    <button
+      class="primary-button"
+      type="submit"
+      [disabled]="memberForm.invalid || saving()"
+    >
+      Lưu thành viên
+    </button>
+  </form>
+  }
+
+  <div class="member-list" role="list">
+    @for (member of current.members; track member.userId) {
+    <div class="member-row" role="listitem">
+      <span class="avatar" aria-hidden="true"
+        >{{ member.displayName.slice(0, 1).toUpperCase() }}</span
+      >
+      <span class="member-main"
+        ><strong>{{ member.displayName }}</strong
+        ><small>{{ member.email }}</small></span
+      >
+      @if (canManage(current.project)) {
+      <select
+        class="role-select"
+        [value]="member.role"
+        (change)="changeRole(member, $event)"
+        [attr.aria-label]="'Vai trò của ' + member.displayName"
+      >
+        <option value="owner">Owner</option>
+        <option value="manager">Manager</option>
+        <option value="member">Member</option>
+      </select>
+      @if (pendingRemoval() === member.userId) {
+      <span class="confirm-actions"
+        ><button type="button" (click)="removeMember(member.userId)">
+          Xác nhận</button
+        ><button type="button" (click)="pendingRemoval.set(null)">
+          Hủy
+        </button></span
+      >
+      } @else {
+      <button
+        class="remove-button"
+        type="button"
+        (click)="pendingRemoval.set(member.userId)"
+        [attr.aria-label]="'Xóa ' + member.displayName + ' khỏi dự án'"
+      >
+        Xóa
+      </button>
+      } } @else {
+      <span class="role-text">{{ member.role }}</span>
+      }
+    </div>
+    }
+  </div>
+</section>
+} } } }

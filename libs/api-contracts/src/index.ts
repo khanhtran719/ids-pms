@@ -82,3 +82,67 @@ export interface CreateUserRequest {
   password: string;
   roleCodes: UserRoleCode[];
 }
+
+export type ProjectStatus =
+  | 'planning'
+  | 'active'
+  | 'on_hold'
+  | 'completed'
+  | 'archived';
+
+export type ProjectMembershipRole = 'owner' | 'manager' | 'member';
+
+export interface ProjectListItem {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+  status: ProjectStatus;
+  startDate?: string;
+  dueDate?: string;
+  memberCount: number;
+  myRole?: ProjectMembershipRole;
+  updatedAt: string;
+}
+
+export interface ProjectDetail extends ProjectListItem {
+  createdBy: string;
+  createdAt: string;
+}
+
+export interface ProjectMember {
+  userId: string;
+  email: string;
+  displayName: string;
+  status: UserStatus;
+  role: ProjectMembershipRole;
+  joinedAt: string;
+}
+
+export interface ProjectMemberCandidate {
+  userId: string;
+  email: string;
+  displayName: string;
+}
+
+export interface CreateProjectRequest {
+  code: string;
+  name: string;
+  description?: string;
+  status?: ProjectStatus;
+  startDate?: string;
+  dueDate?: string;
+}
+
+export interface UpdateProjectRequest {
+  name?: string;
+  description?: string;
+  status?: ProjectStatus;
+  startDate?: string | null;
+  dueDate?: string | null;
+}
+
+export interface UpsertProjectMemberRequest {
+  userId: string;
+  role: ProjectMembershipRole;
+}

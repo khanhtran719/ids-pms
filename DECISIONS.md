@@ -64,6 +64,15 @@ Tài liệu này ghi lại các quyết định dài hạn. Không dùng nó tha
 - Lý do: giảm phạm vi ảnh hưởng của XSS lên credential dài hạn, cho phép thu hồi/logout phía server và giữ REST contract đơn giản.
 - Hệ quả và trade-off: reload trang cần gọi refresh để khôi phục access token; endpoint dùng cookie bắt buộc có `X-CSRF-Protection`; production phải bật cookie `Secure` và giữ CORS allowlist. Thay đổi role có thể mất tối đa TTL access token để phản ánh trên token đã phát hành.
 
+## ADR-009 — Project authorization kết hợp global permission và membership
+
+- Trạng thái: Accepted
+- Ngày: 2026-08-10
+- Bối cảnh: quản trị hệ thống cần nhìn toàn bộ portfolio, trong khi người dùng nghiệp vụ chỉ được truy cập project được giao và một project luôn cần người chịu trách nhiệm cuối cùng.
+- Quyết định: `projects.manage` cấp quyền quản trị toàn cục; ngoài ra membership `owner`/`manager` được quản trị project cụ thể, còn `member` chỉ đọc. Creator được tạo thành owner trong cùng transaction với project. Mọi thay đổi membership phải giữ lại ít nhất một owner.
+- Lý do: scope dữ liệu rõ ràng ở backend, hỗ trợ phân quyền theo dự án mà không nhân bản global role, đồng thời tránh project mất người sở hữu do cập nhật đồng thời.
+- Hệ quả và trade-off: MongoDB local/production phải hỗ trợ transaction; query list cần join logic theo membership nhưng phải thực hiện theo tập thay vì N+1. Nếu khách yêu cầu quyền chi tiết hơn theo từng hành động, mở rộng permission matrix trong ADR riêng.
+
 ## Mẫu ADR mới
 
 ```text

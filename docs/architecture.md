@@ -4,7 +4,7 @@
 
 - `apps/web`: Angular shell và các feature UI. Component không gọi API trực tiếp.
 - `apps/api`: NestJS REST API. Mỗi nghiệp vụ mới là một module độc lập theo domain.
-- `libs/api-contracts`: chỉ chứa TypeScript type dùng chung cho envelope ổn định như health, lỗi và pagination; không chứa framework hoặc business logic.
+- `libs/api-contracts`: chứa TypeScript HTTP contract dùng chung; không chứa framework, persistence model hoặc business logic.
 - `apps/*-e2e`: kiểm tra contract và hành trình người dùng từ bên ngoài ứng dụng.
 
 Dependency đi theo hướng `app/feature -> shared contracts`. Code trong `scope:shared` không được phụ thuộc vào web hoặc API. ESLint/Nx tags cưỡng chế hướng phụ thuộc này.
@@ -50,3 +50,12 @@ Các feature lớn lazy-load theo route. `core/` chỉ dành cho singleton toàn
 4. Reload trang gọi refresh một lần để khôi phục session; tab đang mở chủ động refresh trước khi access token hết hạn và retry ngắn khi gặp lỗi mạng tạm thời.
 5. Refresh dùng atomic consume để token cũ không thể replay, rồi phát cặp token mới.
 6. Logout xóa refresh session và cookie; authorization nghiệp vụ luôn được guard tại API.
+
+## Luồng project và membership
+
+1. Danh sách project luôn phân trang. Người có `projects.manage` đọc toàn bộ; người dùng khác được scope bằng membership ngay tại query.
+2. Tạo project và membership owner đầu tiên chạy trong cùng MongoDB transaction.
+3. Quyền quản trị project được cấp cho global `projects.manage` hoặc membership `owner`/`manager`; controller vẫn yêu cầu quyền đọc nền `projects.read`.
+4. Thêm, đổi vai trò và xóa membership dùng transaction để khóa invariant phải còn ít nhất một owner.
+5. Member list dùng aggregation `$lookup` một lần; thống kê membership được gom bằng aggregate theo tập project, không query lặp theo từng item.
+6. Candidate directory chỉ tải khi UI mở panel, có search và `limit` bị chặn ở backend.

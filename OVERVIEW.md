@@ -6,7 +6,7 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 
 ## Trạng thái hiện tại
 
-Đã có foundation và vertical slice Auth/Users chạy xuyên suốt:
+Đã có foundation cùng hai vertical slice Auth/Users và Projects chạy xuyên suốt:
 
 - Angular gọi `GET /api/v1/health`.
 - NestJS trả trạng thái API và kết nối database.
@@ -14,6 +14,9 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 - Angular có đăng nhập, khôi phục phiên, app shell, dashboard, hồ sơ, trang không có quyền và quản lý người dùng.
 - Access token chỉ giữ trong memory; refresh token dùng cookie HttpOnly và được xoay vòng phía server.
 - NestJS có `login`, `refresh`, `logout`, `me`, danh sách và tạo người dùng; RBAC kiểm tra permission tại backend.
+- Angular có danh sách, bộ lọc, tạo và trang chi tiết dự án; owner/manager có thể sửa dự án và quản lý thành viên.
+- NestJS có CRUD phạm vi đầu tiên cho project và membership; creator trở thành owner trong transaction và hệ thống bảo vệ owner cuối cùng.
+- Người có `projects.manage` truy cập toàn bộ dự án; người còn lại chỉ thấy dự án mà mình là thành viên.
 - Mật khẩu hash bằng Argon2id; refresh token chỉ lưu dạng SHA-256 hash; endpoint auth có throttling và CSRF custom header.
 - Swagger được phục vụ tại `/api/docs`.
 - API có request ID, error contract, structured request log, security headers, body limit, CORS allowlist và rate limit mặc định.
@@ -22,7 +25,7 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 - Contract envelope chung nằm trong `libs/api-contracts`; Nx tags kiểm soát hướng phụ thuộc web/API/shared.
 - Unit test, API e2e và Chromium e2e đã được thiết lập.
 
-Các module dự án, công việc, bình luận và báo cáo chưa được triển khai.
+Các module công việc, bình luận, tài liệu và báo cáo chưa được triển khai.
 
 ## Kiến trúc
 
@@ -59,7 +62,7 @@ apps/
   web/          Angular SPA
   web-e2e/      Playwright end-to-end tests
 libs/
-  api-contracts/ Shared health/error/pagination envelope types
+  api-contracts/ Shared HTTP contracts không phụ thuộc framework
 storage/
   uploads/      File runtime local; nội dung không commit
 tools/
@@ -71,9 +74,9 @@ tools/
 
 Thứ tự phát triển được đề xuất, chưa đồng nghĩa với yêu cầu khách hàng đã chốt:
 
-1. Authentication, users, roles và permissions — vertical slice đầu tiên đã triển khai.
-2. Projects và project membership — bước đề xuất tiếp theo.
-3. Tasks, assignment, workflow và status history.
+1. Authentication, users, roles và permissions — đã triển khai.
+2. Projects và project membership — đã triển khai lát cắt đầu tiên.
+3. Tasks, assignment, workflow và status history — bước đề xuất tiếp theo.
 4. Comments, activity/audit history và notifications.
 5. Documents/attachments nếu khách xác nhận.
 6. Dashboard, reports và các integration nếu khách xác nhận.
