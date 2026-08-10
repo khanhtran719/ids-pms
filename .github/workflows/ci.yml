@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      mongodb:
+        image: mongo:8.0
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.adminCommand({ ping: 1 })'"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 20
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Initialize MongoDB replica set
+        run: >-
+          docker exec ${{ job.services.mongodb.id }} mongosh --quiet --eval
+          'try { rs.status() } catch (error) { rs.initiate({_id: "rs0", members: [{_id: 0, host: "localhost:27017"}]}) }'
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Unit tests
+        run: npm test -- --runInBand
+
+      - name: Production build
+        run: npm run build
+
+      - name: API end-to-end tests
+        run: npx nx e2e api-e2e --runInBand
+
+      - name: Browser end-to-end tests
+        run: npx nx e2e web-e2e
+
+      - name: Production dependency audit
+        run: npm audit --omit=dev --audit-level=high
