@@ -1,5 +1,9 @@
 import axios from 'axios';
-import { DEFAULT_TEST_DATABASE_URI, dropTestDatabase } from './test-database';
+import {
+  DEFAULT_TEST_DATABASE_URI,
+  dropTestDatabase,
+  seedTestAuthData,
+} from './test-database';
 
 module.exports = async function () {
   console.log('\nSetting up...\n');
@@ -8,14 +12,14 @@ module.exports = async function () {
   const port = process.env.E2E_API_PORT
     ? Number(process.env.E2E_API_PORT)
     : 3100;
-  await dropTestDatabase(
-    process.env.MONGODB_TEST_URI ?? DEFAULT_TEST_DATABASE_URI,
-  );
+  const databaseUri = process.env.MONGODB_TEST_URI ?? DEFAULT_TEST_DATABASE_URI;
+  await dropTestDatabase(databaseUri);
 
   const healthUrl = `http://${host}:${port}/api/v1/health/live`;
   for (let attempt = 1; attempt <= 50; attempt += 1) {
     try {
       await axios.get(healthUrl, { timeout: 250 });
+      await seedTestAuthData(databaseUri);
       return;
     } catch {
       if (attempt === 50) {

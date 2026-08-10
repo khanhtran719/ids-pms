@@ -3,12 +3,14 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { AuthModule } from './auth/auth.module';
 import {
   EnvironmentVariables,
   validateEnvironment,
 } from './core/config/environment';
 import { CoreModule } from './core/core.module';
 import { HealthModule } from './health/health.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -40,6 +42,8 @@ import { HealthModule } from './health/health.module';
     }),
     CoreModule,
     HealthModule,
+    AuthModule,
+    UsersModule,
   ],
   providers: [
     {

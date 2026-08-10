@@ -5,6 +5,7 @@ describe('validateEnvironment', () => {
     NODE_ENV: 'development',
     MONGODB_URI:
       'mongodb://localhost:27017/project_ql?replicaSet=rs0&directConnection=true',
+    JWT_ACCESS_SECRET: 'test-secret-that-is-at-least-32-characters-long',
   };
 
   it('normalizes defaults into typed runtime values', () => {
@@ -18,6 +19,9 @@ describe('validateEnvironment', () => {
         ENABLE_SWAGGER: true,
         THROTTLE_TTL_MS: 60_000,
         THROTTLE_LIMIT: 120,
+        ACCESS_TOKEN_TTL_SECONDS: 900,
+        REFRESH_TOKEN_TTL_DAYS: 30,
+        AUTH_COOKIE_SECURE: false,
       }),
     );
   });
@@ -44,5 +48,11 @@ describe('validateEnvironment', () => {
     expect(() =>
       validateEnvironment({ ...validEnvironment, THROTTLE_LIMIT: '0' }),
     ).toThrow('THROTTLE_LIMIT');
+  });
+
+  it('rejects an access token secret shorter than 32 characters', () => {
+    expect(() =>
+      validateEnvironment({ ...validEnvironment, JWT_ACCESS_SECRET: 'short' }),
+    ).toThrow('JWT_ACCESS_SECRET');
   });
 });

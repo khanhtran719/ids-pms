@@ -1,0 +1,73 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Tổng quan hôm nay</p>
+    <h1>Chào {{ auth.user()?.displayName }}</h1>
+    <p>Workspace đã sẵn sàng cho các module nghiệp vụ tiếp theo.</p>
+  </div>
+  <span class="date-chip">IDS PMS · Local</span>
+</header>
+
+<section class="metric-grid" aria-label="Tóm tắt hệ thống">
+  <article>
+    <span class="metric-icon" aria-hidden="true">01</span>
+    <p>Module hoạt động</p>
+    <strong>Auth & Users</strong>
+  </article>
+  <article>
+    <span class="metric-icon metric-icon--green" aria-hidden="true">02</span>
+    <p>Phiên đăng nhập</p>
+    <strong>Được bảo vệ</strong>
+  </article>
+  <article>
+    <span class="metric-icon metric-icon--amber" aria-hidden="true">03</span>
+    <p>Giai đoạn kế tiếp</p>
+    <strong>Projects</strong>
+  </article>
+</section>
+
+<section
+  class="health-card"
+  aria-labelledby="health-heading"
+  aria-live="polite"
+>
+  <div class="card-heading">
+    <div>
+      <p class="eyebrow">Hạ tầng</p>
+      <h2 id="health-heading">Trạng thái dịch vụ</h2>
+    </div>
+    @if (healthState().kind === 'ready') {
+    <span class="status status--ready">Hoạt động</span>
+    }
+  </div>
+
+  @switch (healthState().kind) { @case ('loading') {
+  <div class="state-row" aria-busy="true">
+    <span class="loader" aria-hidden="true"></span>
+    Đang kiểm tra API và cơ sở dữ liệu…
+  </div>
+  } @case ('ready') { @if (healthState(); as state) { @if (state.kind ===
+  'ready') {
+  <div class="service-grid">
+    <div>
+      <span class="dot"></span><strong>NestJS API</strong
+      ><small>Phản hồi bình thường</small>
+    </div>
+    <div>
+      <span
+        class="dot"
+        [class.dot--down]="state.value.services.database === 'down'"
+      ></span
+      ><strong>MongoDB</strong
+      ><small
+        >{{ state.value.services.database === 'up' ? 'Đã kết nối' : 'Chưa kết
+        nối' }}</small
+      >
+    </div>
+  </div>
+  } } } @case ('error') {
+  <div class="state-row state-row--error" role="alert">
+    <span>Không thể kiểm tra dịch vụ lúc này.</span>
+    <button type="button" (click)="loadHealth()">Thử lại</button>
+  </div>
+  } }
+</section>

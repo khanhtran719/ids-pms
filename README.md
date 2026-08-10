@@ -50,6 +50,21 @@ Sau khi khởi động:
 - API liveness/readiness: http://localhost:3000/api/v1/health/live và `/ready`
 - Swagger: http://localhost:3000/api/docs
 
+## Tạo tài khoản quản trị đầu tiên
+
+Thiết lập các biến sau trong `.env` trước khi khởi động API lần đầu:
+
+```dotenv
+JWT_ACCESS_SECRET=<chuỗi-ngẫu-nhiên-tối-thiểu-32-ký-tự>
+SEED_ADMIN_EMAIL=admin@example.com
+SEED_ADMIN_PASSWORD=<mật-khẩu-mạnh-tối-thiểu-12-ký-tự>
+SEED_ADMIN_DISPLAY_NAME=System Administrator
+```
+
+Seed chạy idempotent lúc API bootstrap: ba vai trò chuẩn luôn được đồng bộ và admin chỉ được tạo nếu email chưa tồn tại. Sau khi tạo thành công, có thể bỏ hai biến email/password khỏi môi trường runtime. Không commit credential thật vào Git hoặc log AI.
+
+Trong local dùng `AUTH_COOKIE_SECURE=false`; môi trường HTTPS/production phải dùng `true` (production mặc định bật nếu không cấu hình khác).
+
 ## Kiểm tra chất lượng
 
 ```bash
@@ -77,4 +92,5 @@ Log được tạo trong `.ai-work/`. Toàn bộ thư mục này đã được G
 - Mongoose quản lý schema và truy cập MongoDB; GraphQL chưa đưa vào giai đoạn đầu.
 - MongoDB chạy replica set ngay từ local để hỗ trợ transaction cho các luồng nghiệp vụ nhiều collection.
 - Module nghiệp vụ sẽ tách theo domain, dự kiến bắt đầu với `auth`, `users`, `projects`, `tasks` và `documents`.
+- Auth hiện dùng access JWT 15 phút trong memory và refresh cookie HttpOnly xoay vòng; frontend không lưu token vào `localStorage`/`sessionStorage`.
 - File service dùng adapter local trước; đường dẫn vật lý không được lưu rải rác trong logic nghiệp vụ để sau này đổi sang S3/MinIO mà không sửa toàn hệ thống.

@@ -1,0 +1,85 @@
+<main class="login-page">
+  <section class="login-story" aria-labelledby="story-title">
+    <a class="login-brand" href="/" aria-label="IDS PMS">
+      <span aria-hidden="true">ID</span>
+      IDS PMS
+    </a>
+    <div>
+      <p class="kicker">Project management system</p>
+      <h1 id="story-title">Một nơi để đội ngũ cùng nhìn về phía trước.</h1>
+      <p>
+        Theo dõi dự án, công việc và tiến độ trong một không gian rõ ràng, thống
+        nhất.
+      </p>
+    </div>
+    <p class="story-note">Workspace nội bộ · Truy cập có kiểm soát</p>
+  </section>
+
+  <section class="login-form-panel" aria-labelledby="login-title">
+    <div class="login-card">
+      <p class="kicker">Chào mừng trở lại</p>
+      <h2 id="login-title">Đăng nhập</h2>
+      <p class="form-intro">Sử dụng tài khoản được quản trị viên cấp.</p>
+
+      <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
+        <div class="field">
+          <label for="email">Email</label>
+          <input
+            id="email"
+            type="email"
+            formControlName="email"
+            autocomplete="username"
+            inputmode="email"
+            placeholder="ten@congty.vn"
+            [attr.aria-invalid]="form.controls.email.invalid && form.controls.email.touched"
+          />
+          @if (form.controls.email.invalid && form.controls.email.touched) {
+          <p class="field-error">Nhập một địa chỉ email hợp lệ.</p>
+          }
+        </div>
+
+        <div class="field">
+          <div class="label-row">
+            <label for="password">Mật khẩu</label>
+            <button
+              class="text-button"
+              type="button"
+              (click)="showPassword.set(!showPassword())"
+              [attr.aria-label]="showPassword() ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'"
+            >
+              {{ showPassword() ? 'Ẩn' : 'Hiện' }}
+            </button>
+          </div>
+          <input
+            id="password"
+            [type]="showPassword() ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="current-password"
+            placeholder="Tối thiểu 12 ký tự"
+            [attr.aria-invalid]="form.controls.password.invalid && form.controls.password.touched"
+          />
+          @if (form.controls.password.invalid && form.controls.password.touched)
+          {
+          <p class="field-error">Mật khẩu cần có ít nhất 12 ký tự.</p>
+          }
+        </div>
+
+        @if (errorMessage()) {
+        <div class="form-error" role="alert">{{ errorMessage() }}</div>
+        }
+
+        <button
+          class="submit-button"
+          type="submit"
+          [disabled]="form.invalid || submitting()"
+        >
+          {{ submitting() ? 'Đang xác thực…' : 'Đăng nhập' }}
+        </button>
+      </form>
+
+      <p class="support-copy">
+        Chưa có tài khoản? Liên hệ quản trị viên workspace.
+      </p>
+    </div>
+  </section>
+</main>

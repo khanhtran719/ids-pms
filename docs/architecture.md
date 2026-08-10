@@ -36,8 +36,17 @@ Các feature lớn lazy-load theo route. `core/` chỉ dành cho singleton toàn
 
 ## Luồng request
 
-1. Angular gắn `X-Request-Id` và `Accept: application/json` cho request `/api/*`.
+1. Angular gắn `X-Request-Id`, `Accept: application/json`, cookie credential và CSRF header cho request `/api/*`; bearer token chỉ lấy từ in-memory auth store.
 2. NestJS kiểm tra hoặc sinh request ID an toàn, rồi trả lại trong response header.
 3. Helmet, CORS, body limit, validation và throttling chạy trước controller.
 4. Exception filter trả một error contract thống nhất; request log chỉ chứa method, path, status, duration và request ID.
 5. Mongoose truy cập MongoDB; list query phải có pagination, projection và tránh N+1.
+
+## Luồng phiên đăng nhập
+
+1. Login kiểm tra user active và Argon2id password hash.
+2. API phát access JWT ngắn hạn; refresh token entropy cao được hash trước khi lưu `refresh_sessions`.
+3. Angular giữ access token trong memory; trình duyệt tự quản lý refresh cookie HttpOnly.
+4. Reload trang gọi refresh một lần để khôi phục session; tab đang mở chủ động refresh trước khi access token hết hạn và retry ngắn khi gặp lỗi mạng tạm thời.
+5. Refresh dùng atomic consume để token cũ không thể replay, rồi phát cặp token mới.
+6. Logout xóa refresh session và cookie; authorization nghiệp vụ luôn được guard tại API.

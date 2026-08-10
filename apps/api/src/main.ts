@@ -5,6 +5,7 @@ import { NestExpressApplication } from '@nestjs/platform-express';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import type { Server } from 'node:http';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 import { AppModule } from './app/app.module';
 import { EnvironmentVariables } from './app/core/config/environment';
 
@@ -27,6 +28,7 @@ async function bootstrap() {
   }
   app.setGlobalPrefix(globalPrefix);
   app.use(helmet({ contentSecurityPolicy: false }));
+  app.use(cookieParser());
   app.useBodyParser('json', {
     limit: config.getOrThrow('JSON_BODY_LIMIT'),
   });
@@ -39,7 +41,12 @@ async function bootstrap() {
     origin: allowedOrigins,
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Request-Id'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Request-Id',
+      'X-CSRF-Protection',
+    ],
     exposedHeaders: ['X-Request-Id'],
   });
   app.useGlobalPipes(
@@ -57,6 +64,7 @@ async function bootstrap() {
       .setTitle('IDS PMS API')
       .setDescription('API for the IDS project management system')
       .setVersion('1.0')
+      .addBearerAuth()
       .build();
     const openApiDocument = SwaggerModule.createDocument(app, openApiConfig);
     SwaggerModule.setup(`${globalPrefix}/docs`, app, openApiDocument);

@@ -1,90 +1,51 @@
-<main class="shell">
-  <header class="topbar">
-    <a class="brand" href="/" aria-label="IDS PMS home">
+@if (auth.isAuthenticated()) {
+<div class="app-layout">
+  <aside class="sidebar">
+    <a class="brand" routerLink="/dashboard" aria-label="IDS PMS - Tổng quan">
       <span class="brand-mark" aria-hidden="true">ID</span>
-      <span>IDS PMS</span>
+      <span><strong>IDS PMS</strong><small>Workspace</small></span>
     </a>
-    <span class="environment">Local development</span>
-  </header>
 
-  <section class="intro" aria-labelledby="page-title">
-    <p class="eyebrow">Nền tảng triển khai</p>
-    <h1 id="page-title">IDS PMS</h1>
-    <p class="summary">
-      Angular, NestJS và MongoDB đã được nối thành một luồng hoàn chỉnh. Đây là
-      điểm xuất phát để phát triển các module nghiệp vụ.
-    </p>
-  </section>
-
-  <section
-    class="status-panel"
-    aria-labelledby="status-title"
-    aria-live="polite"
-  >
-    <div class="panel-heading">
-      <div>
-        <p class="eyebrow">System health</p>
-        <h2 id="status-title">Trạng thái nền tảng</h2>
-      </div>
-
-      @if (viewState().kind === 'ready') {
-      <span class="status-label status-label--ready">Đang hoạt động</span>
+    <nav aria-label="Điều hướng chính">
+      <p>Workspace</p>
+      <a routerLink="/dashboard" routerLinkActive="active"
+        ><span aria-hidden="true">⌂</span>Tổng quan</a
+      >
+      @if (auth.hasPermission('users.read')) {
+      <a routerLink="/users" routerLinkActive="active"
+        ><span aria-hidden="true">♙</span>Người dùng</a
+      >
       }
-    </div>
+      <p>Cá nhân</p>
+      <a routerLink="/profile" routerLinkActive="active"
+        ><span aria-hidden="true">◎</span>Hồ sơ</a
+      >
+    </nav>
 
-    @switch (viewState().kind) { @case ('loading') {
-    <div class="message-state" aria-busy="true">
-      <span class="pulse" aria-hidden="true"></span>
-      <div>
-        <strong>Đang kiểm tra nền tảng</strong>
-        <p>Đang kết nối API và MongoDB…</p>
-      </div>
+    @if (auth.user(); as user) {
+    <div class="account">
+      <span class="account-avatar" aria-hidden="true"
+        >{{ user.displayName.slice(0, 1).toUpperCase() }}</span
+      >
+      <span
+        ><strong>{{ user.displayName }}</strong
+        ><small>{{ user.roleCodes[0] }}</small></span
+      >
+      <button type="button" (click)="logout()" aria-label="Đăng xuất">
+        ↗
+      </button>
     </div>
-    } @case ('ready') { @if (currentHealth(); as health) {
-    <div class="service-list">
-      <div class="service-row">
-        <span class="service-indicator" aria-hidden="true"></span>
-        <div>
-          <strong>API sẵn sàng</strong>
-          <p>NestJS REST API đã phản hồi.</p>
-        </div>
-      </div>
+    }
+  </aside>
 
-      <div class="service-row">
-        <span
-          class="service-indicator"
-          [class.service-indicator--down]="health.services.database === 'down'"
-          aria-hidden="true"
-        ></span>
-        <div>
-          <strong>
-            {{ health.services.database === 'up' ? 'MongoDB đã kết nối' :
-            'MongoDB chưa kết nối' }}
-          </strong>
-          <p>
-            {{ health.services.database === 'up' ? 'Replica set sẵn sàng cho
-            transaction.' : 'Khởi động MongoDB để hoàn tất nền tảng local.' }}
-          </p>
-        </div>
-      </div>
-    </div>
-    } } @case ('error') {
-    <div class="message-state message-state--error" role="alert">
-      <div>
-        <strong>Không thể kết nối nền tảng</strong>
-        <p>Kiểm tra API local và thử lại.</p>
-      </div>
-      <button type="button" (click)="refreshStatus()">Thử lại</button>
-    </div>
-    } }
-  </section>
-
-  <footer class="stack" aria-label="Technology stack">
-    <span>Angular 22</span>
-    <span>NestJS 11</span>
-    <span>MongoDB</span>
-    <span>Mongoose</span>
-  </footer>
-</main>
-
+  <div class="workspace">
+    <header class="mobile-header">
+      <a class="mobile-brand" routerLink="/dashboard">IDS PMS</a>
+      <button type="button" (click)="logout()">Đăng xuất</button>
+    </header>
+    <main class="content"><router-outlet /></main>
+  </div>
+</div>
+} @else {
 <router-outlet />
+}

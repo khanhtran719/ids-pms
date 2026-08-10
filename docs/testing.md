@@ -6,6 +6,8 @@
 
 API e2e chạy ở cổng `3100` và chỉ dùng database có hậu tố `_test`. Global setup/teardown từ chối database dev và tự drop test database trước/sau suite.
 
+Auth API e2e dùng duy nhất fixture credential giả trong source test. Suite kiểm tra CSRF, lỗi credential chung, cờ cookie, phân quyền, không lộ password hash, refresh rotation/replay và logout revocation. Đây không phải credential dùng cho dev hay production.
+
 Chạy local:
 
 ```bash

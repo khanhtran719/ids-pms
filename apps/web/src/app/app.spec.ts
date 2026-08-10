@@ -1,69 +1,50 @@
 import { TestBed } from '@angular/core/testing';
-import { Subject } from 'rxjs';
+import { provideRouter } from '@angular/router';
+import { of } from 'rxjs';
 import { App } from './app';
-import {
-  SystemHealth,
-  SystemHealthService,
-} from './core/system-health.service';
+import { AuthSessionService } from './core/auth-session.service';
+import { AuthSessionStore } from './core/auth-session.store';
 
 describe('App', () => {
-  let healthResponse: Subject<SystemHealth>;
-
   beforeEach(async () => {
-    healthResponse = new Subject<SystemHealth>();
-
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
+        provideRouter([]),
         {
-          provide: SystemHealthService,
-          useValue: {
-            getStatus: jest.fn(() => healthResponse),
-          },
+          provide: AuthSessionService,
+          useValue: { logout: () => of(undefined) },
         },
       ],
     }).compileComponents();
   });
 
-  it('shows a loading state while the platform status is being checked', () => {
+  it('leaves the public authentication route free of private navigation', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
 
-    expect(fixture.nativeElement.textContent).toContain(
-      'Đang kiểm tra nền tảng',
-    );
+    expect(fixture.nativeElement.querySelector('aside')).toBeNull();
   });
 
-  it('shows API and MongoDB availability after the health request succeeds', () => {
-    const fixture = TestBed.createComponent(App);
-    fixture.detectChanges();
-
-    healthResponse.next({
-      status: 'ok',
-      services: { api: 'up', database: 'up' },
-      timestamp: '2026-08-10T00:00:00.000Z',
+  it('shows the authorized navigation and current account', () => {
+    const store = TestBed.inject(AuthSessionStore);
+    store.setSession({
+      accessToken: 'token',
+      expiresInSeconds: 900,
+      user: {
+        id: 'user-1',
+        email: 'admin@example.com',
+        displayName: 'Administrator',
+        status: 'active',
+        roleCodes: ['admin'],
+        permissions: ['users.read'],
+      },
     });
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.querySelector('h1')?.textContent).toContain(
-      'IDS PMS',
-    );
-    expect(fixture.nativeElement.textContent).toContain('API sẵn sàng');
-    expect(fixture.nativeElement.textContent).toContain('MongoDB đã kết nối');
-  });
-
-  it('shows an actionable error state when the health request fails', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
 
-    healthResponse.error(new Error('API unavailable'));
-    fixture.detectChanges();
-
-    expect(fixture.nativeElement.textContent).toContain(
-      'Không thể kết nối nền tảng',
-    );
-    expect(
-      fixture.nativeElement.querySelector('button')?.textContent,
-    ).toContain('Thử lại');
+    expect(fixture.nativeElement.textContent).toContain('Tổng quan');
+    expect(fixture.nativeElement.textContent).toContain('Người dùng');
+    expect(fixture.nativeElement.textContent).toContain('Administrator');
   });
 });

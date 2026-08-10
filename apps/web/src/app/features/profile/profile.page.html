@@ -1,0 +1,34 @@
+<header class="page-header">
+  <p class="eyebrow">Tài khoản</p>
+  <h1>Hồ sơ cá nhân</h1>
+  <p>Thông tin định danh và quyền truy cập hiện tại của bạn.</p>
+</header>
+
+@if (auth.user(); as user) {
+<section class="profile-card" aria-label="Thông tin tài khoản">
+  <div class="identity">
+    <span class="avatar" aria-hidden="true"
+      >{{ user.displayName.slice(0, 1).toUpperCase() }}</span
+    >
+    <div>
+      <h2>{{ user.displayName }}</h2>
+      <p>{{ user.email }}</p>
+    </div>
+    <span class="active-badge">Đang hoạt động</span>
+  </div>
+  <dl>
+    <div>
+      <dt>Vai trò</dt>
+      <dd>{{ user.roleCodes.join(', ') }}</dd>
+    </div>
+    <div>
+      <dt>Quyền được cấp</dt>
+      <dd>{{ user.permissions.length }} quyền</dd>
+    </div>
+    <div>
+      <dt>Mã người dùng</dt>
+      <dd class="mono">{{ user.id }}</dd>
+    </div>
+  </dl>
+</section>
+}

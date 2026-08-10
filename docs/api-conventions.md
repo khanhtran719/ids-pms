@@ -31,3 +31,13 @@ Không trả stack trace, database message hoặc secret ra client. `code` là g
 ## Contract frontend
 
 OpenAPI từ NestJS là nguồn chuẩn cho endpoint/DTO. `libs/api-contracts` chỉ giữ các envelope nền tảng dùng ở cả hai phía. Khi bắt đầu có nhiều module nghiệp vụ, sinh Angular API client từ OpenAPI trong một thay đổi riêng; không viết đồng thời GraphQL và REST cho cùng use case.
+
+## Authentication và authorization
+
+- `POST /api/v1/auth/login`: email/password, trả access token và user; đặt refresh cookie.
+- `POST /api/v1/auth/refresh`: tiêu thụ refresh session hiện tại, xoay cookie và trả access token mới.
+- `POST /api/v1/auth/logout`: thu hồi refresh session và xóa cookie.
+- `GET /api/v1/auth/me`: yêu cầu `Authorization: Bearer <access-token>`.
+- `GET/POST /api/v1/users`: yêu cầu lần lượt `users.read`/`users.manage`.
+
+Access token không lưu trong Web Storage. Refresh cookie là `HttpOnly`, `SameSite=Strict`, giới hạn path `/api/v1/auth` và phải `Secure` trên HTTPS. Mọi request thay đổi trạng thái tới `/api/*` gửi `X-CSRF-Protection: 1`; login/refresh/logout từ chối nếu thiếu header này. Response không bao giờ chứa password hash hoặc refresh token.

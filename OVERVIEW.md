@@ -6,12 +6,15 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 
 ## Trạng thái hiện tại
 
-Đã có một vertical slice chạy xuyên suốt:
+Đã có foundation và vertical slice Auth/Users chạy xuyên suốt:
 
 - Angular gọi `GET /api/v1/health`.
 - NestJS trả trạng thái API và kết nối database.
 - Mongoose kết nối MongoDB replica set local.
-- Trang nền tảng hiển thị loading, ready và error state.
+- Angular có đăng nhập, khôi phục phiên, app shell, dashboard, hồ sơ, trang không có quyền và quản lý người dùng.
+- Access token chỉ giữ trong memory; refresh token dùng cookie HttpOnly và được xoay vòng phía server.
+- NestJS có `login`, `refresh`, `logout`, `me`, danh sách và tạo người dùng; RBAC kiểm tra permission tại backend.
+- Mật khẩu hash bằng Argon2id; refresh token chỉ lưu dạng SHA-256 hash; endpoint auth có throttling và CSRF custom header.
 - Swagger được phục vụ tại `/api/docs`.
 - API có request ID, error contract, structured request log, security headers, body limit, CORS allowlist và rate limit mặc định.
 - Health tách liveness `/live` và readiness `/ready`.
@@ -19,7 +22,7 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 - Contract envelope chung nằm trong `libs/api-contracts`; Nx tags kiểm soát hướng phụ thuộc web/API/shared.
 - Unit test, API e2e và Chromium e2e đã được thiết lập.
 
-Các module nghiệp vụ như xác thực, người dùng, dự án và công việc chưa được triển khai.
+Các module dự án, công việc, bình luận và báo cáo chưa được triển khai.
 
 ## Kiến trúc
 
@@ -68,8 +71,8 @@ tools/
 
 Thứ tự phát triển được đề xuất, chưa đồng nghĩa với yêu cầu khách hàng đã chốt:
 
-1. Authentication, users, roles và permissions.
-2. Projects và project membership.
+1. Authentication, users, roles và permissions — vertical slice đầu tiên đã triển khai.
+2. Projects và project membership — bước đề xuất tiếp theo.
 3. Tasks, assignment, workflow và status history.
 4. Comments, activity/audit history và notifications.
 5. Documents/attachments nếu khách xác nhận.
@@ -102,6 +105,11 @@ Sao chép `.env.example` thành `.env`. Không commit `.env`.
 | `ENABLE_SWAGGER`             | Bật tài liệu API; mặc định tắt ở production   |
 | `THROTTLE_TTL_MS`/`LIMIT`    | Cửa sổ và số request rate limit mặc định      |
 | `TRUST_PROXY_HOPS`           | Số proxy tin cậy; mặc định 0                  |
+| `JWT_ACCESS_SECRET`          | Khóa ký JWT, tối thiểu 32 ký tự               |
+| `ACCESS_TOKEN_TTL_SECONDS`   | TTL access token, mặc định 900 giây           |
+| `REFRESH_TOKEN_TTL_DAYS`     | TTL refresh session, mặc định 30 ngày         |
+| `AUTH_COOKIE_SECURE`         | Bắt buộc HTTPS cookie; bật ở production       |
+| `SEED_ADMIN_*`               | Tùy chọn tạo admin đầu tiên idempotent        |
 
 ## Tài liệu liên quan
 

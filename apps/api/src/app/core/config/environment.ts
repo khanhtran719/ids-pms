@@ -13,6 +13,13 @@ export interface EnvironmentVariables {
   THROTTLE_TTL_MS: number;
   THROTTLE_LIMIT: number;
   TRUST_PROXY_HOPS: number;
+  JWT_ACCESS_SECRET: string;
+  ACCESS_TOKEN_TTL_SECONDS: number;
+  REFRESH_TOKEN_TTL_DAYS: number;
+  AUTH_COOKIE_SECURE: boolean;
+  SEED_ADMIN_EMAIL?: string;
+  SEED_ADMIN_PASSWORD?: string;
+  SEED_ADMIN_DISPLAY_NAME: string;
 }
 
 function readString(
@@ -61,6 +68,15 @@ function readBoolean(
   if (rawValue === true || rawValue === 'true') return true;
   if (rawValue === false || rawValue === 'false') return false;
   throw new Error(`${key} must be true or false`);
+}
+
+function readOptionalString(
+  environment: Record<string, unknown>,
+  key: string,
+): string | undefined {
+  const rawValue = environment[key];
+  if (typeof rawValue !== 'string') return undefined;
+  return rawValue.trim() || undefined;
 }
 
 function readRuntimeEnvironment(
@@ -114,6 +130,24 @@ export function validateEnvironment(
     throw new Error('JSON_BODY_LIMIT must use a value such as 100kb or 2mb');
   }
 
+  const jwtAccessSecret = readString(environment, 'JWT_ACCESS_SECRET');
+  if (jwtAccessSecret.length < 32) {
+    throw new Error('JWT_ACCESS_SECRET must contain at least 32 characters');
+  }
+  const seedAdminEmail = readOptionalString(environment, 'SEED_ADMIN_EMAIL');
+  const seedAdminPassword = readOptionalString(
+    environment,
+    'SEED_ADMIN_PASSWORD',
+  );
+  if (Boolean(seedAdminEmail) !== Boolean(seedAdminPassword)) {
+    throw new Error(
+      'SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD must be configured together',
+    );
+  }
+  if (seedAdminPassword && seedAdminPassword.length < 12) {
+    throw new Error('SEED_ADMIN_PASSWORD must contain at least 12 characters');
+  }
+
   return {
     NODE_ENV: nodeEnvironment,
     API_PORT: readInteger(environment, 'API_PORT', 3000, 1, 65_535),
@@ -153,5 +187,34 @@ export function validateEnvironment(
     ),
     THROTTLE_LIMIT: readInteger(environment, 'THROTTLE_LIMIT', 120, 1, 10_000),
     TRUST_PROXY_HOPS: readInteger(environment, 'TRUST_PROXY_HOPS', 0, 0, 10),
+    JWT_ACCESS_SECRET: jwtAccessSecret,
+    ACCESS_TOKEN_TTL_SECONDS: readInteger(
+      environment,
+      'ACCESS_TOKEN_TTL_SECONDS',
+      900,
+      60,
+      3_600,
+    ),
+    REFRESH_TOKEN_TTL_DAYS: readInteger(
+      environment,
+      'REFRESH_TOKEN_TTL_DAYS',
+      30,
+      1,
+      90,
+    ),
+    AUTH_COOKIE_SECURE: readBoolean(
+      environment,
+      'AUTH_COOKIE_SECURE',
+      nodeEnvironment === 'production',
+    ),
+    ...(seedAdminEmail
+      ? { SEED_ADMIN_EMAIL: seedAdminEmail.toLowerCase() }
+      : {}),
+    ...(seedAdminPassword ? { SEED_ADMIN_PASSWORD: seedAdminPassword } : {}),
+    SEED_ADMIN_DISPLAY_NAME: readString(
+      environment,
+      'SEED_ADMIN_DISPLAY_NAME',
+      'System Administrator',
+    ),
   };
 }

@@ -55,6 +55,15 @@ Tài liệu này ghi lại các quyết định dài hạn. Không dùng nó tha
 - Lý do: tạo baseline vận hành và contract ổn định trước khi thêm module nghiệp vụ; giảm sai lệch type giữa Angular và NestJS.
 - Hệ quả: OpenAPI vẫn là nguồn chuẩn cho endpoint/DTO nghiệp vụ. Shared contracts không được chứa framework hoặc business logic; e2e phải dùng database `_test` riêng.
 
+## ADR-008 — Phiên đăng nhập JWT ngắn hạn và refresh cookie xoay vòng
+
+- Trạng thái: Accepted
+- Ngày: 2026-08-10
+- Bối cảnh: SPA cần khôi phục phiên thuận tiện nhưng không được lưu bearer token dài hạn trong Web Storage; API cũng cần thu hồi phiên và RBAC ngay từ module đầu tiên.
+- Quyết định: đăng nhập bằng email/mật khẩu; access JWT sống ngắn và chỉ giữ trong bộ nhớ Angular; refresh token ngẫu nhiên nằm trong cookie `HttpOnly`, `SameSite=Strict`, được hash trong MongoDB và xoay vòng một lần mỗi lần refresh. Backend áp dụng RBAC theo permission; vai trò khởi đầu là `admin`, `manager`, `member`.
+- Lý do: giảm phạm vi ảnh hưởng của XSS lên credential dài hạn, cho phép thu hồi/logout phía server và giữ REST contract đơn giản.
+- Hệ quả và trade-off: reload trang cần gọi refresh để khôi phục access token; endpoint dùng cookie bắt buộc có `X-CSRF-Protection`; production phải bật cookie `Secure` và giữ CORS allowlist. Thay đổi role có thể mất tối đa TTL access token để phản ánh trên token đã phát hành.
+
 ## Mẫu ADR mới
 
 ```text

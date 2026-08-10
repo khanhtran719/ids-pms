@@ -1,0 +1,136 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Quản trị truy cập</p>
+    <h1>Người dùng</h1>
+    <p>Quản lý thành viên và vai trò trong workspace.</p>
+  </div>
+  @if (auth.hasPermission('users.manage')) {
+  <button
+    class="primary-button"
+    type="button"
+    (click)="createPanelOpen.set(!createPanelOpen())"
+  >
+    {{ createPanelOpen() ? 'Đóng biểu mẫu' : 'Thêm người dùng' }}
+  </button>
+  }
+</header>
+
+@if (createPanelOpen()) {
+<section class="create-card" aria-labelledby="create-title">
+  <div>
+    <p class="eyebrow">Tài khoản mới</p>
+    <h2 id="create-title">Thêm thành viên</h2>
+  </div>
+  <form [formGroup]="form" (ngSubmit)="createUser()" novalidate>
+    <div class="field">
+      <label for="displayName">Họ tên</label
+      ><input
+        id="displayName"
+        formControlName="displayName"
+        autocomplete="name"
+      />
+    </div>
+    <div class="field">
+      <label for="newUserEmail">Email</label
+      ><input
+        id="newUserEmail"
+        type="email"
+        formControlName="email"
+        autocomplete="off"
+      />
+    </div>
+    <div class="field">
+      <label for="newUserPassword">Mật khẩu tạm thời</label
+      ><input
+        id="newUserPassword"
+        type="password"
+        formControlName="password"
+        autocomplete="new-password"
+      />
+    </div>
+    <div class="field">
+      <label for="roleCode">Vai trò</label
+      ><select id="roleCode" formControlName="roleCode">
+        <option value="member">Member</option>
+        <option value="manager">Manager</option>
+        <option value="admin">Admin</option>
+      </select>
+    </div>
+    @if (createError()) {
+    <p class="form-message form-message--error" role="alert">
+      {{ createError() }}
+    </p>
+    }
+    <button
+      class="primary-button"
+      type="submit"
+      [disabled]="form.invalid || creating()"
+    >
+      {{ creating() ? 'Đang tạo…' : 'Tạo tài khoản' }}
+    </button>
+  </form>
+</section>
+} @if (createSuccess()) {
+<p class="success-message" role="status">{{ createSuccess() }}</p>
+}
+
+<section
+  class="users-card"
+  aria-labelledby="users-list-title"
+  aria-live="polite"
+>
+  <div class="card-heading">
+    <h2 id="users-list-title">Danh sách thành viên</h2>
+    @if (state().kind === 'ready') { @if (state(); as current) { @if
+    (current.kind === 'ready') {
+    <span>{{ current.value.meta.totalItems }} tài khoản</span> } } }
+  </div>
+  @switch (state().kind) { @case ('loading') {
+  <div class="state" aria-busy="true">Đang tải danh sách người dùng…</div>
+  } @case ('error') {
+  <div class="state state--error" role="alert">
+    <span>Không thể tải danh sách.</span
+    ><button type="button" (click)="load()">Thử lại</button>
+  </div>
+  } @case ('ready') { @if (state(); as current) { @if (current.kind === 'ready')
+  { @if (current.value.data.length === 0) {
+  <div class="state">Chưa có người dùng nào.</div>
+  } @else {
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Thành viên</th>
+          <th>Vai trò</th>
+          <th>Trạng thái</th>
+          <th>Ngày tạo</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of current.value.data; track user.id) {
+        <tr>
+          <td>
+            <span class="user-cell"
+              ><span class="mini-avatar" aria-hidden="true"
+                >{{ user.displayName.slice(0, 1).toUpperCase() }}</span
+              ><span
+                ><strong>{{ user.displayName }}</strong
+                ><small>{{ user.email }}</small></span
+              ></span
+            >
+          </td>
+          <td>
+            <span class="role-badge">{{ user.roleCodes.join(', ') }}</span>
+          </td>
+          <td>
+            <span class="status-dot"></span>{{ user.status === 'active' ? 'Hoạt
+            động' : 'Đã khóa' }}
+          </td>
+          <td>{{ user.createdAt | date: 'dd/MM/yyyy' }}</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+  } } } } }
+</section>

@@ -76,7 +76,12 @@
           "API_PORT": "3100",
           "WEB_ORIGIN": "http://localhost:4200",
           "MONGODB_URI": "mongodb://localhost:27017/project_ql_test?replicaSet=rs0&directConnection=true",
-          "ENABLE_SWAGGER": "false"
+          "ENABLE_SWAGGER": "false",
+          "JWT_ACCESS_SECRET": "e2e-signing-key-used-only-for-automated-tests",
+          "AUTH_COOKIE_SECURE": "false",
+          "SEED_ADMIN_EMAIL": "admin.e2e@example.test",
+          "SEED_ADMIN_PASSWORD": "E2e-only-password-123!",
+          "SEED_ADMIN_DISPLAY_NAME": "E2E Administrator"
         }
       }
     },

@@ -1,0 +1,102 @@
+:host {
+  display: block;
+  max-width: 52rem;
+}
+.eyebrow {
+  margin: 0 0 0.55rem;
+  color: #148266;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+h1 {
+  margin: 0;
+  color: #172522;
+  font-size: clamp(2rem, 5vw, 3rem);
+  letter-spacing: -0.05em;
+}
+.page-header > p:last-child {
+  margin: 0.75rem 0 2rem;
+  color: #67736f;
+}
+.profile-card {
+  overflow: hidden;
+  border: 1px solid #dce3e0;
+  border-radius: 0.8rem;
+  background: #fff;
+}
+.identity {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-bottom: 1px solid #e3e9e6;
+}
+.avatar {
+  display: grid;
+  width: 3.25rem;
+  height: 3.25rem;
+  place-items: center;
+  border-radius: 0.75rem;
+  color: #fff;
+  background: #176e59;
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+h2,
+.identity p {
+  margin: 0;
+}
+.identity p {
+  margin-top: 0.25rem;
+  color: #74807c;
+}
+.active-badge {
+  border-radius: 999px;
+  padding: 0.4rem 0.7rem;
+  color: #176e59;
+  background: #eaf7f2;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+dl {
+  margin: 0;
+}
+dl > div {
+  display: grid;
+  grid-template-columns: 11rem 1fr;
+  gap: 1rem;
+  padding: 1rem 1.5rem;
+}
+dl > div + div {
+  border-top: 1px solid #edf0ef;
+}
+dt {
+  color: #7a8581;
+  font-size: 0.82rem;
+}
+dd {
+  margin: 0;
+  color: #273632;
+  font-weight: 650;
+}
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.8rem;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 38rem) {
+  .identity {
+    grid-template-columns: auto 1fr;
+  }
+  .active-badge {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+  dl > div {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+}
