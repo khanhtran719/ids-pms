@@ -1,0 +1,121 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Đối soát danh mục</p>
+    <h1>Chất lượng dữ liệu</h1>
+    <p>Phát hiện sớm dữ liệu thiếu, xung đột và tiến độ cần xử lý.</p>
+  </div>
+  <span class="source-chip">Theo mockup IDS · chỉ đọc</span>
+</header>
+
+@if (state(); as current) { @if (current.kind === 'ready') {
+<section class="metric-grid" aria-label="Tóm tắt chất lượng dữ liệu">
+  <article>
+    <span>Dự án có cảnh báo</span>
+    <strong>{{ current.value.summary.affectedProjects }}/{{ current.value.summary.totalProjects }}</strong>
+    <small>trong phạm vi bạn được truy cập</small>
+  </article>
+  <article>
+    <span>Tổng điểm cần xử lý</span>
+    <strong>{{ current.value.summary.totalIssues }}</strong>
+    <small>tính theo dự án và task</small>
+  </article>
+  <article class="metric--warning">
+    <span>Xung đột / thiếu CAPEX</span>
+    <strong>{{ current.value.summary.dataConflictProjects + current.value.summary.missingCapexProjects }}</strong>
+    <small>{{ current.value.summary.dataConflictProjects }} xung đột · {{ current.value.summary.missingCapexProjects }} thiếu CAPEX</small>
+  </article>
+  <article class="metric--critical">
+    <span>Tiến độ cần chú ý</span>
+    <strong>{{ current.value.summary.overdueTasks + current.value.summary.missingActualEndTasks }}</strong>
+    <small>{{ current.value.summary.overdueTasks }} quá hạn · {{ current.value.summary.missingActualEndTasks }} thiếu ngày thật</small>
+  </article>
+</section>
+} }
+
+<section class="toolbar" aria-label="Bộ lọc chất lượng dữ liệu">
+  <div class="field field--search">
+    <label for="qualitySearch">Tìm dự án</label>
+    <input
+      id="qualitySearch"
+      type="search"
+      [formControl]="searchControl"
+      placeholder="Mã, tên hoặc chủ đầu tư"
+    />
+  </div>
+  <div class="field">
+    <label for="qualityIssueType">Loại cảnh báo</label>
+    <select id="qualityIssueType" [formControl]="issueTypeFilter">
+      <option value="">Tất cả cảnh báo</option>
+      <option value="data_conflict">Xung đột nguồn</option>
+      <option value="missing_capex">Thiếu CAPEX</option>
+      <option value="missing_task_plan">Thiếu kế hoạch</option>
+      <option value="overdue_task">Task quá hạn</option>
+      <option value="missing_actual_end">Thiếu ngày thực tế</option>
+    </select>
+  </div>
+  <button class="secondary-button" type="button" (click)="clearFilters()">
+    Xóa bộ lọc
+  </button>
+</section>
+
+@switch (state().kind) {
+  @case ('loading') {
+  <div class="state-panel loading-state" aria-busy="true">
+    Đang phân tích chất lượng dữ liệu…
+  </div>
+  }
+  @case ('error') {
+  <div class="state-panel state-panel--error" role="alert">
+    <span>Không thể tải báo cáo chất lượng dữ liệu.</span>
+    <button type="button" (click)="load()">Thử lại</button>
+  </div>
+  }
+  @case ('ready') {
+    @if (state(); as current) { @if (current.kind === 'ready') {
+    @if (current.value.data.length === 0) {
+    <section class="empty-state" role="status">
+      <span aria-hidden="true">✓</span>
+      @if (current.value.summary.affectedProjects === 0) {
+      <h2>Không phát hiện cảnh báo</h2>
+      <p>Toàn bộ dự án trong phạm vi hiện tại đã vượt qua các kiểm tra v1.</p>
+      } @else {
+      <h2>Không có dự án phù hợp bộ lọc</h2>
+      <p>Thử thay đổi loại cảnh báo hoặc nội dung tìm kiếm.</p>
+      }
+    </section>
+    } @else {
+    <section class="issue-list" aria-label="Danh sách dự án có cảnh báo">
+      <header class="issue-head" aria-hidden="true">
+        <span>Dự án</span><span>Cảnh báo</span><span>Thiếu kế hoạch</span><span>Quá hạn</span><span>Cập nhật</span><span></span>
+      </header>
+      @for (item of current.value.data; track item.projectId) {
+      <article class="issue-row">
+        <div class="project-cell">
+          <strong>{{ item.projectCode }}</strong>
+          <span>{{ item.projectName }}</span>
+          <small>{{ item.investor || 'Chưa có chủ đầu tư' }}{{ item.province ? ' · ' + item.province : '' }}</small>
+        </div>
+        <div class="issue-chips" [attr.aria-label]="item.issueCount + ' cảnh báo'">
+          @for (issue of item.issueTypes; track issue) {
+          <span [attr.data-issue]="issue">{{ issueLabel(issue) }}</span>
+          }
+        </div>
+        <div class="count-cell"><small>Thiếu kế hoạch</small><strong>{{ item.missingTaskPlanCount }}</strong></div>
+        <div class="count-cell"><small>Task quá hạn</small><strong>{{ item.overdueTaskCount }}</strong></div>
+        <time [attr.datetime]="item.updatedAt">{{ item.updatedAt | date: 'dd/MM/yyyy' }}</time>
+        <a class="detail-link" [routerLink]="['/projects', item.projectId]">Kiểm tra dự án</a>
+      </article>
+      }
+    </section>
+
+    <nav class="pagination" aria-label="Phân trang chất lượng dữ liệu">
+      <span>Trang {{ current.value.meta.page }} / {{ current.value.meta.totalPages }}</span>
+      <div>
+        <button type="button" (click)="previousPage()" [disabled]="!current.value.meta.hasPreviousPage">Trước</button>
+        <button type="button" (click)="nextPage()" [disabled]="!current.value.meta.hasNextPage">Sau</button>
+      </div>
+    </nav>
+    }
+    } }
+  }
+}

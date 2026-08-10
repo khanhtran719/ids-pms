@@ -255,3 +255,47 @@ export interface UpdateTaskRequest {
   actualEndDate?: string | null;
   status?: TaskStatus;
 }
+
+export type DataQualityIssueType =
+  | 'data_conflict'
+  | 'missing_capex'
+  | 'missing_task_plan'
+  | 'overdue_task'
+  | 'missing_actual_end';
+
+export interface DataQualitySummary {
+  totalProjects: number;
+  affectedProjects: number;
+  totalIssues: number;
+  dataConflictProjects: number;
+  missingCapexProjects: number;
+  missingTaskPlanProjects: number;
+  overdueTasks: number;
+  missingActualEndTasks: number;
+}
+
+export interface DataQualityProjectIssue {
+  projectId: string;
+  projectCode: string;
+  projectName: string;
+  investor?: string;
+  province?: string;
+  issueTypes: DataQualityIssueType[];
+  issueCount: number;
+  missingTaskPlanCount: number;
+  overdueTaskCount: number;
+  missingActualEndCount: number;
+  updatedAt: string;
+}
+
+export interface DataQualityReportResponse
+  extends PaginatedResponse<DataQualityProjectIssue> {
+  summary: DataQualitySummary;
+}
+
+export interface ListDataQualityRequest {
+  page?: number;
+  limit?: number;
+  issueType?: DataQualityIssueType;
+  search?: string;
+}

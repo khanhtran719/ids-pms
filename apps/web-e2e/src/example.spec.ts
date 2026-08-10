@@ -90,6 +90,27 @@ test('logs an administrator in and exposes authorized navigation', async ({
   await expect(page.getByText('0/5 hoàn thành')).toBeVisible();
   await expect(page.getByText('Hồ sơ thiết kế phê duyệt')).toBeVisible();
 
+  await page.getByRole('link', { name: 'Chất lượng' }).click();
+  await expect(page).toHaveURL(/\/data-quality$/);
+  await expect(
+    page.getByRole('heading', { name: 'Chất lượng dữ liệu' }),
+  ).toBeVisible();
+  const qualityRow = page.locator('.issue-row').filter({
+    hasText: 'Web E2E Project',
+  });
+  await expect(qualityRow).toBeVisible();
+  const qualityChips = qualityRow.locator('.issue-chips');
+  await expect(qualityChips.getByText('Thiếu CAPEX')).toBeVisible();
+  await expect(qualityChips.getByText('Thiếu kế hoạch')).toBeVisible();
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(qualityRow).toBeVisible();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+    ),
+  ).toBe(true);
+  await page.setViewportSize({ width: 1280, height: 720 });
+
   await page
     .locator('aside')
     .getByRole('button', { name: 'Đăng xuất' })

@@ -487,3 +487,84 @@ describe('Project task plan lifecycle', () => {
     });
   });
 });
+
+describe('Data quality report lifecycle', () => {
+  it('summarizes accessible project and task issues without leaking project scope', async () => {
+    const adminAuthorization = lifecycleAdminAuthorization;
+    const memberAuthorization = lifecycleMemberAuthorization;
+    const project = await axios.post(
+      '/api/v1/projects',
+      {
+        code: 'DQ-E2E',
+        name: 'Data Quality E2E',
+        investor: 'IDS Quality Investor',
+        dataConflict: true,
+      },
+      { headers: adminAuthorization },
+    );
+    const projectId = project.data.id as string;
+    const initialized = await axios.post(
+      `/api/v1/projects/${projectId}/tasks/initialize`,
+      {},
+      { headers: adminAuthorization },
+    );
+    await axios.patch(
+      `/api/v1/tasks/${initialized.data[0].id as string}`,
+      {
+        plannedStartDate: '2020-01-01',
+        plannedEndDate: '2020-01-02',
+        status: 'in_progress',
+      },
+      { headers: adminAuthorization },
+    );
+
+    const outsideMemberScope = await axios.get(
+      '/api/v1/data-quality?search=DQ-E2E',
+      { headers: memberAuthorization },
+    );
+    expect(outsideMemberScope.data.meta.totalItems).toBe(0);
+
+    await axios.post(
+      `/api/v1/projects/${projectId}/members`,
+      { userId: lifecycleMemberId, role: 'member' },
+      { headers: adminAuthorization },
+    );
+    const report = await axios.get(
+      '/api/v1/data-quality?page=1&limit=20&issueType=overdue_task&search=IDS%20Quality',
+      { headers: memberAuthorization },
+    );
+    expect(report.data).toMatchObject({
+      data: [
+        {
+          projectId,
+          projectCode: 'DQ-E2E',
+          projectName: 'Data Quality E2E',
+          issueTypes: expect.arrayContaining([
+            'data_conflict',
+            'missing_capex',
+            'missing_task_plan',
+            'overdue_task',
+          ]),
+          issueCount: 7,
+          missingTaskPlanCount: 4,
+          overdueTaskCount: 1,
+          missingActualEndCount: 0,
+        },
+      ],
+      meta: expect.objectContaining({ totalItems: 1 }),
+      summary: expect.objectContaining({
+        totalProjects: expect.any(Number),
+        affectedProjects: expect.any(Number),
+        totalIssues: expect.any(Number),
+        overdueTasks: expect.any(Number),
+      }),
+    });
+
+    const invalidFilter = await axios.get(
+      '/api/v1/data-quality?issueType=unknown',
+      { headers: adminAuthorization, validateStatus: () => true },
+    );
+    expect(invalidFilter.status).toBe(400);
+    expect(invalidFilter.data.code).toBe('VALIDATION_ERROR');
+  });
+});

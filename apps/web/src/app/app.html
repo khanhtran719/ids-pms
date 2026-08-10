@@ -19,6 +19,11 @@
       <a routerLink="/tasks" routerLinkActive="active"
         ><span aria-hidden="true">✓</span>Tiến độ</a
       >
+      } @if (auth.hasPermission('projects.read') &&
+      auth.hasPermission('tasks.read')) {
+      <a routerLink="/data-quality" routerLinkActive="active"
+        ><span aria-hidden="true">!</span>Chất lượng</a
+      >
       } @if (auth.hasPermission('users.read')) {
       <a routerLink="/users" routerLinkActive="active"
         ><span aria-hidden="true">♙</span>Người dùng</a

@@ -20,6 +20,8 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 - Angular có trang Tiến độ thi công bám mockup IDS: KPI, lọc trạng thái, nhóm 5 bước theo dự án, khởi tạo kế hoạch và cập nhật ngày/trạng thái.
 - NestJS có task list theo project scope, khởi tạo 5 bước idempotent và ràng buộc task hoàn thành phải có ngày kết thúc thực tế.
 - Task list join project/membership và tính overview bằng một MongoDB aggregation `$facet`, không query N+1.
+- Angular có trang Chất lượng dữ liệu v1: KPI theo phạm vi truy cập, tìm kiếm, lọc cảnh báo, phân trang và liên kết về dự án cần xử lý.
+- NestJS tổng hợp xung đột nguồn, thiếu CAPEX, thiếu kế hoạch 5 bước, task quá hạn và thiếu ngày thực tế bằng một aggregation `$facet`; không lưu bản sao cảnh báo và không query N+1.
 - Mật khẩu hash bằng Argon2id; refresh token chỉ lưu dạng SHA-256 hash; endpoint auth có throttling và CSRF custom header.
 - Swagger được phục vụ tại `/api/docs`.
 - API có request ID, error contract, structured request log, security headers, body limit, CORS allowlist và rate limit mặc định.
@@ -81,8 +83,9 @@ Thứ tự phát triển được đề xuất, chưa đồng nghĩa với yêu 
 2. Projects và project membership — đã triển khai lát cắt đầu tiên.
 3. Tasks và tiến độ 5 bước theo project — đã triển khai lát cắt đầu tiên.
 4. Dữ liệu project đặc thù IDS và portfolio filters — đã triển khai lát cắt đầu tiên theo mockup, vẫn chờ xác nhận nguồn chuẩn/quy tắc import.
-5. Hợp đồng nhà mạng; sau đó mới đến doanh thu, công nợ và hoàn vốn.
-6. CRM, comment/activity/notification và dashboard nghiệp vụ sau khi chốt workflow/KPI.
+5. Chất lượng dữ liệu dạng read-only — đã triển khai lát cắt v1; workflow duyệt/đóng cảnh báo chờ khách xác nhận.
+6. Hợp đồng nhà mạng; sau đó mới đến doanh thu, công nợ và hoàn vốn.
+7. CRM, comment/activity/notification và dashboard nghiệp vụ sau khi chốt workflow/KPI.
 
 ## Điểm truy cập local
 

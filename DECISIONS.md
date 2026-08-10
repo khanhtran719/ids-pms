@@ -91,6 +91,15 @@ Tài liệu này ghi lại các quyết định dài hạn. Không dùng nó tha
 - Lý do: bám giao diện/ngôn ngữ nghiệp vụ của mockup mà không đổi nghĩa contract đang chạy hoặc giả định snapshot là dữ liệu kế toán chính thức.
 - Hệ quả và trade-off: cần chốt mapping/import dữ liệu chữ hoa và chính sách cho dự án thiếu mã. Khi module hợp đồng/tài chính được triển khai, các snapshot phải được tính hoặc đồng bộ từ nguồn chi tiết thay vì nhập rời rạc lâu dài.
 
+## ADR-012 — Cảnh báo chất lượng dữ liệu được tính theo thời điểm đọc
+
+- Trạng thái: Accepted, temporary
+- Ngày: 2026-08-11
+- Bối cảnh: mockup cần theo dõi dữ liệu thiếu/xung đột, nhưng khách chưa chốt quy trình phân công, duyệt, đóng hoặc bỏ qua cảnh báo.
+- Quyết định: Data Quality v1 chỉ đọc và tính cảnh báo trực tiếp từ project/task trong một MongoDB aggregation. Một project bị cảnh báo khi có `dataConflict`, thiếu `capex`, thiếu bước/ngày kế hoạch trong kế hoạch 5 bước, task chưa hoàn thành đã quá `plannedEndDate`, hoặc task hoàn thành thiếu `actualEndDate`. Response gồm summary toàn scope và danh sách cảnh báo đã lọc/phân trang trong cùng request.
+- Lý do: có giá trị đối soát ngay, không tạo collection trạng thái dễ lệch nguồn và tránh hai round trip/N+1 cho một màn hình.
+- Hệ quả và trade-off: kết quả phụ thuộc thời điểm request; task quá hạn có thể thay đổi qua ngày mà không có write event. Chưa có assignee, lịch sử xử lý, lý do bỏ qua hay trạng thái đóng cảnh báo. Nếu khách chốt workflow, bổ sung entity riêng và ADR mới thay vì biến dữ liệu dẫn xuất hiện tại thành workflow ngầm.
+
 ## Mẫu ADR mới
 
 ```text

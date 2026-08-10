@@ -95,7 +95,7 @@ Log được tạo trong `.ai-work/`. Toàn bộ thư mục này đã được G
 - E2E dùng cổng `3100` và MongoDB `project_ql_test`, tách khỏi dữ liệu dev.
 - Mongoose quản lý schema và truy cập MongoDB; GraphQL chưa đưa vào giai đoạn đầu.
 - MongoDB chạy replica set ngay từ local để hỗ trợ transaction cho các luồng nghiệp vụ nhiều collection.
-- Module nghiệp vụ tách theo domain; `auth`, `users`, `projects` và lát cắt tiến độ 5 bước của `tasks` đã có.
+- Module nghiệp vụ tách theo domain; `auth`, `users`, `projects`, tiến độ 5 bước `tasks` và báo cáo `data-quality` read-only đã có.
 - Auth hiện dùng access JWT 15 phút trong memory và refresh cookie HttpOnly xoay vòng; frontend không lưu token vào `localStorage`/`sessionStorage`.
 - Project dùng membership `owner`/`manager`/`member`; creator là owner đầu tiên trong transaction và không thể xóa hoặc hạ vai trò owner cuối cùng.
 - File service dùng adapter local trước; đường dẫn vật lý không được lưu rải rác trong logic nghiệp vụ để sau này đổi sang S3/MinIO mà không sửa toàn hệ thống.

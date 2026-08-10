@@ -18,7 +18,7 @@ Nếu mockup mâu thuẫn với yêu cầu mới của khách hàng, yêu cầu 
 | Công nợ | Phải thu, đã thu, còn nợ, quá hạn theo hợp đồng/kỳ | Chưa triển khai | Mockup xác nhận file nguồn chưa có hóa đơn, hạn thanh toán và số đã thu |
 | Hoàn vốn | So sánh CPĐT với doanh thu lũy kế | Chưa triển khai | Nhiều dự án thiếu CPĐT; cần chốt CAPEX gồm khoản nào và cách tính hoàn vốn |
 | Cơ hội kinh doanh | Pipeline cơ hội theo vùng, giai đoạn, người phụ trách và tính khả thi | Chưa triển khai | Quy tắc chuyển giai đoạn, xác suất, owner, lịch sử hoạt động và chuyển thành project |
-| Chất lượng dữ liệu | Theo dõi mã thiếu, xung đột nguồn, thiếu CAPEX/kế hoạch/ngày thật/owner | Chưa triển khai dashboard | Quyền sửa dữ liệu, quy trình đối soát, nguồn ưu tiên và cách đóng cảnh báo |
+| Chất lượng dữ liệu | Theo dõi mã thiếu, xung đột nguồn, thiếu CAPEX/kế hoạch/ngày thật/owner | Đã triển khai dashboard read-only v1 cho xung đột, CAPEX và tiến độ; chưa có mã thiếu/owner do invariant hiện tại | Quyền sửa dữ liệu, quy trình đối soát, nguồn ưu tiên và cách đóng cảnh báo |
 
 ## Contract tạm thời cho tiến độ thi công
 
@@ -57,6 +57,16 @@ Quy tắc đang áp dụng:
 - Chưa tự sinh kế hoạch khi project chuyển trạng thái; hiện người dùng chủ động bấm khởi tạo.
 - Chưa có dependency giữa các bước, phần trăm hoàn thành, người được giao, bình luận, file hoặc lịch sử thay đổi.
 - Chưa gửi thông báo task trễ hạn.
-- Chưa triển khai bản ghi hợp đồng, doanh thu/chi phí theo kỳ, công nợ, hoàn vốn, CRM hoặc workflow xử lý cảnh báo chất lượng dữ liệu. Các số tổng hợp trên project chưa thay thế các module này.
+- Chưa triển khai bản ghi hợp đồng, doanh thu/chi phí theo kỳ, công nợ, hoàn vốn, CRM hoặc workflow phân công/duyệt/đóng cảnh báo chất lượng dữ liệu. Dashboard v1 chỉ tính cảnh báo dẫn xuất và liên kết về màn hình dự án; các số tổng hợp trên project chưa thay thế các module nguồn.
+
+## Contract tạm thời cho chất lượng dữ liệu v1
+
+- Báo cáo được scope theo project membership; người có `projects.manage` xem toàn portfolio. Endpoint đồng thời yêu cầu `projects.read` và `tasks.read`.
+- `data_conflict`: project có `dataConflict=true`; `missing_capex`: project chưa có field `capex`.
+- `missing_task_plan`: thiếu một trong 5 bước chuẩn hoặc task hiện có chưa đủ cặp ngày bắt đầu/kết thúc kế hoạch. Mỗi bước thiếu/chưa đủ ngày tính một điểm.
+- `overdue_task`: task chưa `done`, có ngày kết thúc kế hoạch và ngày này đã qua tại thời điểm request.
+- `missing_actual_end`: task có trạng thái `done` nhưng thiếu ngày kết thúc thực tế; kiểm tra này bảo vệ dữ liệu legacy/import dù API write hiện đã chặn trạng thái đó.
+- Summary toàn scope và danh sách lọc/phân trang được tính trong cùng một MongoDB aggregation `$facet`; tìm kiếm theo mã, tên hoặc chủ đầu tư.
+- V1 không lưu cảnh báo thành collection riêng, không có assignee, SLA, bình luận, lý do bỏ qua hoặc trạng thái đóng.
 
 Các mục trên chỉ được bổ sung sau khi chốt contract tương ứng để tránh khóa hệ thống vào giả định từ dữ liệu minh họa.

@@ -62,3 +62,11 @@ Project code được trim và chuẩn hóa uppercase. `status` quản trị h�
 - `PATCH /api/v1/tasks/:taskId`: cập nhật phòng ban, ngày kế hoạch, ngày kết thúc thực tế và trạng thái.
 
 Task status là `todo`, `in_progress`, `done`. `plannedEndDate` không được trước `plannedStartDate`; `done` bắt buộc có `actualEndDate` và trạng thái khác `done` không được giữ ngày này. Các mã lỗi ổn định gồm `TASK_NOT_FOUND`, `TASK_DATE_INVALID`, `TASK_DATE_RANGE_INVALID`, `TASK_ACTUAL_END_REQUIRED` và `TASK_ACTUAL_END_STATUS_INVALID`.
+
+## Chất lượng dữ liệu
+
+- `GET /api/v1/data-quality`: trả summary toàn bộ project trong scope và danh sách project có cảnh báo đã phân trang.
+- Query hỗ trợ `page`, `limit`, `search` và `issueType`; `issueType` nhận `data_conflict`, `missing_capex`, `missing_task_plan`, `overdue_task`, `missing_actual_end`.
+- Endpoint yêu cầu đồng thời `projects.read` và `tasks.read`; người có `projects.manage` xem toàn bộ, người còn lại chỉ xem project đã có membership.
+
+Response có `{ data, meta, summary }`. `summary` không thay đổi theo search/issue filter để luôn phản ánh toàn scope truy cập; `data` và `meta` phản ánh bộ lọc hiện tại. Tất cả phép tính và pagination chạy trong một MongoDB aggregation, không tải collection về application memory.

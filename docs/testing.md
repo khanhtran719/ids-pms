@@ -15,7 +15,7 @@ Baseline được khóa riêng theo ứng dụng:
 | API      |        91% |      73% |       93% |   92% |
 | Web      |        89% |      71% |       86% |   90% |
 
-Đây là regression floor, không phải mức trần. Sau lát cắt Tasks, API đạt 92.51% statements, 76.24% branches, 94.11% functions và 93.10% lines; Web đạt 89.48%, 73.73%, 86.02% và 90.99% tương ứng. Mục tiêu kế tiếp là nâng branch coverage lên 80%, ưu tiên authorization, transaction, validation và state bất đồng bộ. Khi coverage tăng ổn định, nâng threshold cùng thay đổi test tương ứng; không hạ threshold hoặc thêm exclusion chỉ để làm CI xanh.
+Đây là regression floor, không phải mức trần. Sau lát cắt Data Quality v1, API đạt 92.91% statements, 76.00% branches, 94.73% functions và 93.42% lines; Web đạt 90.87%, 79.39%, 88.16% và 92.38% tương ứng. Mục tiêu kế tiếp là đưa branch coverage ổn định trên 80%, ưu tiên authorization, transaction, validation và state bất đồng bộ. Khi coverage tăng ổn định, nâng threshold cùng thay đổi test tương ứng; không hạ threshold hoặc thêm exclusion chỉ để làm CI xanh.
 
 Các lệnh:
 
@@ -34,6 +34,8 @@ Auth API e2e dùng duy nhất fixture credential giả trong source test. Suite 
 Projects API e2e kiểm tra tạo project/owner trong transaction, code trùng, scope danh sách theo membership, candidate directory, quyền member, cập nhật, aggregate member list và invariant owner cuối cùng. Browser e2e đi xuyên hành trình admin đăng nhập, xem users, tạo project và thấy owner trên trang chi tiết.
 
 Tasks API e2e kiểm tra khởi tạo 5 bước idempotent, scope task theo membership, quyền read-only member, rule ngày hoàn thành thực tế và filter trạng thái. Browser e2e tiếp tục hành trình project bằng việc mở Tiến độ, khởi tạo kế hoạch và nhìn thấy đủ 5 bước trên Angular.
+
+Data Quality API e2e kiểm tra aggregation thật trên MongoDB, scope membership, tìm kiếm/loại cảnh báo, quy tắc đếm kế hoạch thiếu/task quá hạn và validation query. Browser e2e mở trang Chất lượng từ navigation, nhìn thấy project vừa tạo cùng cảnh báo CAPEX/kế hoạch dẫn xuất.
 
 Chạy local:
 

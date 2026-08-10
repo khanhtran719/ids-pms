@@ -67,3 +67,11 @@ Các feature lớn lazy-load theo route. `core/` chỉ dành cho singleton toàn
 3. Task list join project và membership ngay trong MongoDB; `$facet` trả page data, total và overview trong một aggregate để tránh N+1 và tránh các vòng xử lý lặp không cần thiết ở application service.
 4. Người không có `projects.manage` bị scope bằng `project_memberships` trong pipeline. Write endpoint vẫn yêu cầu `tasks.manage` và quyền đọc project nền.
 5. Application service merge trạng thái hiện tại với patch rồi kiểm tra date range và invariant `done <=> actualEndDate` trước một atomic update.
+
+## Luồng chất lượng dữ liệu
+
+1. Angular debounce nội dung tìm kiếm 300 ms; mỗi query mới đi qua `switchMap` để hủy request cũ không còn giá trị.
+2. API áp dụng scope project giống danh mục dự án, sau đó `$lookup` task theo từng project bên trong một aggregation.
+3. Pipeline tính số bước/ngày kế hoạch thiếu, task quá hạn, task hoàn thành thiếu ngày thật cùng cờ xung đột/CAPEX từ project.
+4. `$facet` trả summary toàn scope, page data và total cho bộ lọc trong cùng query; application service chỉ ghép pagination contract, không duyệt lại mảng kết quả.
+5. Cảnh báo v1 là dữ liệu dẫn xuất tại thời điểm đọc, không lưu collection và không ngầm tạo workflow khi khách chưa xác nhận.

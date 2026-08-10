@@ -41,6 +41,18 @@ export const appRoutes: Route[] = [
       ),
   },
   {
+    path: 'data-quality',
+    canActivate: [
+      authGuard,
+      permissionGuard('projects.read'),
+      permissionGuard('tasks.read'),
+    ],
+    loadComponent: () =>
+      import('./features/data-quality/data-quality.page').then(
+        (module) => module.DataQualityPage,
+      ),
+  },
+  {
     path: 'users',
     canActivate: [authGuard, permissionGuard('users.read')],
     loadComponent: () =>
