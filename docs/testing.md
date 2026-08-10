@@ -15,7 +15,7 @@ Baseline được khóa riêng theo ứng dụng:
 | API      |        91% |      73% |       93% |   92% |
 | Web      |        89% |      71% |       86% |   90% |
 
-Đây là regression floor được làm tròn xuống từ kết quả đo hiện tại: API đạt 91.82% statements, 73.55% branches, 93.04% functions và 92.24% lines; Web đạt 89.50%, 71.42%, 86.23% và 90.53% tương ứng. Mục tiêu kế tiếp là nâng branch coverage lên 80%, ưu tiên authorization, transaction, validation và state bất đồng bộ. Khi coverage tăng ổn định, nâng threshold cùng thay đổi test tương ứng; không hạ threshold hoặc thêm exclusion chỉ để làm CI xanh.
+Đây là regression floor, không phải mức trần. Sau lát cắt Tasks, API đạt 92.51% statements, 76.24% branches, 94.11% functions và 93.10% lines; Web đạt 89.48%, 73.73%, 86.02% và 90.99% tương ứng. Mục tiêu kế tiếp là nâng branch coverage lên 80%, ưu tiên authorization, transaction, validation và state bất đồng bộ. Khi coverage tăng ổn định, nâng threshold cùng thay đổi test tương ứng; không hạ threshold hoặc thêm exclusion chỉ để làm CI xanh.
 
 Các lệnh:
 
@@ -27,11 +27,13 @@ npm run test:coverage:web
 
 HTML và LCOV/JSON summary được tạo dưới `coverage/apps/api` và `coverage/apps/web`; toàn bộ `coverage/` là generated artifact và đã được Git ignore.
 
-API e2e chạy ở cổng `3100` và chỉ dùng database có hậu tố `_test`. Global setup/teardown từ chối database dev và tự drop test database trước/sau suite.
+API e2e và browser e2e chạy ở cổng API `3100`, chỉ dùng database có hậu tố `_test`. Hai suite dùng chung global setup/teardown an toàn để từ chối database dev, drop/seed trước suite và dọn database sau suite; browser test vì vậy có thể chạy lại sau một lần thất bại mà không gặp dữ liệu trùng.
 
 Auth API e2e dùng duy nhất fixture credential giả trong source test. Suite kiểm tra CSRF, lỗi credential chung, cờ cookie, phân quyền, không lộ password hash, refresh rotation/replay và logout revocation. Đây không phải credential dùng cho dev hay production.
 
 Projects API e2e kiểm tra tạo project/owner trong transaction, code trùng, scope danh sách theo membership, candidate directory, quyền member, cập nhật, aggregate member list và invariant owner cuối cùng. Browser e2e đi xuyên hành trình admin đăng nhập, xem users, tạo project và thấy owner trên trang chi tiết.
+
+Tasks API e2e kiểm tra khởi tạo 5 bước idempotent, scope task theo membership, quyền read-only member, rule ngày hoàn thành thực tế và filter trạng thái. Browser e2e tiếp tục hành trình project bằng việc mở Tiến độ, khởi tạo kế hoạch và nhìn thấy đủ 5 bước trên Angular.
 
 Chạy local:
 

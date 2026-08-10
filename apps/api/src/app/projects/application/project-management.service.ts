@@ -8,12 +8,12 @@ import {
 } from '@nestjs/common';
 import type {
   CreateProjectRequest,
+  ListProjectsRequest,
   PaginatedResponse,
   PermissionCode,
   ProjectDetail,
   ProjectMember,
   ProjectMemberCandidate,
-  ProjectStatus,
   UpdateProjectRequest,
   UpsertProjectMemberRequest,
 } from '@project-ql/api-contracts';
@@ -24,10 +24,19 @@ import {
 import {
   PROJECT_REPOSITORY,
   PROJECT_USER_DIRECTORY,
+  type CreateProjectRecord,
   type ProjectRepository,
   type ProjectUserDirectory,
   type UpdateProjectRecord,
 } from './project-management.ports';
+
+type ProjectTextField =
+  | 'address'
+  | 'province'
+  | 'investor'
+  | 'projectType'
+  | 'scaleDescription'
+  | 'investmentUnit';
 
 @Injectable()
 export class ProjectManagementService {
@@ -51,6 +60,7 @@ export class ProjectManagementService {
     }
     const startDate = this.parseDate(input.startDate);
     const dueDate = this.parseDate(input.dueDate);
+    const signedDate = this.parseDate(input.signedDate);
     this.assertDateRange(startDate, dueDate);
     return this.projects.createWithOwner({
       code,
@@ -59,6 +69,9 @@ export class ProjectManagementService {
         ? { description: input.description.trim() }
         : {}),
       status: input.status ?? 'planning',
+      operationalStatus: input.operationalStatus ?? 'not_started',
+      ...(signedDate ? { signedDate } : {}),
+      ...this.normalizeCreatePortfolioFields(input),
       ...(startDate ? { startDate } : {}),
       ...(dueDate ? { dueDate } : {}),
       createdBy: actorId,
@@ -71,14 +84,19 @@ export class ProjectManagementService {
     permissions: readonly PermissionCode[],
     pageValue: number,
     limitValue: number,
-    status?: ProjectStatus,
+    filters: Omit<ListProjectsRequest, 'page' | 'limit'> = {},
   ): Promise<PaginatedResponse<ProjectDetail>> {
     const pagination = createPagination(pageValue, limitValue);
     const result = await this.projects.list({
       ...pagination,
       actorId,
       canManageAll: this.canManageAll(permissions),
-      ...(status ? { status } : {}),
+      ...(filters.status ? { status: filters.status } : {}),
+      ...(filters.operationalStatus
+        ? { operationalStatus: filters.operationalStatus }
+        : {}),
+      ...(filters.dataQuality ? { dataQuality: filters.dataQuality } : {}),
+      ...(filters.search?.trim() ? { search: filters.search.trim() } : {}),
     });
     return {
       data: result.projects,
@@ -225,6 +243,17 @@ export class ProjectManagementService {
         ? { description: input.description.trim() }
         : {}),
       ...(input.status !== undefined ? { status: input.status } : {}),
+      ...(input.operationalStatus !== undefined
+        ? { operationalStatus: input.operationalStatus }
+        : {}),
+      ...(input.signedDate !== undefined
+        ? {
+            signedDate: input.signedDate
+              ? this.parseDate(input.signedDate)
+              : null,
+          }
+        : {}),
+      ...this.normalizeUpdatePortfolioFields(input),
       ...(input.startDate !== undefined
         ? {
             startDate: input.startDate ? this.parseDate(input.startDate) : null,
@@ -234,6 +263,112 @@ export class ProjectManagementService {
         ? { dueDate: input.dueDate ? this.parseDate(input.dueDate) : null }
         : {}),
     };
+  }
+
+  private normalizeCreatePortfolioFields(
+    input: CreateProjectRequest,
+  ): Partial<CreateProjectRecord> {
+    return {
+      ...this.createTextFields(input),
+      ...(input.unitCount !== undefined ? { unitCount: input.unitCount } : {}),
+      ...(input.floorAreaM2 !== undefined
+        ? { floorAreaM2: input.floorAreaM2 }
+        : {}),
+      ...(input.landAreaHa !== undefined
+        ? { landAreaHa: input.landAreaHa }
+        : {}),
+      ...(input.dataSources !== undefined
+        ? { dataSources: input.dataSources }
+        : {}),
+      ...(input.dataConflict !== undefined
+        ? { dataConflict: input.dataConflict }
+        : {}),
+      ...(input.carrierContractCount !== undefined
+        ? { carrierContractCount: input.carrierContractCount }
+        : {}),
+      ...(input.revenueTotal !== undefined
+        ? { revenueTotal: input.revenueTotal }
+        : {}),
+      ...(input.costTotal !== undefined
+        ? { costTotal: input.costTotal }
+        : {}),
+      ...(input.capex !== undefined ? { capex: input.capex } : {}),
+    };
+  }
+
+  private normalizeUpdatePortfolioFields(
+    input: UpdateProjectRequest,
+  ): UpdateProjectRecord {
+    return {
+      ...this.updateTextFields(input),
+      ...(input.unitCount !== undefined ? { unitCount: input.unitCount } : {}),
+      ...(input.floorAreaM2 !== undefined
+        ? { floorAreaM2: input.floorAreaM2 }
+        : {}),
+      ...(input.landAreaHa !== undefined
+        ? { landAreaHa: input.landAreaHa }
+        : {}),
+      ...(input.dataSources !== undefined
+        ? { dataSources: input.dataSources }
+        : {}),
+      ...(input.dataConflict !== undefined
+        ? { dataConflict: input.dataConflict }
+        : {}),
+      ...(input.carrierContractCount !== undefined
+        ? { carrierContractCount: input.carrierContractCount }
+        : {}),
+      ...(input.revenueTotal !== undefined
+        ? { revenueTotal: input.revenueTotal }
+        : {}),
+      ...(input.costTotal !== undefined
+        ? { costTotal: input.costTotal }
+        : {}),
+      ...(input.capex !== undefined ? { capex: input.capex } : {}),
+    };
+  }
+
+  private createTextFields(
+    input: CreateProjectRequest,
+  ): Partial<CreateProjectRecord> {
+    return {
+      ...this.normalizedText('address', input.address),
+      ...this.normalizedText('province', input.province),
+      ...this.normalizedText('investor', input.investor),
+      ...this.normalizedText('projectType', input.projectType),
+      ...this.normalizedText('scaleDescription', input.scaleDescription),
+      ...this.normalizedText('investmentUnit', input.investmentUnit),
+    };
+  }
+
+  private updateTextFields(input: UpdateProjectRequest): UpdateProjectRecord {
+    return {
+      ...this.normalizedNullableText('address', input.address),
+      ...this.normalizedNullableText('province', input.province),
+      ...this.normalizedNullableText('investor', input.investor),
+      ...this.normalizedNullableText('projectType', input.projectType),
+      ...this.normalizedNullableText(
+        'scaleDescription',
+        input.scaleDescription,
+      ),
+      ...this.normalizedNullableText('investmentUnit', input.investmentUnit),
+    };
+  }
+
+  private normalizedText(
+    field: ProjectTextField,
+    value: string | undefined,
+  ): Partial<Record<ProjectTextField, string>> {
+    const normalized = value?.trim();
+    return normalized ? { [field]: normalized } : {};
+  }
+
+  private normalizedNullableText(
+    field: ProjectTextField,
+    value: string | null | undefined,
+  ): Partial<Record<ProjectTextField, string | null>> {
+    if (value === undefined) return {};
+    const normalized = value?.trim();
+    return { [field]: normalized || null };
   }
 
   private parseDate(value?: string): Date | undefined {

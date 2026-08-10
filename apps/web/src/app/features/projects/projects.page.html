@@ -44,7 +44,7 @@
       ></textarea>
     </div>
     <div class="field">
-      <label for="projectStatus">Trạng thái</label>
+      <label for="projectStatus">Trạng thái quản trị</label>
       <select id="projectStatus" formControlName="status">
         <option value="planning">Lập kế hoạch</option>
         <option value="active">Đang thực hiện</option>
@@ -52,6 +52,35 @@
         <option value="completed">Hoàn thành</option>
         <option value="archived">Lưu trữ</option>
       </select>
+    </div>
+    <div class="field">
+      <label for="projectOperationalStatus">Trạng thái vận hành</label>
+      <select id="projectOperationalStatus" formControlName="operationalStatus">
+        <option value="not_started">Chưa thi công</option>
+        <option value="in_progress">Đang thi công</option>
+        <option value="partial">Hoàn thành theo giai đoạn</option>
+        <option value="operational">Đang khai thác</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="projectInvestor">Chủ đầu tư</label>
+      <input id="projectInvestor" formControlName="investor" />
+    </div>
+    <div class="field">
+      <label for="projectProvince">Tỉnh / thành phố</label>
+      <input id="projectProvince" formControlName="province" />
+    </div>
+    <div class="field">
+      <label for="projectType">Loại hình dự án</label>
+      <input id="projectType" formControlName="projectType" />
+    </div>
+    <div class="field">
+      <label for="projectUnits">Số căn hộ / đơn vị</label>
+      <input id="projectUnits" type="number" min="0" formControlName="unitCount" />
+    </div>
+    <div class="field">
+      <label for="projectFloorArea">Diện tích sàn (m²)</label>
+      <input id="projectFloorArea" type="number" min="0" formControlName="floorAreaM2" />
     </div>
     <div class="field">
       <label for="projectStartDate">Ngày bắt đầu</label>
@@ -77,16 +106,35 @@
 </section>
 }
 
-<section class="toolbar" aria-label="Bộ lọc dự án">
-  <label for="statusFilter">Trạng thái</label>
-  <select id="statusFilter" [formControl]="statusFilter">
-    <option value="">Tất cả dự án</option>
-    <option value="planning">Lập kế hoạch</option>
-    <option value="active">Đang thực hiện</option>
-    <option value="on_hold">Tạm dừng</option>
-    <option value="completed">Hoàn thành</option>
-    <option value="archived">Lưu trữ</option>
-  </select>
+<section class="toolbar" aria-label="Bộ lọc danh mục dự án">
+  <div class="search-field">
+    <label for="projectSearch">Tìm dự án</label>
+    <input
+      id="projectSearch"
+      type="search"
+      [formControl]="searchFilter"
+      placeholder="Tên, mã hoặc chủ đầu tư"
+    />
+  </div>
+  <div>
+    <label for="operationalStatusFilter">Trạng thái vận hành</label>
+    <select id="operationalStatusFilter" [formControl]="operationalStatusFilter">
+      <option value="">Tất cả trạng thái</option>
+      <option value="not_started">Chưa thi công</option>
+      <option value="in_progress">Đang thi công</option>
+      <option value="partial">Hoàn thành theo giai đoạn</option>
+      <option value="operational">Đang khai thác</option>
+    </select>
+  </div>
+  <div>
+    <label for="dataQualityFilter">Tình trạng dữ liệu</label>
+    <select id="dataQualityFilter" [formControl]="dataQualityFilter">
+      <option value="">Tất cả dữ liệu</option>
+      <option value="has_revenue">Có doanh thu</option>
+      <option value="missing_capex">Thiếu CPĐT</option>
+      <option value="conflict">Dữ liệu xung đột</option>
+    </select>
+  </div>
 </section>
 
 @switch (state().kind) { @case ('loading') {
@@ -113,29 +161,52 @@
   }
 </section>
 } @else {
-<div class="project-list" role="list">
-  @for (project of current.value.data; track project.id) {
-  <a
-    class="project-row"
-    [routerLink]="['/projects', project.id]"
-    role="listitem"
-  >
-    <span class="project-code">{{ project.code }}</span>
-    <span class="project-main">
-      <strong>{{ project.name }}</strong>
-      <small>{{ project.description || 'Chưa có mô tả' }}</small>
-    </span>
-    <span class="status-badge" [attr.data-status]="project.status"
-      >{{ statusLabel(project.status) }}</span
-    >
-    <span class="members"
-      ><strong>{{ project.memberCount }}</strong><small>thành viên</small></span
-    >
-    <span class="updated"
-      ><small>Cập nhật</small>{{ project.updatedAt | date: 'dd/MM/yyyy' }}</span
-    >
-    <span class="row-arrow" aria-hidden="true">→</span>
-  </a>
-  }
+<div class="table-shell">
+  <table class="project-table">
+    <thead>
+      <tr>
+        <th scope="col">Mã DA</th>
+        <th scope="col">Tên dự án</th>
+        <th scope="col">Chủ đầu tư</th>
+        <th scope="col">Tỉnh</th>
+        <th scope="col" class="number-cell">Số CH</th>
+        <th scope="col" class="number-cell">m² sàn</th>
+        <th scope="col" class="number-cell">HĐ NM</th>
+        <th scope="col" class="number-cell">Doanh thu</th>
+        <th scope="col">Trạng thái</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (project of current.value.data; track project.id) {
+      <tr>
+        <td><span class="project-code">{{ project.code }}</span></td>
+        <td class="project-name-cell">
+          <a [routerLink]="['/projects', project.id]">{{ project.name }}</a>
+          @if (project.dataConflict) {
+          <span class="conflict-mark" title="Dữ liệu từ nhiều nguồn">◆<span class="sr-only">Dữ liệu xung đột</span></span>
+          }
+        </td>
+        <td class="muted-cell">{{ project.investor || '—' }}</td>
+        <td class="muted-cell">{{ project.province || '—' }}</td>
+        <td class="number-cell">{{ formatNumber(project.unitCount) }}</td>
+        <td class="number-cell">{{ formatNumber(project.floorAreaM2) }}</td>
+        <td class="number-cell">{{ project.carrierContractCount || '—' }}</td>
+        <td class="number-cell revenue-cell">{{ formatMoney(project.revenueTotal) }}</td>
+        <td>
+          <span class="status-badge" [attr.data-status]="project.operationalStatus || 'not_started'">
+            {{ operationalStatusLabel(project.operationalStatus) }}
+          </span>
+        </td>
+      </tr>
+      }
+    </tbody>
+  </table>
 </div>
+<footer class="pagination" aria-label="Phân trang dự án">
+  <span>Trang {{ current.value.meta.page }} / {{ current.value.meta.totalPages || 1 }} · {{ current.value.meta.totalItems }} dự án</span>
+  <div>
+    <button type="button" class="secondary-button" [disabled]="!current.value.meta.hasPreviousPage" (click)="load(current.value.meta.page - 1)">Trang trước</button>
+    <button type="button" class="secondary-button" [disabled]="!current.value.meta.hasNextPage" (click)="load(current.value.meta.page + 1)">Trang sau</button>
+  </div>
+</footer>
 } } } } }

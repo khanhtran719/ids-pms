@@ -51,4 +51,14 @@ Access token không lưu trong Web Storage. Refresh cookie là `HttpOnly`, `Same
 - `POST /api/v1/projects/:projectId/members`: thêm mới hoặc cập nhật vai trò membership.
 - `DELETE /api/v1/projects/:projectId/members/:userId`: xóa membership nếu không vi phạm owner cuối cùng.
 
-Project code được trim và chuẩn hóa uppercase. Status hợp lệ là `planning`, `active`, `on_hold`, `completed`, `archived`; membership role là `owner`, `manager`, `member`. `startDate` không được sau `dueDate`. Các mã lỗi ổn định gồm `PROJECT_CODE_EXISTS`, `PROJECT_NOT_FOUND`, `PROJECT_MANAGEMENT_FORBIDDEN`, `PROJECT_MEMBER_USER_NOT_FOUND`, `PROJECT_MEMBERSHIP_NOT_FOUND` và `PROJECT_LAST_OWNER_REQUIRED`.
+`GET /projects` hỗ trợ `page`, `limit`, `search`, `status`, `operationalStatus` và `dataQuality`. `search` tìm theo mã, tên hoặc chủ đầu tư; `dataQuality` nhận `has_revenue`, `missing_capex`, `conflict`. Query luôn chạy phía MongoDB trước pagination, không tải collection về lọc trong application memory.
+
+Project code được trim và chuẩn hóa uppercase. `status` quản trị hợp lệ là `planning`, `active`, `on_hold`, `completed`, `archived`; `operationalStatus` theo mockup IDS là `not_started`, `in_progress`, `partial`, `operational`. Project profile có các field tùy chọn cho chủ đầu tư, tỉnh/địa chỉ, loại hình, quy mô, nguồn dữ liệu và các chỉ số portfolio tổng hợp. Membership role là `owner`, `manager`, `member`. `startDate` không được sau `dueDate`. Các mã lỗi ổn định gồm `PROJECT_CODE_EXISTS`, `PROJECT_NOT_FOUND`, `PROJECT_MANAGEMENT_FORBIDDEN`, `PROJECT_MEMBER_USER_NOT_FOUND`, `PROJECT_MEMBERSHIP_NOT_FOUND` và `PROJECT_LAST_OWNER_REQUIRED`.
+
+## Tasks và tiến độ thi công
+
+- `GET /api/v1/tasks`: danh sách task được scope theo project membership, hỗ trợ `page`, `limit`, `projectId`, `status`; response có thêm `overview`.
+- `POST /api/v1/projects/:projectId/tasks/initialize`: upsert idempotent 5 bước chuẩn còn thiếu, không tự sinh ngày kế hoạch.
+- `PATCH /api/v1/tasks/:taskId`: cập nhật phòng ban, ngày kế hoạch, ngày kết thúc thực tế và trạng thái.
+
+Task status là `todo`, `in_progress`, `done`. `plannedEndDate` không được trước `plannedStartDate`; `done` bắt buộc có `actualEndDate` và trạng thái khác `done` không được giữ ngày này. Các mã lỗi ổn định gồm `TASK_NOT_FOUND`, `TASK_DATE_INVALID`, `TASK_DATE_RANGE_INVALID`, `TASK_ACTUAL_END_REQUIRED` và `TASK_ACTUAL_END_STATUS_INVALID`.

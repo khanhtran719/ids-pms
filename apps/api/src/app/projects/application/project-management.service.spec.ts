@@ -66,6 +66,15 @@ describe('ProjectManagementService', () => {
       code: '  ids ',
       name: '  IDS PMS  ',
       description: '  Internal project management  ',
+      investor: '  IDS Corporation  ',
+      province: '  Hồ Chí Minh  ',
+      projectType: '  Chung cư kết hợp thương mại  ',
+      scaleDescription: '  2 block, 25 tầng  ',
+      operationalStatus: 'in_progress',
+      unitCount: 420,
+      floorAreaM2: 62_500,
+      dataSources: ['Teldata', 'IBS'],
+      dataConflict: true,
       startDate: '2026-08-10',
       dueDate: '2026-09-10',
     });
@@ -74,6 +83,15 @@ describe('ProjectManagementService', () => {
       code: 'IDS',
       name: 'IDS PMS',
       description: 'Internal project management',
+      investor: 'IDS Corporation',
+      province: 'Hồ Chí Minh',
+      projectType: 'Chung cư kết hợp thương mại',
+      scaleDescription: '2 block, 25 tầng',
+      operationalStatus: 'in_progress',
+      unitCount: 420,
+      floorAreaM2: 62_500,
+      dataSources: ['Teldata', 'IBS'],
+      dataConflict: true,
       status: 'planning',
       startDate: new Date('2026-08-10'),
       dueDate: new Date('2026-09-10'),
@@ -102,13 +120,18 @@ describe('ProjectManagementService', () => {
   });
 
   it('limits regular users to memberships but lets system managers list all', async () => {
-    await service.list('user-1', ['projects.read'], 1, 20, undefined);
+    await service.list('user-1', ['projects.read'], 1, 20, {});
     await service.list(
       'user-1',
       ['projects.read', 'projects.manage'],
       1,
       20,
-      'active',
+      {
+        status: 'active',
+        operationalStatus: 'operational',
+        dataQuality: 'has_revenue',
+        search: '  nam long  ',
+      },
     );
 
     expect(projects.list).toHaveBeenNthCalledWith(
@@ -121,8 +144,36 @@ describe('ProjectManagementService', () => {
         actorId: 'user-1',
         canManageAll: true,
         status: 'active',
+        operationalStatus: 'operational',
+        dataQuality: 'has_revenue',
+        search: 'nam long',
       }),
     );
+  });
+
+  it('normalizes optional IDS fields when updating a project', async () => {
+    await service.update(
+      'project-1',
+      'user-1',
+      ['projects.manage'],
+      {
+        investor: '  Chủ đầu tư Nam Long  ',
+        address: '  Phường Phước Long B  ',
+        operationalStatus: 'partial',
+        capex: 4_200_000_000,
+        dataSources: ['Teldata', 'DoanhThu'],
+        dataConflict: false,
+      },
+    );
+
+    expect(projects.update).toHaveBeenCalledWith('project-1', {
+      investor: 'Chủ đầu tư Nam Long',
+      address: 'Phường Phước Long B',
+      operationalStatus: 'partial',
+      capex: 4_200_000_000,
+      dataSources: ['Teldata', 'DoanhThu'],
+      dataConflict: false,
+    });
   });
 
   it('allows a project manager to update their project', async () => {

@@ -59,3 +59,11 @@ Các feature lớn lazy-load theo route. `core/` chỉ dành cho singleton toàn
 4. Thêm, đổi vai trò và xóa membership dùng transaction để khóa invariant phải còn ít nhất một owner.
 5. Member list dùng aggregation `$lookup` một lần; thống kê membership được gom bằng aggregate theo tập project, không query lặp theo từng item.
 6. Candidate directory chỉ tải khi UI mở panel, có search và `limit` bị chặn ở backend.
+
+## Luồng task và tiến độ 5 bước
+
+1. Người có `tasks.manage` chọn project và gọi endpoint initialize; repository dùng `bulkWrite` với upsert theo index unique `projectId + step`, nên chạy lại không nhân đôi task.
+2. Ngày kế hoạch để trống khi khởi tạo; hệ thống không suy diễn ngày từ project hoặc dữ liệu minh họa.
+3. Task list join project và membership ngay trong MongoDB; `$facet` trả page data, total và overview trong một aggregate để tránh N+1 và tránh các vòng xử lý lặp không cần thiết ở application service.
+4. Người không có `projects.manage` bị scope bằng `project_memberships` trong pipeline. Write endpoint vẫn yêu cầu `tasks.manage` và quyền đọc project nền.
+5. Application service merge trạng thái hiện tại với patch rồi kiểm tra date range và invariant `done <=> actualEndDate` trước một atomic update.

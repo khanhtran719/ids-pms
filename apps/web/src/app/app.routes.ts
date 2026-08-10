@@ -33,6 +33,14 @@ export const appRoutes: Route[] = [
       ),
   },
   {
+    path: 'tasks',
+    canActivate: [authGuard, permissionGuard('tasks.read')],
+    loadComponent: () =>
+      import('./features/tasks/tasks.page').then(
+        (module) => module.TasksPage,
+      ),
+  },
+  {
     path: 'users',
     canActivate: [authGuard, permissionGuard('users.read')],
     loadComponent: () =>

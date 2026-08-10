@@ -90,6 +90,19 @@ export type ProjectStatus =
   | 'completed'
   | 'archived';
 
+export type ProjectOperationalStatus =
+  | 'not_started'
+  | 'in_progress'
+  | 'partial'
+  | 'operational';
+
+export type ProjectDataSource = 'Teldata' | 'IBS' | 'DoanhThu';
+
+export type ProjectDataQualityFilter =
+  | 'has_revenue'
+  | 'missing_capex'
+  | 'conflict';
+
 export type ProjectMembershipRole = 'owner' | 'manager' | 'member';
 
 export interface ProjectListItem {
@@ -98,6 +111,23 @@ export interface ProjectListItem {
   name: string;
   description?: string;
   status: ProjectStatus;
+  operationalStatus?: ProjectOperationalStatus;
+  signedDate?: string;
+  address?: string;
+  province?: string;
+  investor?: string;
+  projectType?: string;
+  scaleDescription?: string;
+  unitCount?: number;
+  floorAreaM2?: number;
+  landAreaHa?: number;
+  investmentUnit?: string;
+  dataSources?: ProjectDataSource[];
+  dataConflict?: boolean;
+  carrierContractCount?: number;
+  revenueTotal?: number;
+  costTotal?: number;
+  capex?: number;
   startDate?: string;
   dueDate?: string;
   memberCount: number;
@@ -130,6 +160,23 @@ export interface CreateProjectRequest {
   name: string;
   description?: string;
   status?: ProjectStatus;
+  operationalStatus?: ProjectOperationalStatus;
+  signedDate?: string;
+  address?: string;
+  province?: string;
+  investor?: string;
+  projectType?: string;
+  scaleDescription?: string;
+  unitCount?: number;
+  floorAreaM2?: number;
+  landAreaHa?: number;
+  investmentUnit?: string;
+  dataSources?: ProjectDataSource[];
+  dataConflict?: boolean;
+  carrierContractCount?: number;
+  revenueTotal?: number;
+  costTotal?: number;
+  capex?: number;
   startDate?: string;
   dueDate?: string;
 }
@@ -138,11 +185,73 @@ export interface UpdateProjectRequest {
   name?: string;
   description?: string;
   status?: ProjectStatus;
+  operationalStatus?: ProjectOperationalStatus;
+  signedDate?: string | null;
+  address?: string | null;
+  province?: string | null;
+  investor?: string | null;
+  projectType?: string | null;
+  scaleDescription?: string | null;
+  unitCount?: number | null;
+  floorAreaM2?: number | null;
+  landAreaHa?: number | null;
+  investmentUnit?: string | null;
+  dataSources?: ProjectDataSource[] | null;
+  dataConflict?: boolean;
+  carrierContractCount?: number | null;
+  revenueTotal?: number | null;
+  costTotal?: number | null;
+  capex?: number | null;
   startDate?: string | null;
   dueDate?: string | null;
+}
+
+export interface ListProjectsRequest {
+  page?: number;
+  limit?: number;
+  status?: ProjectStatus;
+  operationalStatus?: ProjectOperationalStatus;
+  dataQuality?: ProjectDataQualityFilter;
+  search?: string;
 }
 
 export interface UpsertProjectMemberRequest {
   userId: string;
   role: ProjectMembershipRole;
+}
+
+export type TaskStatus = 'todo' | 'in_progress' | 'done';
+
+export interface ProjectTask {
+  id: string;
+  projectId: string;
+  projectCode: string;
+  projectName: string;
+  step: number;
+  name: string;
+  department: string;
+  plannedStartDate?: string;
+  plannedEndDate?: string;
+  actualEndDate?: string;
+  status: TaskStatus;
+  updatedAt: string;
+}
+
+export interface TaskOverview {
+  totalTasks: number;
+  completedTasks: number;
+  tasksWithActualEnd: number;
+  trackedProjects: number;
+}
+
+export interface TaskListResponse extends PaginatedResponse<ProjectTask> {
+  overview: TaskOverview;
+}
+
+export interface UpdateTaskRequest {
+  department?: string;
+  plannedStartDate?: string | null;
+  plannedEndDate?: string | null;
+  actualEndDate?: string | null;
+  status?: TaskStatus;
 }

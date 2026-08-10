@@ -12,6 +12,7 @@ import { CoreModule } from './core/core.module';
 import { HealthModule } from './health/health.module';
 import { UsersModule } from './users/users.module';
 import { ProjectsModule } from './projects/projects.module';
+import { TasksModule } from './tasks/tasks.module';
 
 @Module({
   imports: [
@@ -46,6 +47,7 @@ import { ProjectsModule } from './projects/projects.module';
     AuthModule,
     UsersModule,
     ProjectsModule,
+    TasksModule,
   ],
   providers: [
     {

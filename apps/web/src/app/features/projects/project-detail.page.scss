@@ -28,16 +28,19 @@
   font-size: 0.68rem;
   font-weight: 700;
 }
-.status[data-status='active'] {
+.status[data-status='operational'] {
   color: #146e58;
   background: #e6f5ef;
 }
-.status[data-status='completed'] {
+.status[data-status='in_progress'] {
   color: #315f8a;
   background: #eaf1f8;
 }
-.status[data-status='on_hold'],
-.status[data-status='archived'] {
+.status[data-status='partial'] {
+  color: #76591d;
+  background: #f8efd9;
+}
+.status[data-status='not_started'] {
   color: #69736f;
   background: #eef1f0;
 }
@@ -71,30 +74,29 @@ h2 {
   gap: 1rem;
   margin-top: 1rem;
 }
-.summary-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  margin-bottom: 1rem;
+.source-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1.25rem;
+  margin: 0;
   border: 1px solid #dce3e0;
-  border-radius: 0.7rem;
-  background: #fff;
+  border-radius: 0.5rem;
+  padding: 0.8rem;
 }
-.summary-grid div {
-  display: grid;
-  gap: 0.35rem;
-  padding: 1rem 1.15rem;
+.source-fields legend {
+  padding: 0 0.35rem;
+  color: #46534f;
+  font-size: 0.75rem;
+  font-weight: 750;
 }
-.summary-grid div + div {
-  border-left: 1px solid #e6ebe9;
+.source-fields label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
 }
-.summary-grid small {
-  color: #7c8783;
-  font-size: 0.68rem;
-}
-.summary-grid strong {
-  color: #2d3b37;
-  font-size: 0.9rem;
-  text-transform: capitalize;
+.source-fields input {
+  width: 1rem;
+  min-height: 1rem;
 }
 .members-card {
   overflow: hidden;
@@ -223,16 +225,6 @@ h2 {
   min-height: 18rem;
 }
 @media (max-width: 56rem) {
-  .summary-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .summary-grid div:nth-child(3) {
-    border-left: 0;
-    border-top: 1px solid #e6ebe9;
-  }
-  .summary-grid div:nth-child(4) {
-    border-top: 1px solid #e6ebe9;
-  }
   .member-form {
     grid-template-columns: 1fr 1fr;
   }
@@ -242,17 +234,11 @@ h2 {
     flex-direction: column;
   }
   .edit-panel form,
-  .summary-grid,
   .member-form {
     grid-template-columns: 1fr;
   }
   .field--wide {
     grid-column: auto;
-  }
-  .summary-grid div + div,
-  .summary-grid div:nth-child(3) {
-    border-top: 1px solid #e6ebe9;
-    border-left: 0;
   }
   .member-row {
     grid-template-columns: auto 1fr auto;

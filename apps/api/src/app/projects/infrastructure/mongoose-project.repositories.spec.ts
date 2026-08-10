@@ -46,6 +46,16 @@ describe('MongooseProjectRepository', () => {
     name: 'IDS PMS',
     description: 'Project management',
     status: 'active' as const,
+    operationalStatus: 'operational' as const,
+    investor: 'IDS Corporation',
+    province: 'Hồ Chí Minh',
+    unitCount: 420,
+    floorAreaM2: 62_500,
+    capex: 4_200_000_000,
+    revenueTotal: 5_100_000_000,
+    costTotal: 2_700_000_000,
+    dataSources: ['Teldata', 'DoanhThu'] as const,
+    dataConflict: true,
     startDate: new Date('2026-08-10T00:00:00.000Z'),
     dueDate: new Date('2026-09-10T00:00:00.000Z'),
     createdBy: actorId,
@@ -100,6 +110,16 @@ describe('MongooseProjectRepository', () => {
         name: 'IDS PMS',
         description: 'Project management',
         status: 'active',
+        operationalStatus: 'operational',
+        investor: 'IDS Corporation',
+        province: 'Hồ Chí Minh',
+        unitCount: 420,
+        floorAreaM2: 62_500,
+        capex: 4_200_000_000,
+        revenueTotal: 5_100_000_000,
+        costTotal: 2_700_000_000,
+        dataSources: ['Teldata', 'DoanhThu'],
+        dataConflict: true,
         startDate: projectRow.startDate,
         dueDate: projectRow.dueDate,
         createdBy: actorId.toString(),
@@ -199,11 +219,27 @@ describe('MongooseProjectRepository', () => {
       actorId: actorId.toString(),
       canManageAll: true,
       status: 'active',
+      operationalStatus: 'operational',
+      dataQuality: 'has_revenue',
+      search: 'nam long',
       skip: 20,
       limit: 10,
     });
 
-    expect(projects.find).toHaveBeenCalledWith({ status: 'active' });
+    expect(projects.find).toHaveBeenCalledWith({
+      $and: [
+        { status: 'active' },
+        { operationalStatus: 'operational' },
+        { revenueTotal: { $gt: 0 } },
+        {
+          $or: [
+            { code: { $options: 'i', $regex: 'nam long' } },
+            { name: { $options: 'i', $regex: 'nam long' } },
+            { investor: { $options: 'i', $regex: 'nam long' } },
+          ],
+        },
+      ],
+    });
     expect(projectQuery.skip).toHaveBeenCalledWith(20);
     expect(projectQuery.limit).toHaveBeenCalledWith(10);
     expect(memberships.aggregate).toHaveBeenCalledTimes(1);
@@ -214,6 +250,10 @@ describe('MongooseProjectRepository', () => {
           memberCount: 3,
           myRole: 'manager',
           description: 'Project management',
+          operationalStatus: 'operational',
+          investor: 'IDS Corporation',
+          revenueTotal: 5_100_000_000,
+          dataConflict: true,
         }),
         expect.objectContaining({
           id: secondProjectId.toString(),

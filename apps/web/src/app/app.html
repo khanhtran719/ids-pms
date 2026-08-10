@@ -15,6 +15,10 @@
       <a routerLink="/projects" routerLinkActive="active"
         ><span aria-hidden="true">◇</span>Dự án</a
       >
+      } @if (auth.hasPermission('tasks.read')) {
+      <a routerLink="/tasks" routerLinkActive="active"
+        ><span aria-hidden="true">✓</span>Tiến độ</a
+      >
       } @if (auth.hasPermission('users.read')) {
       <a routerLink="/users" routerLinkActive="active"
         ><span aria-hidden="true">♙</span>Người dùng</a

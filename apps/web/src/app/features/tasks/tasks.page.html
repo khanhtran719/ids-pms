@@ -1,0 +1,132 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Kế hoạch 5 bước</p>
+    <h1>Tiến độ thi công</h1>
+    <p>Theo dõi kế hoạch và ngày hoàn thành thực tế theo từng dự án.</p>
+  </div>
+  <span class="source-chip">Theo mockup IDS · bản tạm thời</span>
+</header>
+
+@if (auth.hasPermission('tasks.manage')) {
+<section class="initialize-panel" aria-labelledby="initialize-title">
+  <div>
+    <p class="eyebrow">Kế hoạch chuẩn</p>
+    <h2 id="initialize-title">Khởi tạo 5 bước cho dự án</h2>
+    <p>Thao tác có thể chạy lại an toàn và chỉ bổ sung bước còn thiếu.</p>
+  </div>
+  <div class="initialize-controls">
+    <label for="initializeProject">Dự án</label>
+    <select
+      id="initializeProject"
+      [value]="selectedProjectId()"
+      (change)="selectedProjectId.set($any($event.target).value)"
+      [disabled]="projectsLoading() || initializing()"
+    >
+      <option value="">Chọn dự án</option>
+      @for (project of projectChoices(); track project.id) {
+      <option [value]="project.id">{{ project.code }} · {{ project.name }}</option>
+      }
+    </select>
+    <button
+      class="primary-button"
+      type="button"
+      (click)="initializePlan()"
+      [disabled]="!selectedProjectId() || initializing()"
+    >
+      {{ initializing() ? 'Đang khởi tạo…' : 'Khởi tạo kế hoạch' }}
+    </button>
+    @if (initializeError()) {
+    <p class="form-error" role="alert">{{ initializeError() }}</p>
+    }
+  </div>
+</section>
+}
+
+@if (state(); as current) { @if (current.kind === 'ready') {
+<section class="metric-grid" aria-label="Tóm tắt tiến độ">
+  <article><span>Tổng công việc</span><strong>{{ current.value.overview.totalTasks }}</strong><small>{{ current.value.overview.trackedProjects }} dự án được theo dõi</small></article>
+  <article><span>Hoàn thành</span><strong>{{ current.value.overview.completedTasks }}</strong><small>đã có xác nhận kết thúc</small></article>
+  <article class="metric--warning"><span>Có ngày kết thúc thật</span><strong>{{ current.value.overview.tasksWithActualEnd }}</strong><small>trên {{ current.value.overview.totalTasks }} công việc</small></article>
+  <article><span>Đang theo dõi</span><strong>{{ current.value.meta.totalItems }}</strong><small>công việc khớp bộ lọc</small></article>
+</section>
+
+@if (current.value.overview.totalTasks > current.value.overview.tasksWithActualEnd) {
+<aside class="quality-note" aria-label="Cảnh báo chất lượng dữ liệu">
+  <strong>Điểm cần theo dõi:</strong>
+  {{ current.value.overview.totalTasks - current.value.overview.tasksWithActualEnd }} công việc chưa có ngày kết thúc thực tế. Hệ thống chỉ cho phép đánh dấu hoàn thành khi đã nhập ngày này.
+</aside>
+}
+} }
+
+<section class="toolbar" aria-label="Bộ lọc công việc">
+  <label for="taskStatusFilter">Trạng thái</label>
+  <select id="taskStatusFilter" [formControl]="statusFilter">
+    <option value="">Tất cả trạng thái</option>
+    <option value="todo">Lên kế hoạch</option>
+    <option value="in_progress">Đang thực hiện</option>
+    <option value="done">Hoàn thành</option>
+  </select>
+</section>
+
+@switch (state().kind) {
+  @case ('loading') {
+  <div class="state-panel" aria-busy="true">Đang tải tiến độ thi công…</div>
+  }
+  @case ('error') {
+  <div class="state-panel state-panel--error" role="alert">
+    <span>Không thể tải tiến độ thi công.</span>
+    <button type="button" (click)="load()">Thử lại</button>
+  </div>
+  }
+  @case ('ready') {
+    @if (groups().length === 0) {
+    <section class="empty-state">
+      <span aria-hidden="true">05</span>
+      <h2>Chưa có kế hoạch phù hợp</h2>
+      <p>Chọn dự án và khởi tạo 5 bước chuẩn, hoặc thay đổi bộ lọc hiện tại.</p>
+    </section>
+    } @else {
+    <div class="task-groups">
+      @for (group of groups(); track group.projectId) {
+      <section class="task-group" [attr.aria-labelledby]="'project-' + group.projectId">
+        <header>
+          <div>
+            <span>{{ group.projectCode }}</span>
+            <h2 [id]="'project-' + group.projectId">{{ group.projectName }}</h2>
+          </div>
+          <strong>{{ group.completed }}/{{ group.tasks.length }} hoàn thành</strong>
+        </header>
+        <div class="task-list">
+          @for (task of group.tasks; track task.id) {
+          <article class="task-row" [class.task-row--overdue]="isOverdue(task)">
+            <span class="step" [attr.aria-label]="'Bước ' + task.step">{{ task.step }}</span>
+            <div class="task-name"><strong>{{ task.name }}</strong><small>{{ task.department }}</small></div>
+            <div class="task-dates"><small>Kế hoạch</small><span>{{ task.plannedStartDate ? (task.plannedStartDate | date: 'dd/MM/yyyy') : '—' }} → {{ task.plannedEndDate ? (task.plannedEndDate | date: 'dd/MM/yyyy') : '—' }}</span></div>
+            <div class="task-actual"><small>Hoàn thành thật</small><span>{{ task.actualEndDate ? (task.actualEndDate | date: 'dd/MM/yyyy') : 'Chưa có' }}</span></div>
+            <span class="status-badge" [attr.data-status]="task.status">{{ statusLabel(task.status) }}</span>
+            @if (auth.hasPermission('tasks.manage')) {
+            <button class="edit-button" type="button" (click)="editTask(task)" [attr.aria-label]="'Cập nhật ' + task.name">Cập nhật</button>
+            }
+          </article>
+          @if (editingTaskId() === task.id) {
+          <form class="edit-form" [formGroup]="editForm" (ngSubmit)="saveTask()" novalidate>
+            <div class="field"><label for="taskDepartment">Phòng ban</label><input id="taskDepartment" formControlName="department" /></div>
+            <div class="field"><label for="taskStart">Bắt đầu kế hoạch</label><input id="taskStart" type="date" formControlName="plannedStartDate" /></div>
+            <div class="field"><label for="taskEnd">Kết thúc kế hoạch</label><input id="taskEnd" type="date" formControlName="plannedEndDate" /></div>
+            <div class="field"><label for="taskActualEnd">Hoàn thành thực tế</label><input id="taskActualEnd" type="date" formControlName="actualEndDate" /></div>
+            <div class="field"><label for="taskStatus">Trạng thái</label><select id="taskStatus" formControlName="status"><option value="todo">Lên kế hoạch</option><option value="in_progress">Đang thực hiện</option><option value="done">Hoàn thành</option></select></div>
+            <div class="edit-actions">
+              @if (editError()) { <p class="form-error" role="alert">{{ editError() }}</p> }
+              <button class="secondary-button" type="button" (click)="cancelEdit()">Hủy</button>
+              <button class="primary-button" type="submit" [disabled]="editForm.invalid || saving()">{{ saving() ? 'Đang lưu…' : 'Lưu thay đổi' }}</button>
+            </div>
+          </form>
+          }
+          }
+        </div>
+      </section>
+      }
+    </div>
+    }
+  }
+}

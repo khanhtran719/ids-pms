@@ -73,6 +73,24 @@ Tài liệu này ghi lại các quyết định dài hạn. Không dùng nó tha
 - Lý do: scope dữ liệu rõ ràng ở backend, hỗ trợ phân quyền theo dự án mà không nhân bản global role, đồng thời tránh project mất người sở hữu do cập nhật đồng thời.
 - Hệ quả và trade-off: MongoDB local/production phải hỗ trợ transaction; query list cần join logic theo membership nhưng phải thực hiện theo tập thay vì N+1. Nếu khách yêu cầu quyền chi tiết hơn theo từng hành động, mở rộng permission matrix trong ADR riêng.
 
+## ADR-010 — Mockup là nguồn yêu cầu tạm thời và Tasks dùng kế hoạch 5 bước idempotent
+
+- Trạng thái: Accepted, temporary
+- Ngày: 2026-08-10
+- Bối cảnh: khách hàng cho phép tạm thời phân tích và triển khai theo `IDS-PMS-Demo.html`, trong khi nhiều trường project, hợp đồng và số liệu tài chính chưa có contract hoặc dữ liệu nguồn đầy đủ.
+- Quyết định: dùng mockup để ưu tiên lát cắt Tiến độ thi công với 5 bước chuẩn. Khởi tạo dùng upsert duy nhất theo `projectId + step`, không tự sinh ngày; `done` bắt buộc có ngày kết thúc thực tế. Trạng thái API chuẩn hóa thành chữ thường và sẽ map từ mã chữ hoa của dữ liệu nguồn khi có luồng import.
+- Lý do: triển khai được workflow có giá trị và kiểm soát chất lượng dữ liệu mà không suy diễn lịch, công thức tài chính hoặc điều khoản hợp đồng.
+- Hệ quả và trade-off: hiện người dùng chủ động khởi tạo kế hoạch; chưa tự sinh khi project đổi trạng thái. Tên/số bước đang cố định theo mockup và phải được khách xác nhận trước khi mở rộng. Các phần mockup còn lại được theo dõi trong `docs/mockup-functional-scope.md`, không mặc nhiên được coi là đã chốt.
+
+## ADR-011 — Project portfolio IDS tương thích ngược với project lifecycle
+
+- Trạng thái: Accepted, temporary
+- Ngày: 2026-08-10
+- Bối cảnh: mockup dùng trạng thái vận hành `NOT_STARTED`, `IN_PROGRESS`, `PARTIAL`, `OPERATIONAL`, trong khi API v1 đã có lifecycle quản trị `planning`, `active`, `on_hold`, `completed`, `archived` và dữ liệu/test phụ thuộc contract này.
+- Quyết định: giữ `status` quản trị và thêm `operationalStatus` chuẩn hóa chữ thường. Bổ sung project profile IDS cùng các snapshot tổng hợp tùy chọn (`carrierContractCount`, `revenueTotal`, `costTotal`, `capex`) để phục vụ danh sách/chi tiết; query tìm kiếm và lọc chạy trong MongoDB trước pagination. Trang chi tiết lấy kế hoạch 5 bước bằng một request theo project, không gọi từng task.
+- Lý do: bám giao diện/ngôn ngữ nghiệp vụ của mockup mà không đổi nghĩa contract đang chạy hoặc giả định snapshot là dữ liệu kế toán chính thức.
+- Hệ quả và trade-off: cần chốt mapping/import dữ liệu chữ hoa và chính sách cho dự án thiếu mã. Khi module hợp đồng/tài chính được triển khai, các snapshot phải được tính hoặc đồng bộ từ nguồn chi tiết thay vì nhập rời rạc lâu dài.
+
 ## Mẫu ADR mới
 
 ```text

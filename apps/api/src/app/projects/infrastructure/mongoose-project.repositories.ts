@@ -2,12 +2,21 @@ import { Injectable } from '@nestjs/common';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import type {
   ProjectDetail,
+  ProjectDataSource,
   ProjectMember,
   ProjectMembershipRole,
+  ProjectOperationalStatus,
   ProjectStatus,
   UserStatus,
 } from '@project-ql/api-contracts';
-import { Connection, Model, PipelineStage, Types, UpdateQuery } from 'mongoose';
+import {
+  Connection,
+  Model,
+  PipelineStage,
+  QueryFilter,
+  Types,
+  UpdateQuery,
+} from 'mongoose';
 import { UserEntity } from '../../auth/infrastructure/auth.schemas';
 import type {
   CreateProjectRecord,
@@ -26,6 +35,23 @@ interface LeanProject {
   name: string;
   description?: string;
   status: ProjectStatus;
+  operationalStatus?: ProjectOperationalStatus;
+  signedDate?: Date;
+  address?: string;
+  province?: string;
+  investor?: string;
+  projectType?: string;
+  scaleDescription?: string;
+  unitCount?: number;
+  floorAreaM2?: number;
+  landAreaHa?: number;
+  investmentUnit?: string;
+  dataSources?: ProjectDataSource[];
+  dataConflict?: boolean;
+  carrierContractCount?: number;
+  revenueTotal?: number;
+  costTotal?: number;
+  capex?: number;
   startDate?: Date;
   dueDate?: Date;
   createdBy: Types.ObjectId;
@@ -74,6 +100,23 @@ export class MongooseProjectRepository implements ProjectRepository {
               name: input.name,
               description: input.description,
               status: input.status,
+              operationalStatus: input.operationalStatus,
+              signedDate: input.signedDate,
+              address: input.address,
+              province: input.province,
+              investor: input.investor,
+              projectType: input.projectType,
+              scaleDescription: input.scaleDescription,
+              unitCount: input.unitCount,
+              floorAreaM2: input.floorAreaM2,
+              landAreaHa: input.landAreaHa,
+              investmentUnit: input.investmentUnit,
+              dataSources: input.dataSources,
+              dataConflict: input.dataConflict,
+              carrierContractCount: input.carrierContractCount,
+              revenueTotal: input.revenueTotal,
+              costTotal: input.costTotal,
+              capex: input.capex,
               startDate: input.startDate,
               dueDate: input.dueDate,
               createdBy: new Types.ObjectId(input.createdBy),
@@ -104,12 +147,33 @@ export class MongooseProjectRepository implements ProjectRepository {
   async list(
     query: ListProjectsQuery,
   ): Promise<{ projects: ProjectDetail[]; totalItems: number }> {
-    const filter: {
-      status?: ProjectStatus;
-      _id?: { $in: Types.ObjectId[] };
-    } = {
-      ...(query.status ? { status: query.status } : {}),
-    };
+    const conditions: QueryFilter<ProjectEntity>[] = [];
+    if (query.status) conditions.push({ status: query.status });
+    if (query.operationalStatus) {
+      conditions.push({ operationalStatus: query.operationalStatus });
+    }
+    if (query.dataQuality === 'has_revenue') {
+      conditions.push({ revenueTotal: { $gt: 0 } });
+    } else if (query.dataQuality === 'missing_capex') {
+      conditions.push({
+        $or: [
+          { capex: { $exists: false } },
+          { capex: null },
+          { capex: { $lte: 0 } },
+        ],
+      });
+    } else if (query.dataQuality === 'conflict') {
+      conditions.push({ dataConflict: true });
+    }
+    const escapedSearch = query.search?.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (escapedSearch) {
+      const match = { $regex: escapedSearch, $options: 'i' };
+      conditions.push({
+        $or: [{ code: match }, { name: match }, { investor: match }],
+      });
+    }
+    const filter: QueryFilter<ProjectEntity> =
+      conditions.length > 0 ? { $and: conditions } : {};
     if (!query.canManageAll) {
       const scopedMemberships = await this.memberships
         .find({ userId: new Types.ObjectId(query.actorId) })
@@ -380,6 +444,39 @@ export class MongooseProjectRepository implements ProjectRepository {
       name: project.name,
       ...(project.description ? { description: project.description } : {}),
       status: project.status,
+      operationalStatus: project.operationalStatus ?? 'not_started',
+      ...(project.signedDate
+        ? { signedDate: project.signedDate.toISOString() }
+        : {}),
+      ...(project.address ? { address: project.address } : {}),
+      ...(project.province ? { province: project.province } : {}),
+      ...(project.investor ? { investor: project.investor } : {}),
+      ...(project.projectType ? { projectType: project.projectType } : {}),
+      ...(project.scaleDescription
+        ? { scaleDescription: project.scaleDescription }
+        : {}),
+      ...(project.unitCount !== undefined
+        ? { unitCount: project.unitCount }
+        : {}),
+      ...(project.floorAreaM2 !== undefined
+        ? { floorAreaM2: project.floorAreaM2 }
+        : {}),
+      ...(project.landAreaHa !== undefined
+        ? { landAreaHa: project.landAreaHa }
+        : {}),
+      ...(project.investmentUnit
+        ? { investmentUnit: project.investmentUnit }
+        : {}),
+      dataSources: project.dataSources ?? [],
+      dataConflict: project.dataConflict ?? false,
+      carrierContractCount: project.carrierContractCount ?? 0,
+      ...(project.revenueTotal !== undefined
+        ? { revenueTotal: project.revenueTotal }
+        : {}),
+      ...(project.costTotal !== undefined
+        ? { costTotal: project.costTotal }
+        : {}),
+      ...(project.capex !== undefined ? { capex: project.capex } : {}),
       ...(project.startDate
         ? { startDate: project.startDate.toISOString() }
         : {}),

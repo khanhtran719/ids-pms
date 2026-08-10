@@ -6,7 +6,7 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 
 ## Trạng thái hiện tại
 
-Đã có foundation cùng hai vertical slice Auth/Users và Projects chạy xuyên suốt:
+Đã có foundation cùng ba vertical slice Auth/Users, Projects và Tasks chạy xuyên suốt:
 
 - Angular gọi `GET /api/v1/health`.
 - NestJS trả trạng thái API và kết nối database.
@@ -14,9 +14,12 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 - Angular có đăng nhập, khôi phục phiên, app shell, dashboard, hồ sơ, trang không có quyền và quản lý người dùng.
 - Access token chỉ giữ trong memory; refresh token dùng cookie HttpOnly và được xoay vòng phía server.
 - NestJS có `login`, `refresh`, `logout`, `me`, danh sách và tạo người dùng; RBAC kiểm tra permission tại backend.
-- Angular có danh sách, bộ lọc, tạo và trang chi tiết dự án; owner/manager có thể sửa dự án và quản lý thành viên.
-- NestJS có CRUD phạm vi đầu tiên cho project và membership; creator trở thành owner trong transaction và hệ thống bảo vệ owner cuối cùng.
+- Angular có danh mục dự án bám mockup IDS: tìm theo mã/tên/chủ đầu tư, lọc trạng thái vận hành/chất lượng dữ liệu, phân trang và trang chi tiết gồm profile, KPI tổng hợp, tiến độ 5 bước và thành viên.
+- NestJS có project profile IDS, bộ lọc portfolio, create/read/update project và CRUD membership; creator trở thành owner trong transaction và hệ thống bảo vệ owner cuối cùng.
 - Người có `projects.manage` truy cập toàn bộ dự án; người còn lại chỉ thấy dự án mà mình là thành viên.
+- Angular có trang Tiến độ thi công bám mockup IDS: KPI, lọc trạng thái, nhóm 5 bước theo dự án, khởi tạo kế hoạch và cập nhật ngày/trạng thái.
+- NestJS có task list theo project scope, khởi tạo 5 bước idempotent và ràng buộc task hoàn thành phải có ngày kết thúc thực tế.
+- Task list join project/membership và tính overview bằng một MongoDB aggregation `$facet`, không query N+1.
 - Mật khẩu hash bằng Argon2id; refresh token chỉ lưu dạng SHA-256 hash; endpoint auth có throttling và CSRF custom header.
 - Swagger được phục vụ tại `/api/docs`.
 - API có request ID, error contract, structured request log, security headers, body limit, CORS allowlist và rate limit mặc định.
@@ -25,7 +28,7 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 - Contract envelope chung nằm trong `libs/api-contracts`; Nx tags kiểm soát hướng phụ thuộc web/API/shared.
 - Unit test, API e2e và Chromium e2e đã được thiết lập.
 
-Các module công việc, bình luận, tài liệu và báo cáo chưa được triển khai.
+Project hiện giữ các số tổng hợp tùy chọn như số hợp đồng, doanh thu, chi phí và CPĐT để dựng portfolio theo mockup. Các module nguồn chi tiết cho hợp đồng nhà mạng, doanh thu/chi phí, công nợ, hoàn vốn, CRM, bình luận, tài liệu và báo cáo chưa được triển khai. Phạm vi quan sát từ mockup và các điểm chưa chốt được ghi tại `docs/mockup-functional-scope.md`.
 
 ## Kiến trúc
 
@@ -76,10 +79,10 @@ Thứ tự phát triển được đề xuất, chưa đồng nghĩa với yêu 
 
 1. Authentication, users, roles và permissions — đã triển khai.
 2. Projects và project membership — đã triển khai lát cắt đầu tiên.
-3. Tasks, assignment, workflow và status history — bước đề xuất tiếp theo.
-4. Comments, activity/audit history và notifications.
-5. Documents/attachments nếu khách xác nhận.
-6. Dashboard, reports và các integration nếu khách xác nhận.
+3. Tasks và tiến độ 5 bước theo project — đã triển khai lát cắt đầu tiên.
+4. Dữ liệu project đặc thù IDS và portfolio filters — đã triển khai lát cắt đầu tiên theo mockup, vẫn chờ xác nhận nguồn chuẩn/quy tắc import.
+5. Hợp đồng nhà mạng; sau đó mới đến doanh thu, công nợ và hoàn vốn.
+6. CRM, comment/activity/notification và dashboard nghiệp vụ sau khi chốt workflow/KPI.
 
 ## Điểm truy cập local
 
@@ -124,3 +127,4 @@ Sao chép `.env.example` thành `.env`. Không commit `.env`.
 - `docs/api-conventions.md`: contract lỗi, pagination và OpenAPI.
 - `docs/testing.md`: test layers và cô lập database e2e.
 - `docs/technical-debt.md`: cảnh báo dependency/tooling đã biết và hướng xử lý.
+- `docs/mockup-functional-scope.md`: phạm vi tạm thời từ mockup và các điểm còn phải xác nhận.

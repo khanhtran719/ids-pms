@@ -1,4 +1,3 @@
-import { DatePipe } from '@angular/common';
 import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import {
@@ -13,33 +12,42 @@ import type {
   ProjectMember,
   ProjectMemberCandidate,
   ProjectMembershipRole,
+  ProjectOperationalStatus,
+  ProjectTask,
   ProjectStatus,
 } from '@project-ql/api-contracts';
-import { finalize, forkJoin } from 'rxjs';
+import { catchError, finalize, forkJoin, map, of } from 'rxjs';
 import { AuthSessionStore } from '../../core/auth-session.store';
 import { ProjectsService } from '../../core/projects.service';
+import { TasksService } from '../../core/tasks.service';
+import { ProjectPortfolioSummaryComponent } from './project-portfolio-summary.component';
 
 type DetailState =
   | { kind: 'loading' }
-  | { kind: 'ready'; project: ProjectDetail; members: ProjectMember[] }
+  | {
+      kind: 'ready';
+      project: ProjectDetail;
+      members: ProjectMember[];
+      tasks: ProjectTask[];
+    }
   | { kind: 'error' };
 
-const STATUS_LABELS: Record<ProjectStatus, string> = {
-  planning: 'Lập kế hoạch',
-  active: 'Đang thực hiện',
-  on_hold: 'Tạm dừng',
-  completed: 'Hoàn thành',
-  archived: 'Lưu trữ',
+const OPERATIONAL_STATUS_LABELS: Record<ProjectOperationalStatus, string> = {
+  not_started: 'Chưa thi công',
+  in_progress: 'Đang thi công',
+  partial: 'Hoàn thành theo giai đoạn',
+  operational: 'Đang khai thác',
 };
 
 @Component({
   selector: 'app-project-detail-page',
-  imports: [DatePipe, ReactiveFormsModule, RouterLink],
+  imports: [ProjectPortfolioSummaryComponent, ReactiveFormsModule, RouterLink],
   templateUrl: './project-detail.page.html',
   styleUrl: './project-detail.page.scss',
 })
 export class ProjectDetailPage {
   private readonly projects = inject(ProjectsService);
+  private readonly tasks = inject(TasksService);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly projectId =
@@ -60,6 +68,31 @@ export class ProjectDetailPage {
     }),
     description: new FormControl('', { nonNullable: true }),
     status: new FormControl<ProjectStatus>('planning', { nonNullable: true }),
+    operationalStatus: new FormControl<ProjectOperationalStatus>(
+      'not_started',
+      { nonNullable: true },
+    ),
+    investor: new FormControl('', { nonNullable: true }),
+    province: new FormControl('', { nonNullable: true }),
+    address: new FormControl('', { nonNullable: true }),
+    projectType: new FormControl('', { nonNullable: true }),
+    scaleDescription: new FormControl('', { nonNullable: true }),
+    unitCount: new FormControl<number | null>(null, {
+      validators: [Validators.min(0)],
+    }),
+    floorAreaM2: new FormControl<number | null>(null, {
+      validators: [Validators.min(0)],
+    }),
+    landAreaHa: new FormControl<number | null>(null, {
+      validators: [Validators.min(0)],
+    }),
+    capex: new FormControl<number | null>(null, {
+      validators: [Validators.min(0)],
+    }),
+    dataConflict: new FormControl(false, { nonNullable: true }),
+    sourceTeldata: new FormControl(false, { nonNullable: true }),
+    sourceIbs: new FormControl(false, { nonNullable: true }),
+    sourceRevenue: new FormControl(false, { nonNullable: true }),
     startDate: new FormControl('', { nonNullable: true }),
     dueDate: new FormControl('', { nonNullable: true }),
   });
@@ -85,15 +118,35 @@ export class ProjectDetailPage {
     forkJoin({
       project: this.projects.getById(this.projectId),
       members: this.projects.listMembers(this.projectId),
+      tasks: this.tasks
+        .list(1, 5, this.projectId)
+        .pipe(
+          map((response) => response.data),
+          catchError(() => of([] as ProjectTask[])),
+        ),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: ({ project, members }) => {
-          this.state.set({ kind: 'ready', project, members });
+        next: ({ project, members, tasks }) => {
+          this.state.set({ kind: 'ready', project, members, tasks });
           this.editForm.reset({
             name: project.name,
             description: project.description ?? '',
             status: project.status,
+            operationalStatus: project.operationalStatus ?? 'not_started',
+            investor: project.investor ?? '',
+            province: project.province ?? '',
+            address: project.address ?? '',
+            projectType: project.projectType ?? '',
+            scaleDescription: project.scaleDescription ?? '',
+            unitCount: project.unitCount ?? null,
+            floorAreaM2: project.floorAreaM2 ?? null,
+            landAreaHa: project.landAreaHa ?? null,
+            capex: project.capex ?? null,
+            dataConflict: project.dataConflict ?? false,
+            sourceTeldata: project.dataSources?.includes('Teldata') ?? false,
+            sourceIbs: project.dataSources?.includes('IBS') ?? false,
+            sourceRevenue: project.dataSources?.includes('DoanhThu') ?? false,
             startDate: project.startDate?.slice(0, 10) ?? '',
             dueDate: project.dueDate?.slice(0, 10) ?? '',
           });
@@ -113,6 +166,11 @@ export class ProjectDetailPage {
   protected saveProject(): void {
     if (this.editForm.invalid || this.saving()) return;
     const value = this.editForm.getRawValue();
+    const dataSources = [
+      ...(value.sourceTeldata ? (['Teldata'] as const) : []),
+      ...(value.sourceIbs ? (['IBS'] as const) : []),
+      ...(value.sourceRevenue ? (['DoanhThu'] as const) : []),
+    ];
     this.saving.set(true);
     this.operationError.set(null);
     this.projects
@@ -120,6 +178,18 @@ export class ProjectDetailPage {
         name: value.name,
         description: value.description,
         status: value.status,
+        operationalStatus: value.operationalStatus,
+        investor: value.investor || null,
+        province: value.province || null,
+        address: value.address || null,
+        projectType: value.projectType || null,
+        scaleDescription: value.scaleDescription || null,
+        unitCount: value.unitCount,
+        floorAreaM2: value.floorAreaM2,
+        landAreaHa: value.landAreaHa,
+        capex: value.capex,
+        dataConflict: value.dataConflict,
+        dataSources,
         startDate: value.startDate || null,
         dueDate: value.dueDate || null,
       })
@@ -225,6 +295,7 @@ export class ProjectDetailPage {
               members: current.members.filter(
                 (member) => member.userId !== userId,
               ),
+              tasks: current.tasks,
             });
           }
           this.pendingRemoval.set(null);
@@ -236,8 +307,10 @@ export class ProjectDetailPage {
       });
   }
 
-  protected statusLabel(status: ProjectStatus): string {
-    return STATUS_LABELS[status];
+  protected operationalStatusLabel(
+    status: ProjectOperationalStatus | undefined,
+  ): string {
+    return OPERATIONAL_STATUS_LABELS[status ?? 'not_started'];
   }
 
   private replaceMember(member: ProjectMember): void {
@@ -257,6 +330,7 @@ export class ProjectDetailPage {
         memberCount: current.project.memberCount + (replaced ? 0 : 1),
       },
       members,
+      tasks: current.tasks,
     });
   }
 }

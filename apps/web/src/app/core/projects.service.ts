@@ -2,11 +2,11 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import type {
   CreateProjectRequest,
+  ListProjectsRequest,
   PaginatedResponse,
   ProjectDetail,
   ProjectMember,
   ProjectMemberCandidate,
-  ProjectStatus,
   UpdateProjectRequest,
   UpsertProjectMemberRequest,
 } from '@project-ql/api-contracts';
@@ -17,12 +17,17 @@ export class ProjectsService {
   private readonly http = inject(HttpClient);
 
   list(
-    page = 1,
-    limit = 20,
-    status?: ProjectStatus,
+    query: ListProjectsRequest = {},
   ): Observable<PaginatedResponse<ProjectDetail>> {
-    let params = new HttpParams().set('page', page).set('limit', limit);
-    if (status) params = params.set('status', status);
+    let params = new HttpParams()
+      .set('page', query.page ?? 1)
+      .set('limit', query.limit ?? 20);
+    if (query.status) params = params.set('status', query.status);
+    if (query.operationalStatus) {
+      params = params.set('operationalStatus', query.operationalStatus);
+    }
+    if (query.dataQuality) params = params.set('dataQuality', query.dataQuality);
+    if (query.search) params = params.set('search', query.search);
     return this.http.get<PaginatedResponse<ProjectDetail>>('/api/v1/projects', {
       params,
     });

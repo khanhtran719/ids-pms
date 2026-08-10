@@ -9,10 +9,12 @@ import type {
   ProjectDetail,
   ProjectMember,
   ProjectMemberCandidate,
+  TaskListResponse,
 } from '@project-ql/api-contracts';
 import { of, Subject, throwError } from 'rxjs';
 import { AuthSessionStore } from '../../core/auth-session.store';
 import { ProjectsService } from '../../core/projects.service';
+import { TasksService } from '../../core/tasks.service';
 import { ProjectDetailPage } from './project-detail.page';
 
 describe('ProjectDetailPage', () => {
@@ -22,6 +24,18 @@ describe('ProjectDetailPage', () => {
     name: 'IDS PMS',
     description: 'Project management',
     status: 'active',
+    operationalStatus: 'operational',
+    investor: 'IDS Corporation',
+    province: 'Hồ Chí Minh',
+    projectType: 'Chung cư kết hợp thương mại',
+    scaleDescription: '2 block, 25 tầng',
+    unitCount: 420,
+    floorAreaM2: 62_500,
+    capex: 4_200_000_000,
+    revenueTotal: 5_100_000_000,
+    costTotal: 2_700_000_000,
+    dataSources: ['Teldata', 'DoanhThu'],
+    dataConflict: true,
     memberCount: 1,
     myRole: 'owner',
     createdBy: 'admin-1',
@@ -40,6 +54,36 @@ describe('ProjectDetailPage', () => {
     userId: 'member-1',
     email: 'member@example.com',
     displayName: 'Member',
+  };
+  const taskResponse: TaskListResponse = {
+    data: [
+      {
+        id: 'task-1',
+        projectId: project.id,
+        projectCode: project.code,
+        projectName: project.name,
+        step: 1,
+        name: 'Hồ sơ thiết kế phê duyệt',
+        department: 'P.KTDA',
+        status: 'done',
+        actualEndDate: '2026-08-10T00:00:00.000Z',
+        updatedAt: '2026-08-10T00:00:00.000Z',
+      },
+    ],
+    overview: {
+      totalTasks: 1,
+      completedTasks: 1,
+      tasksWithActualEnd: 1,
+      trackedProjects: 1,
+    },
+    meta: {
+      page: 1,
+      limit: 5,
+      totalItems: 1,
+      totalPages: 1,
+      hasNextPage: false,
+      hasPreviousPage: false,
+    },
   };
 
   async function createFixture(
@@ -73,6 +117,10 @@ describe('ProjectDetailPage', () => {
           },
         },
         { provide: ProjectsService, useValue: projects },
+        {
+          provide: TasksService,
+          useValue: { list: jest.fn(() => of(taskResponse)) },
+        },
       ],
     }).compileComponents();
     TestBed.inject(AuthSessionStore).setSession({
@@ -94,7 +142,7 @@ describe('ProjectDetailPage', () => {
     return { fixture, projects };
   }
 
-  it('loads project and members together before rendering the workspace', async () => {
+  it('loads project, members and progress together before rendering the workspace', async () => {
     const projectResponse = new Subject<ProjectDetail>();
     const membersResponse = new Subject<ProjectMember[]>();
     await TestBed.configureTestingModule({
@@ -115,6 +163,10 @@ describe('ProjectDetailPage', () => {
             getById: jest.fn(() => projectResponse),
             listMembers: jest.fn(() => membersResponse),
           },
+        },
+        {
+          provide: TasksService,
+          useValue: { list: jest.fn(() => of(taskResponse)) },
         },
       ],
     }).compileComponents();
@@ -161,6 +213,28 @@ describe('ProjectDetailPage', () => {
 
     expect(fixture.nativeElement.textContent).toContain('IDS PMS');
     expect(fixture.nativeElement.textContent).toContain('Administrator');
+  });
+
+  it('renders the IDS project profile, data warning and financial summary', async () => {
+    const { fixture } = await createFixture();
+
+    expect(fixture.nativeElement.textContent).toContain('IDS Corporation');
+    expect(fixture.nativeElement.textContent).toContain('Hồ Chí Minh');
+    expect(fixture.nativeElement.textContent).toContain('2 block, 25 tầng');
+    expect(fixture.nativeElement.textContent).toContain('5,10 tỷ');
+    expect(fixture.nativeElement.textContent).toContain('4,20 tỷ');
+    expect(fixture.nativeElement.textContent).toContain('dữ liệu xung đột');
+    expect(fixture.nativeElement.textContent).toContain('Teldata');
+  });
+
+  it('shows the five-step project progress without per-task requests', async () => {
+    const { fixture } = await createFixture();
+
+    expect(fixture.nativeElement.textContent).toContain('Tiến độ 5 bước');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Hồ sơ thiết kế phê duyệt',
+    );
+    expect(fixture.nativeElement.textContent).toContain('Hoàn thành');
   });
 
   it('renders a safe load error and retries both bounded requests', async () => {

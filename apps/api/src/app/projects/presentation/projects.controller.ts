@@ -55,7 +55,14 @@ export class ProjectsController {
       request.auth.permissions,
       query.page,
       query.limit,
-      query.status,
+      {
+        ...(query.status ? { status: query.status } : {}),
+        ...(query.operationalStatus
+          ? { operationalStatus: query.operationalStatus }
+          : {}),
+        ...(query.dataQuality ? { dataQuality: query.dataQuality } : {}),
+        ...(query.search ? { search: query.search } : {}),
+      },
     );
   }
 

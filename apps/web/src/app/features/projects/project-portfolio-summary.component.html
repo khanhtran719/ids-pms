@@ -1,0 +1,59 @@
+@if (project().dataConflict) {
+<div class="data-warning" role="status">
+  <strong>Cần đối soát dữ liệu:</strong> dự án có dữ liệu xung đột giữa các nguồn đã hợp nhất.
+</div>
+}
+
+<section class="summary-grid" aria-label="Chỉ số dự án">
+  <div><small>Quy mô</small><strong>{{ formatNumber(project().unitCount, 'CH') }}</strong></div>
+  <div><small>Diện tích sàn</small><strong>{{ formatNumber(project().floorAreaM2, 'm²') }}</strong></div>
+  <div><small>Doanh thu</small><strong>{{ formatMoney(project().revenueTotal) }}</strong></div>
+  <div><small>Tổng CPĐT</small><strong>{{ formatMoney(project().capex) }}</strong></div>
+</section>
+
+<div class="detail-layout">
+  <section class="card" aria-labelledby="profile-title">
+    <header><div><p>Project profile</p><h2 id="profile-title">Thông tin nghiệp vụ</h2></div></header>
+    <dl class="profile-list">
+      <div><dt>Vai trò của bạn</dt><dd>{{ project().myRole || 'Quản trị hệ thống' }}</dd></div>
+      <div><dt>Chủ đầu tư</dt><dd>{{ project().investor || 'Chưa cập nhật' }}</dd></div>
+      <div><dt>Tỉnh / thành phố</dt><dd>{{ project().province || '—' }}</dd></div>
+      <div><dt>Địa chỉ</dt><dd>{{ project().address || '—' }}</dd></div>
+      <div><dt>Loại hình</dt><dd>{{ project().projectType || '—' }}</dd></div>
+      <div><dt>Quy mô mô tả</dt><dd>{{ project().scaleDescription || '—' }}</dd></div>
+      <div><dt>Nguồn dữ liệu</dt><dd class="source-tags">
+        @for (source of project().dataSources || []; track source) { <span>{{ source }}</span> }
+        @if (!project().dataSources?.length) { <span class="empty-value">Chưa xác định</span> }
+      </dd></div>
+    </dl>
+  </section>
+
+  <section class="card" aria-labelledby="finance-title">
+    <header><div><p>Portfolio snapshot</p><h2 id="finance-title">Tổng hợp tài chính</h2></div></header>
+    <dl class="finance-list">
+      <div><dt>Doanh thu</dt><dd>{{ formatMoney(project().revenueTotal) }}</dd></div>
+      <div><dt>Chi phí</dt><dd>{{ formatMoney(project().costTotal) }}</dd></div>
+      <div><dt>Lợi nhuận</dt><dd>{{ formatMoney(profit(project())) }}</dd></div>
+      <div><dt>Tỷ lệ hoàn vốn</dt><dd>{{ roi(project()) }}</dd></div>
+    </dl>
+    <div class="contract-summary"><strong>{{ project().carrierContractCount || 0 }}</strong><span>hợp đồng nhà mạng được ghi nhận</span></div>
+  </section>
+</div>
+
+<section class="progress-card" aria-labelledby="progress-title">
+  <header><div><p>Delivery workflow</p><h2 id="progress-title">Tiến độ 5 bước</h2></div><a routerLink="/tasks">Quản lý tiến độ →</a></header>
+  @if (tasks().length) {
+  <ol>
+    @for (task of tasks(); track task.id) {
+    <li>
+      <span class="step-number">{{ task.step }}</span>
+      <span class="task-main"><strong>{{ task.name }}</strong><small>{{ task.department }}</small></span>
+      <span class="task-status" [attr.data-status]="task.status">{{ taskStatusLabel(task.status) }}</span>
+      <span class="task-date">{{ task.actualEndDate?.slice(0, 10) || task.plannedEndDate?.slice(0, 10) || 'Chưa có ngày' }}</span>
+    </li>
+    }
+  </ol>
+  } @else {
+  <div class="progress-empty">Dự án chưa có kế hoạch triển khai. Vào trang Tiến độ để khởi tạo năm bước chuẩn.</div>
+  }
+</section>

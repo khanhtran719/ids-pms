@@ -1,7 +1,10 @@
 import type {
   ProjectDetail,
+  ProjectDataQualityFilter,
+  ProjectDataSource,
   ProjectMember,
   ProjectMembershipRole,
+  ProjectOperationalStatus,
   ProjectStatus,
 } from '@project-ql/api-contracts';
 import type { Pagination } from '../../core/http/pagination';
@@ -11,6 +14,23 @@ export interface CreateProjectRecord {
   name: string;
   description?: string;
   status: ProjectStatus;
+  operationalStatus?: ProjectOperationalStatus;
+  signedDate?: Date;
+  address?: string;
+  province?: string;
+  investor?: string;
+  projectType?: string;
+  scaleDescription?: string;
+  unitCount?: number;
+  floorAreaM2?: number;
+  landAreaHa?: number;
+  investmentUnit?: string;
+  dataSources?: ProjectDataSource[];
+  dataConflict?: boolean;
+  carrierContractCount?: number;
+  revenueTotal?: number;
+  costTotal?: number;
+  capex?: number;
   startDate?: Date;
   dueDate?: Date;
   createdBy: string;
@@ -21,6 +41,23 @@ export interface UpdateProjectRecord {
   name?: string;
   description?: string;
   status?: ProjectStatus;
+  operationalStatus?: ProjectOperationalStatus;
+  signedDate?: Date | null;
+  address?: string | null;
+  province?: string | null;
+  investor?: string | null;
+  projectType?: string | null;
+  scaleDescription?: string | null;
+  unitCount?: number | null;
+  floorAreaM2?: number | null;
+  landAreaHa?: number | null;
+  investmentUnit?: string | null;
+  dataSources?: ProjectDataSource[] | null;
+  dataConflict?: boolean;
+  carrierContractCount?: number | null;
+  revenueTotal?: number | null;
+  costTotal?: number | null;
+  capex?: number | null;
   startDate?: Date | null;
   dueDate?: Date | null;
 }
@@ -29,6 +66,9 @@ export interface ListProjectsQuery extends Pagination {
   actorId: string;
   canManageAll: boolean;
   status?: ProjectStatus;
+  operationalStatus?: ProjectOperationalStatus;
+  dataQuality?: ProjectDataQualityFilter;
+  search?: string;
 }
 
 export type MembershipWriteResult = ProjectMember | 'last_owner';

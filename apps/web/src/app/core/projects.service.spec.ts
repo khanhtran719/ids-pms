@@ -20,11 +20,19 @@ describe('ProjectsService', () => {
 
   afterEach(() => http.verify());
 
-  it('lists projects with pagination and an optional status filter', () => {
-    service.list(2, 20, 'active').subscribe();
+  it('lists projects with the IDS portfolio filters', () => {
+    service
+      .list({
+        page: 2,
+        limit: 20,
+        operationalStatus: 'operational',
+        dataQuality: 'missing_capex',
+        search: 'Nam Long',
+      })
+      .subscribe();
 
     const request = http.expectOne(
-      '/api/v1/projects?page=2&limit=20&status=active',
+      '/api/v1/projects?page=2&limit=20&operationalStatus=operational&dataQuality=missing_capex&search=Nam%20Long',
     );
     expect(request.request.method).toBe('GET');
     request.flush({ data: [], meta: {} });

@@ -7,6 +7,9 @@ import {
 } from '../support/test-database';
 
 const CSRF_HEADERS = { 'x-csrf-protection': '1' };
+let lifecycleAdminAuthorization = { Authorization: '' };
+let lifecycleMemberAuthorization = { Authorization: '' };
+let lifecycleMemberId = '';
 
 function readRefreshCookie(response: { headers: Record<string, unknown> }) {
   const setCookie = response.headers['set-cookie'];
@@ -220,6 +223,9 @@ describe('Projects and memberships lifecycle', () => {
     const memberAuthorization = {
       Authorization: `Bearer ${memberLogin.data.accessToken as string}`,
     };
+    lifecycleAdminAuthorization = adminAuthorization;
+    lifecycleMemberAuthorization = memberAuthorization;
+    lifecycleMemberId = memberLogin.data.user.id as string;
 
     const created = await axios.post(
       '/api/v1/projects',
@@ -227,6 +233,16 @@ describe('Projects and memberships lifecycle', () => {
         code: '  pms-e2e ',
         name: '  E2E Project  ',
         description: '  Project membership contract  ',
+        investor: '  IDS Corporation  ',
+        province: '  Hồ Chí Minh  ',
+        projectType: 'Chung cư kết hợp thương mại',
+        operationalStatus: 'operational',
+        unitCount: 420,
+        floorAreaM2: 62500,
+        revenueTotal: 5100000000,
+        capex: 4200000000,
+        dataSources: ['Teldata', 'DoanhThu'],
+        dataConflict: true,
         startDate: '2026-08-10',
         dueDate: '2026-09-10',
       },
@@ -238,11 +254,29 @@ describe('Projects and memberships lifecycle', () => {
       name: 'E2E Project',
       description: 'Project membership contract',
       status: 'planning',
+      operationalStatus: 'operational',
+      investor: 'IDS Corporation',
+      province: 'Hồ Chí Minh',
+      unitCount: 420,
+      floorAreaM2: 62500,
+      revenueTotal: 5100000000,
+      capex: 4200000000,
+      dataSources: ['Teldata', 'DoanhThu'],
+      dataConflict: true,
       memberCount: 1,
       myRole: 'owner',
       createdBy: adminLogin.data.user.id,
     });
     const projectId = created.data.id as string;
+
+    const filtered = await axios.get(
+      '/api/v1/projects?operationalStatus=operational&dataQuality=has_revenue&search=IDS%20Corporation',
+      { headers: adminAuthorization },
+    );
+    expect(filtered.data).toMatchObject({
+      data: [expect.objectContaining({ id: projectId })],
+      meta: expect.objectContaining({ totalItems: 1 }),
+    });
 
     const duplicate = await axios.post(
       '/api/v1/projects',
@@ -345,5 +379,111 @@ describe('Projects and memberships lifecycle', () => {
     );
     expect(lastOwnerRemoval.status).toBe(409);
     expect(lastOwnerRemoval.data.code).toBe('PROJECT_LAST_OWNER_REQUIRED');
+  });
+});
+
+describe('Project task plan lifecycle', () => {
+  it('initializes five steps, scopes reads, and requires actual completion dates', async () => {
+    const adminAuthorization = lifecycleAdminAuthorization;
+    const memberAuthorization = lifecycleMemberAuthorization;
+
+    const project = await axios.post(
+      '/api/v1/projects',
+      { code: 'TASK-E2E', name: 'Task Plan E2E' },
+      { headers: adminAuthorization },
+    );
+    const projectId = project.data.id as string;
+
+    const initialized = await axios.post(
+      `/api/v1/projects/${projectId}/tasks/initialize`,
+      {},
+      { headers: adminAuthorization },
+    );
+    expect(initialized.status).toBe(200);
+    expect(initialized.data).toHaveLength(5);
+    expect(initialized.data).toEqual([
+      expect.objectContaining({ step: 1, department: 'P.KTDA', status: 'todo' }),
+      expect.objectContaining({ step: 2, department: 'P.KTDA', status: 'todo' }),
+      expect.objectContaining({ step: 3, department: 'P.KTDA', status: 'todo' }),
+      expect.objectContaining({ step: 4, department: 'P.KDHT', status: 'todo' }),
+      expect.objectContaining({ step: 5, department: 'P.KTDA', status: 'todo' }),
+    ]);
+
+    const initializedAgain = await axios.post(
+      `/api/v1/projects/${projectId}/tasks/initialize`,
+      {},
+      { headers: adminAuthorization },
+    );
+    expect(initializedAgain.data).toHaveLength(5);
+
+    const beforeMembership = await axios.get('/api/v1/tasks', {
+      headers: memberAuthorization,
+    });
+    expect(beforeMembership.data.meta.totalItems).toBe(0);
+
+    await axios.post(
+      `/api/v1/projects/${projectId}/members`,
+      { userId: lifecycleMemberId, role: 'member' },
+      { headers: adminAuthorization },
+    );
+    const memberTasks = await axios.get(
+      `/api/v1/tasks?projectId=${projectId}&page=1&limit=50`,
+      { headers: memberAuthorization },
+    );
+    expect(memberTasks.data).toMatchObject({
+      meta: expect.objectContaining({ totalItems: 5 }),
+      overview: {
+        totalTasks: 5,
+        completedTasks: 0,
+        tasksWithActualEnd: 0,
+        trackedProjects: 1,
+      },
+    });
+
+    const memberInitialize = await axios.post(
+      `/api/v1/projects/${projectId}/tasks/initialize`,
+      {},
+      { headers: memberAuthorization, validateStatus: () => true },
+    );
+    expect(memberInitialize.status).toBe(403);
+    expect(memberInitialize.data.code).toBe('INSUFFICIENT_PERMISSION');
+
+    const firstTaskId = initialized.data[0].id as string;
+    const invalidCompletion = await axios.patch(
+      `/api/v1/tasks/${firstTaskId}`,
+      { status: 'done' },
+      { headers: adminAuthorization, validateStatus: () => true },
+    );
+    expect(invalidCompletion.status).toBe(400);
+    expect(invalidCompletion.data.code).toBe('TASK_ACTUAL_END_REQUIRED');
+
+    const completed = await axios.patch(
+      `/api/v1/tasks/${firstTaskId}`,
+      {
+        plannedStartDate: '2026-08-10',
+        plannedEndDate: '2026-08-20',
+        actualEndDate: '2026-08-19',
+        status: 'done',
+      },
+      { headers: adminAuthorization },
+    );
+    expect(completed.data).toMatchObject({
+      id: firstTaskId,
+      status: 'done',
+      actualEndDate: expect.any(String),
+    });
+
+    const completedTasks = await axios.get(
+      `/api/v1/tasks?projectId=${projectId}&status=done`,
+      { headers: adminAuthorization },
+    );
+    expect(completedTasks.data).toMatchObject({
+      data: [expect.objectContaining({ id: firstTaskId, status: 'done' })],
+      meta: expect.objectContaining({ totalItems: 1 }),
+      overview: expect.objectContaining({
+        completedTasks: 1,
+        tasksWithActualEnd: 1,
+      }),
+    });
   });
 });

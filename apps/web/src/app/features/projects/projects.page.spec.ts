@@ -31,6 +31,14 @@ describe('ProjectsPage', () => {
     code: 'IDS',
     name: 'IDS PMS',
     status: 'planning',
+    operationalStatus: 'operational',
+    investor: 'IDS Corporation',
+    province: 'Hồ Chí Minh',
+    unitCount: 420,
+    floorAreaM2: 62_500,
+    carrierContractCount: 3,
+    revenueTotal: 5_100_000_000,
+    dataConflict: true,
     memberCount: 1,
     myRole: 'owner',
     createdBy: 'admin-1',
@@ -85,18 +93,37 @@ describe('ProjectsPage', () => {
     ).toContain('Tạo dự án');
   });
 
-  it('applies the status filter and retries a failed list request', () => {
+  it('applies the IDS filters and retries a failed list request', () => {
     const fixture = TestBed.createComponent(ProjectsPage);
     response.next(emptyPage);
     fixture.detectChanges();
 
     const filter = fixture.nativeElement.querySelector(
-      '#statusFilter',
+      '#operationalStatusFilter',
     ) as HTMLSelectElement;
-    filter.value = 'active';
+    filter.value = 'operational';
     filter.dispatchEvent(new Event('change'));
     fixture.detectChanges();
-    expect(projects.list).toHaveBeenLastCalledWith(1, 20, 'active');
+    expect(projects.list).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        page: 1,
+        limit: 20,
+        operationalStatus: 'operational',
+      }),
+    );
+
+    const qualityFilter = fixture.nativeElement.querySelector(
+      '#dataQualityFilter',
+    ) as HTMLSelectElement;
+    qualityFilter.value = 'conflict';
+    qualityFilter.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+    expect(projects.list).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        operationalStatus: 'operational',
+        dataQuality: 'conflict',
+      }),
+    );
 
     const retryResponse = new Subject<PaginatedResponse<ProjectDetail>>();
     projects.list.mockReturnValue(retryResponse);
@@ -109,6 +136,28 @@ describe('ProjectsPage', () => {
     retryResponse.next({ ...emptyPage, data: [project] });
     fixture.detectChanges();
     expect(fixture.nativeElement.textContent).toContain('IDS PMS');
+    expect(fixture.nativeElement.textContent).toContain('IDS Corporation');
+    expect(fixture.nativeElement.textContent).toContain('Hồ Chí Minh');
+    expect(fixture.nativeElement.textContent).toContain('5,10 tỷ');
+  });
+
+  it('debounces project search and sends the normalized term', () => {
+    jest.useFakeTimers();
+    const fixture = TestBed.createComponent(ProjectsPage);
+    response.next(emptyPage);
+    fixture.detectChanges();
+
+    const search = fixture.nativeElement.querySelector(
+      '#projectSearch',
+    ) as HTMLInputElement;
+    search.value = '  Nam Long  ';
+    search.dispatchEvent(new Event('input'));
+    jest.advanceTimersByTime(300);
+
+    expect(projects.list).toHaveBeenLastCalledWith(
+      expect.objectContaining({ search: 'Nam Long' }),
+    );
+    jest.useRealTimers();
   });
 
   it('validates, creates and navigates to a project with optional fields', () => {
@@ -147,6 +196,7 @@ describe('ProjectsPage', () => {
       name: 'IDS PMS',
       description: 'Project management',
       status: 'planning',
+      operationalStatus: 'not_started',
       startDate: '2026-08-10',
       dueDate: '2026-09-10',
     });
@@ -183,6 +233,7 @@ describe('ProjectsPage', () => {
       code: 'IDS',
       name: 'IDS PMS',
       status: 'planning',
+      operationalStatus: 'not_started',
     });
     expect(
       fixture.nativeElement.querySelector('[role="alert"]').textContent,

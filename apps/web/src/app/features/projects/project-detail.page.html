@@ -12,8 +12,8 @@
   <div>
     <div class="title-meta">
       <span class="code">{{ current.project.code }}</span>
-      <span class="status" [attr.data-status]="current.project.status"
-        >{{ statusLabel(current.project.status) }}</span
+      <span class="status" [attr.data-status]="current.project.operationalStatus || 'not_started'"
+        >{{ operationalStatusLabel(current.project.operationalStatus) }}</span
       >
     </div>
     <h1>{{ current.project.name }}</h1>
@@ -49,7 +49,7 @@
       ></textarea>
     </div>
     <div class="field">
-      <label for="editStatus">Trạng thái</label
+      <label for="editStatus">Trạng thái quản trị</label
       ><select id="editStatus" formControlName="status">
         <option value="planning">Lập kế hoạch</option>
         <option value="active">Đang thực hiện</option>
@@ -58,6 +58,58 @@
         <option value="archived">Lưu trữ</option>
       </select>
     </div>
+    <div class="field">
+      <label for="editOperationalStatus">Trạng thái vận hành</label>
+      <select id="editOperationalStatus" formControlName="operationalStatus">
+        <option value="not_started">Chưa thi công</option>
+        <option value="in_progress">Đang thi công</option>
+        <option value="partial">Hoàn thành theo giai đoạn</option>
+        <option value="operational">Đang khai thác</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="editInvestor">Chủ đầu tư</label>
+      <input id="editInvestor" formControlName="investor" />
+    </div>
+    <div class="field">
+      <label for="editProvince">Tỉnh / thành phố</label>
+      <input id="editProvince" formControlName="province" />
+    </div>
+    <div class="field field--wide">
+      <label for="editAddress">Địa chỉ</label>
+      <input id="editAddress" formControlName="address" />
+    </div>
+    <div class="field">
+      <label for="editProjectType">Loại hình dự án</label>
+      <input id="editProjectType" formControlName="projectType" />
+    </div>
+    <div class="field">
+      <label for="editUnitCount">Số căn hộ / đơn vị</label>
+      <input id="editUnitCount" type="number" min="0" formControlName="unitCount" />
+    </div>
+    <div class="field">
+      <label for="editFloorArea">Diện tích sàn (m²)</label>
+      <input id="editFloorArea" type="number" min="0" formControlName="floorAreaM2" />
+    </div>
+    <div class="field">
+      <label for="editLandArea">Diện tích đất (ha)</label>
+      <input id="editLandArea" type="number" min="0" formControlName="landAreaHa" />
+    </div>
+    <div class="field">
+      <label for="editCapex">Tổng CPĐT (VNĐ)</label>
+      <input id="editCapex" type="number" min="0" formControlName="capex" />
+    </div>
+    <div class="field field--wide">
+      <label for="editScale">Mô tả quy mô</label>
+      <textarea id="editScale" formControlName="scaleDescription" rows="3"></textarea>
+    </div>
+    <fieldset class="source-fields field--wide">
+      <legend>Nguồn dữ liệu</legend>
+      <label><input type="checkbox" formControlName="sourceTeldata" /> Teldata</label>
+      <label><input type="checkbox" formControlName="sourceIbs" /> IBS</label>
+      <label><input type="checkbox" formControlName="sourceRevenue" /> DoanhThu</label>
+      <label><input type="checkbox" formControlName="dataConflict" /> Có dữ liệu xung đột</label>
+    </fieldset>
     <div class="field">
       <label for="editStart">Ngày bắt đầu</label
       ><input id="editStart" type="date" formControlName="startDate" />
@@ -77,29 +129,10 @@
 </section>
 }
 
-<section class="summary-grid" aria-label="Tóm tắt dự án">
-  <div>
-    <small>Vai trò của bạn</small
-    ><strong>{{ current.project.myRole || 'Quản trị hệ thống' }}</strong>
-  </div>
-  <div>
-    <small>Thành viên</small><strong>{{ current.project.memberCount }}</strong>
-  </div>
-  <div>
-    <small>Ngày bắt đầu</small
-    ><strong
-      >{{ current.project.startDate ? (current.project.startDate | date:
-      'dd/MM/yyyy') : 'Chưa đặt' }}</strong
-    >
-  </div>
-  <div>
-    <small>Hạn hoàn thành</small
-    ><strong
-      >{{ current.project.dueDate ? (current.project.dueDate | date:
-      'dd/MM/yyyy') : 'Chưa đặt' }}</strong
-    >
-  </div>
-</section>
+<app-project-portfolio-summary
+  [project]="current.project"
+  [tasks]="current.tasks"
+/>
 
 <section class="members-card" aria-labelledby="members-title">
   <div class="card-heading">
