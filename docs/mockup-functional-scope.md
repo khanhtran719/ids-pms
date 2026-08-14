@@ -85,6 +85,7 @@ Quy tắc đang áp dụng:
 - Người có `revenue.read` chỉ thấy dữ liệu trong project scope; `projects.manage` có scope toàn bộ. Ghi số liệu yêu cầu `revenue.manage` và project phải thuộc scope.
 - KPI toàn năm, tổng từng quý, số dự án có/chưa có doanh thu và danh sách phân trang được trả bằng một MongoDB aggregation `$facet`.
 - FY2025 là giá trị mặc định tạm thời trên UI vì mockup đang dùng năm này; API luôn nhận năm tài chính rõ ràng và hỗ trợ nhiều năm.
+- Trang chi tiết dự án cho phép chọn năm 2024-2027, xem đủ Q1-Q4 kể cả khi chưa có actual và chỉ hiển thị thao tác cập nhật khi có `revenue.manage`.
 - Không suy doanh thu từ đơn giá/chu kỳ hợp đồng, không tự sinh công nợ và chưa đồng bộ snapshot `project.revenueTotal/costTotal`; các luồng này chờ khách xác nhận.
 - So sánh Q4 với trung bình ba quý đầu chỉ là gợi ý đối soát, chưa phải quy tắc cảnh báo hoặc kết luận kế toán.
 

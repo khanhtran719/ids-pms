@@ -18,6 +18,7 @@ export interface ListRevenueQuery extends Pagination {
   canManageAll: boolean;
   fiscalYear: number;
   search?: string;
+  projectId?: string;
 }
 
 export interface UpsertRevenueActualRecord {

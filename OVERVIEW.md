@@ -25,6 +25,7 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 - Angular có trang Hợp đồng nhà mạng theo mockup với KPI, bộ lọc, phân trang, thêm hợp đồng và cập nhật điều khoản; có thể mở từ chi tiết dự án với scope dự án được giữ trên URL.
 - NestJS lưu hợp đồng theo project scope; danh sách, KPI và danh mục nhà mạng dùng một aggregation `$facet`, không query N+1.
 - Angular có trang Doanh thu v1 theo mockup: KPI năm tài chính, so sánh doanh thu/chi phí theo quý, tìm kiếm, phân trang và ghi nhận số thực tế cho từng dự án/quý.
+- Trang chi tiết dự án hiển thị doanh thu/chi phí/lợi nhuận Q1-Q4 theo năm, cho phép người có quyền cập nhật từng quý mà không tải lại toàn bộ workspace.
 - NestJS lưu số thực tế trong `revenue_actuals`, upsert theo `projectId + fiscalYear + quarter`; báo cáo, tổng theo quý và độ phủ dự án dùng một aggregation `$facet`, không query N+1.
 - Mật khẩu hash bằng Argon2id; refresh token chỉ lưu dạng SHA-256 hash; endpoint auth có throttling và CSRF custom header.
 - Swagger được phục vụ tại `/api/docs`.

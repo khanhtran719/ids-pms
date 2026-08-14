@@ -74,7 +74,7 @@
         "env": {
           "NODE_ENV": "test",
           "API_PORT": "3100",
-          "WEB_ORIGIN": "http://localhost:4200",
+          "WEB_ORIGIN": "http://localhost:4201",
           "MONGODB_URI": "mongodb://localhost:27017/project_ql_test?replicaSet=rs0&directConnection=true",
           "ENABLE_SWAGGER": "false",
           "JWT_ACCESS_SECRET": "e2e-signing-key-used-only-for-automated-tests",

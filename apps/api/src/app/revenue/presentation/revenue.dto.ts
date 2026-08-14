@@ -42,6 +42,11 @@ export class ListRevenueQueryDto {
   @IsString()
   @MaxLength(160)
   search?: string;
+
+  @ApiPropertyOptional({ description: 'Scope the report to one project' })
+  @IsOptional()
+  @IsMongoId()
+  projectId?: string;
 }
 
 export class UpsertRevenueActualDto {

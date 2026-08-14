@@ -27,7 +27,7 @@ npm run test:coverage:web
 
 HTML và LCOV/JSON summary được tạo dưới `coverage/apps/api` và `coverage/apps/web`; toàn bộ `coverage/` là generated artifact và đã được Git ignore.
 
-API e2e và browser e2e chạy ở cổng API `3100`, chỉ dùng database có hậu tố `_test`. Hai suite dùng chung global setup/teardown an toàn để từ chối database dev, drop/seed trước suite và dọn database sau suite; browser test vì vậy có thể chạy lại sau một lần thất bại mà không gặp dữ liệu trùng.
+API e2e và browser e2e chạy ở cổng API `3100`, chỉ dùng database có hậu tố `_test`. Browser E2E dùng cổng web riêng `4201` để không xung đột với dev server `4200`. Hai suite dùng chung global setup/teardown an toàn để từ chối database dev, drop/seed trước suite và dọn database sau suite; browser test vì vậy có thể chạy lại sau một lần thất bại mà không gặp dữ liệu trùng.
 
 Auth API e2e dùng duy nhất fixture credential giả trong source test. Suite kiểm tra CSRF, lỗi credential chung, cờ cookie, phân quyền, không lộ password hash, refresh rotation/replay và logout revocation. Đây không phải credential dùng cho dev hay production.
 

@@ -42,6 +42,7 @@ export class RevenueController {
       query.limit,
       query.fiscalYear,
       query.search,
+      query.projectId,
     );
   }
 

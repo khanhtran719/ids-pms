@@ -9,6 +9,7 @@ import {
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import type {
   CarrierContractListResponse,
+  FiscalQuarter,
   ProjectDetail,
   ProjectMember,
   ProjectMemberCandidate,
@@ -16,14 +17,21 @@ import type {
   ProjectOperationalStatus,
   ProjectTask,
   ProjectStatus,
+  RevenueReportResponse,
 } from '@project-ql/api-contracts';
 import { catchError, finalize, forkJoin, map, of } from 'rxjs';
 import { AuthSessionStore } from '../../core/auth-session.store';
 import { CarrierContractsService } from '../../core/carrier-contracts.service';
 import { ProjectsService } from '../../core/projects.service';
+import { RevenueService } from '../../core/revenue.service';
 import { TasksService } from '../../core/tasks.service';
 import { ProjectCarrierContractsComponent } from './project-carrier-contracts.component';
 import { ProjectPortfolioSummaryComponent } from './project-portfolio-summary.component';
+import { ProjectRevenueComponent } from './project-revenue.component';
+import {
+  RevenueActualEditorComponent,
+  type RevenueEditorValue,
+} from '../revenue/revenue-actual-editor.component';
 
 type DetailState =
   | { kind: 'loading' }
@@ -47,7 +55,9 @@ const OPERATIONAL_STATUS_LABELS: Record<ProjectOperationalStatus, string> = {
   imports: [
     ProjectCarrierContractsComponent,
     ProjectPortfolioSummaryComponent,
+    ProjectRevenueComponent,
     ReactiveFormsModule,
+    RevenueActualEditorComponent,
     RouterLink,
   ],
   templateUrl: './project-detail.page.html',
@@ -57,6 +67,7 @@ export class ProjectDetailPage {
   private readonly projects = inject(ProjectsService);
   private readonly tasks = inject(TasksService);
   private readonly contracts = inject(CarrierContractsService);
+  private readonly revenue = inject(RevenueService);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly projectId =
@@ -71,6 +82,13 @@ export class ProjectDetailPage {
     signal<CarrierContractListResponse | null>(null);
   protected readonly carrierContractsLoading = signal(false);
   protected readonly carrierContractsError = signal(false);
+  protected readonly revenueReport = signal<RevenueReportResponse | null>(null);
+  protected readonly revenueLoading = signal(false);
+  protected readonly revenueError = signal(false);
+  protected readonly revenueFiscalYear = signal(2025);
+  protected readonly revenueEditor = signal<RevenueEditorValue | null>(null);
+  protected readonly revenueSaving = signal(false);
+  protected readonly revenueOperationError = signal<string | null>(null);
   protected readonly candidates = signal<ProjectMemberCandidate[]>([]);
   protected readonly candidatesLoading = signal(false);
   protected readonly pendingRemoval = signal<string | null>(null);
@@ -127,6 +145,7 @@ export class ProjectDetailPage {
     if (this.auth.hasPermission('carrier-contracts.read')) {
       this.loadCarrierContracts();
     }
+    if (this.auth.hasPermission('revenue.read')) this.loadRevenue();
   }
 
   protected loadCarrierContracts(): void {
@@ -141,6 +160,73 @@ export class ProjectDetailPage {
       .subscribe({
         next: (response) => this.carrierContracts.set(response),
         error: () => this.carrierContractsError.set(true),
+      });
+  }
+
+  protected loadRevenue(): void {
+    this.revenueLoading.set(true);
+    this.revenueError.set(false);
+    this.revenue
+      .list({
+        fiscalYear: this.revenueFiscalYear(),
+        page: 1,
+        limit: 1,
+        projectId: this.projectId,
+      })
+      .pipe(
+        finalize(() => this.revenueLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (response) => this.revenueReport.set(response),
+        error: () => this.revenueError.set(true),
+      });
+  }
+
+  protected changeRevenueFiscalYear(fiscalYear: number): void {
+    if (fiscalYear === this.revenueFiscalYear()) return;
+    this.revenueFiscalYear.set(fiscalYear);
+    this.revenueEditor.set(null);
+    this.revenueOperationError.set(null);
+    this.loadRevenue();
+  }
+
+  protected openRevenueQuarter(quarter: FiscalQuarter): void {
+    const current = this.revenueReport()?.data[0]?.quarters.find(
+      (value) => value.quarter === quarter,
+    );
+    this.revenueOperationError.set(null);
+    this.revenueEditor.set({
+      projectId: this.projectId,
+      quarter,
+      revenue: current?.revenue ?? 0,
+      cost: current?.cost ?? 0,
+    });
+  }
+
+  protected saveRevenue(value: RevenueEditorValue): void {
+    if (this.revenueSaving()) return;
+    this.revenueSaving.set(true);
+    this.revenueOperationError.set(null);
+    this.revenue
+      .upsert({
+        ...value,
+        projectId: this.projectId,
+        fiscalYear: this.revenueFiscalYear(),
+      })
+      .pipe(
+        finalize(() => this.revenueSaving.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.revenueEditor.set(null);
+          this.loadRevenue();
+        },
+        error: () =>
+          this.revenueOperationError.set(
+            'Không thể lưu doanh thu. Vui lòng thử lại.',
+          ),
       });
   }
 

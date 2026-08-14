@@ -18,6 +18,7 @@ export class RevenueService {
       .set('page', query.page ?? 1)
       .set('limit', query.limit ?? 20);
     if (query.search) params = params.set('search', query.search);
+    if (query.projectId) params = params.set('projectId', query.projectId);
     return this.http.get<RevenueReportResponse>('/api/v1/revenue', { params });
   }
 

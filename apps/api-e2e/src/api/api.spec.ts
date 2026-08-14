@@ -394,6 +394,30 @@ describe('Project task plan lifecycle', () => {
     );
     const projectId = project.data.id as string;
 
+    const emptyProjectReport = await axios.get(
+      `/api/v1/revenue?fiscalYear=2025&projectId=${projectId}`,
+      { headers: lifecycleAdminAuthorization },
+    );
+    expect(emptyProjectReport.data).toMatchObject({
+      data: [
+        {
+          projectId,
+          revenueTotal: 0,
+          costTotal: 0,
+          quarters: [
+            { quarter: 1, revenue: 0 },
+            { quarter: 2, revenue: 0 },
+            { quarter: 3, revenue: 0 },
+            { quarter: 4, revenue: 0 },
+          ],
+        },
+      ],
+      overview: expect.objectContaining({
+        totalProjects: 1,
+        projectsWithRevenue: 0,
+      }),
+    });
+
     const initialized = await axios.post(
       `/api/v1/projects/${projectId}/tasks/initialize`,
       {},
@@ -668,6 +692,12 @@ describe('Revenue actual lifecycle', () => {
     expect(outsideScope.data.meta.totalItems).toBe(0);
     expect(outsideScope.data.data).toEqual([]);
 
+    const outsideProjectScope = await axios.get(
+      `/api/v1/revenue?fiscalYear=2025&projectId=${projectId}`,
+      { headers: lifecycleMemberAuthorization },
+    );
+    expect(outsideProjectScope.data.data).toEqual([]);
+
     await axios.put(
       '/api/v1/revenue',
       {
@@ -751,5 +781,12 @@ describe('Revenue actual lifecycle', () => {
     );
     expect(invalid.status).toBe(400);
     expect(invalid.data.code).toBe('VALIDATION_ERROR');
+
+    const invalidProjectFilter = await axios.get(
+      '/api/v1/revenue?fiscalYear=2025&projectId=not-an-object-id',
+      { headers: lifecycleAdminAuthorization, validateStatus: () => true },
+    );
+    expect(invalidProjectFilter.status).toBe(400);
+    expect(invalidProjectFilter.data.code).toBe('VALIDATION_ERROR');
   });
 });

@@ -427,6 +427,7 @@ export interface ListRevenueRequest {
   page?: number;
   limit?: number;
   search?: string;
+  projectId?: string;
 }
 
 export interface UpsertRevenueActualRequest {

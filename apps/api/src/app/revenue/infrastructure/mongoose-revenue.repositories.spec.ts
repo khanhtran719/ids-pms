@@ -145,6 +145,33 @@ describe('MongooseRevenueActualRepository', () => {
     expect(report.quarters).toHaveLength(4);
   });
 
+  it('scopes the report to an exact project and keeps projects without actuals in the data facet', async () => {
+    const projects = { aggregate: jest.fn().mockResolvedValue([]) };
+    const repository = new MongooseRevenueActualRepository(
+      {} as Model<RevenueActualEntity>,
+      projects as unknown as Model<ProjectEntity>,
+    );
+
+    await repository.getReport({
+      actorId: actorId.toString(),
+      canManageAll: false,
+      page: 1,
+      limit: 1,
+      skip: 0,
+      fiscalYear: 2025,
+      projectId: projectId.toString(),
+    });
+
+    const pipeline = projects.aggregate.mock.calls[0][0] as Array<
+      Record<string, unknown>
+    >;
+    expect(pipeline[0]).toEqual({ $match: { _id: projectId } });
+    const facetStage = pipeline.find((stage) => '$facet' in stage) as {
+      $facet: { data: Array<Record<string, unknown>> };
+    };
+    expect(facetStage.$facet.data[0]).toEqual({ $match: {} });
+  });
+
   it('upserts one unique project-year-quarter record and derives profit', async () => {
     const row = {
       _id: new Types.ObjectId(),

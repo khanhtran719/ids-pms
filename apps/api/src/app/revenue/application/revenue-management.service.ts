@@ -32,6 +32,7 @@ export class RevenueManagementService {
     limitValue: number,
     fiscalYear: number,
     searchValue?: string,
+    projectId?: string,
   ): Promise<RevenueReportResponse> {
     const pagination = createPagination(pageValue, limitValue);
     const search = searchValue?.trim();
@@ -41,6 +42,7 @@ export class RevenueManagementService {
       canManageAll: permissions.includes('projects.manage'),
       fiscalYear,
       ...(search ? { search } : {}),
+      ...(projectId ? { projectId } : {}),
     });
     return {
       data: report.projects,

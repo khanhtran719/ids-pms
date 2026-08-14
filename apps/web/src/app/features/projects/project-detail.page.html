@@ -174,6 +174,31 @@
 />
 }
 
+@if (auth.hasPermission('revenue.read')) {
+<app-project-revenue
+  [projectId]="current.project.id"
+  [fiscalYear]="revenueFiscalYear()"
+  [response]="revenueReport()"
+  [loading]="revenueLoading()"
+  [error]="revenueError()"
+  [canManage]="auth.hasPermission('revenue.manage')"
+  (retry)="loadRevenue()"
+  (fiscalYearChanged)="changeRevenueFiscalYear($event)"
+  (quarterSelected)="openRevenueQuarter($event)"
+/>
+@if (revenueEditor(); as editor) {
+<app-revenue-actual-editor
+  [fiscalYear]="revenueFiscalYear()"
+  [initialValue]="editor"
+  [projects]="[current.project]"
+  [saving]="revenueSaving()"
+  [error]="revenueOperationError()"
+  (submitted)="saveRevenue($event)"
+  (closed)="revenueEditor.set(null)"
+/>
+}
+}
+
 <section class="members-card" aria-labelledby="members-title">
   <div class="card-heading">
     <div>

@@ -83,3 +83,4 @@ Các feature lớn lazy-load theo route. `core/` chỉ dành cho singleton toàn
 3. `$facet` trả đồng thời KPI toàn scope, tổng bốn quý, danh sách project đã lọc/phân trang và total; application service không query hoặc duyệt lại từng project.
 4. Số thực tế dùng upsert atomic theo unique index `projectId + fiscalYear + quarter`. Business service xác nhận project scope trước khi ghi.
 5. Doanh thu v1 là nguồn chi tiết độc lập, chưa tự suy từ hợp đồng và chưa đồng bộ các snapshot tài chính cũ trên project.
+6. Project detail dùng `projectId` để lấy đúng một báo cáo bốn quý; project chưa có actual vẫn được trả về với giá trị 0. Sau khi upsert, Angular chỉ tải lại card doanh thu thay vì tải lại project, task, hợp đồng và membership.

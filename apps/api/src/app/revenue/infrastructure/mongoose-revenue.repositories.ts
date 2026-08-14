@@ -78,7 +78,13 @@ export class MongooseRevenueActualRepository
     quarters: RevenueQuarterSummary[];
   }> {
     const searchMatch = this.searchMatch(query.search);
+    const dataMatch = query.projectId
+      ? searchMatch
+      : { hasRevenue: true, ...searchMatch };
     const pipeline: PipelineStage[] = [
+      ...(query.projectId
+        ? [{ $match: { _id: new Types.ObjectId(query.projectId) } }]
+        : []),
       ...this.accessStages(query.actorId, query.canManageAll),
       {
         $lookup: {
@@ -111,7 +117,7 @@ export class MongooseRevenueActualRepository
       {
         $facet: {
           data: [
-            { $match: { hasRevenue: true, ...searchMatch } },
+            { $match: dataMatch },
             { $sort: { revenueTotal: -1, name: 1, _id: 1 } },
             { $skip: query.skip },
             { $limit: query.limit },
@@ -126,7 +132,7 @@ export class MongooseRevenueActualRepository
             },
           ],
           total: [
-            { $match: { hasRevenue: true, ...searchMatch } },
+            { $match: dataMatch },
             { $count: 'value' },
           ],
           overview: [

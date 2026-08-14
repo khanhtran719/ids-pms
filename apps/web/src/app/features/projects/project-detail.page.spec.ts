@@ -10,12 +10,15 @@ import type {
   ProjectDetail,
   ProjectMember,
   ProjectMemberCandidate,
+  RevenueActual,
+  RevenueReportResponse,
   TaskListResponse,
 } from '@project-ql/api-contracts';
 import { of, Subject, throwError } from 'rxjs';
 import { AuthSessionStore } from '../../core/auth-session.store';
 import { CarrierContractsService } from '../../core/carrier-contracts.service';
 import { ProjectsService } from '../../core/projects.service';
+import { RevenueService } from '../../core/revenue.service';
 import { TasksService } from '../../core/tasks.service';
 import { ProjectDetailPage } from './project-detail.page';
 
@@ -125,15 +128,75 @@ describe('ProjectDetailPage', () => {
       hasPreviousPage: false,
     },
   };
+  const revenueResponse: RevenueReportResponse = {
+    data: [
+      {
+        projectId: project.id,
+        projectCode: project.code,
+        projectName: project.name,
+        quarters: [
+          { quarter: 1, revenue: 120_000_000, cost: 80_000_000, grossProfit: 40_000_000 },
+          { quarter: 2, revenue: 0, cost: 0, grossProfit: 0 },
+          { quarter: 3, revenue: 0, cost: 0, grossProfit: 0 },
+          { quarter: 4, revenue: 0, cost: 0, grossProfit: 0 },
+        ],
+        revenueTotal: 120_000_000,
+        costTotal: 80_000_000,
+        grossProfit: 40_000_000,
+        grossMargin: 1 / 3,
+      },
+    ],
+    fiscalYear: 2025,
+    overview: {
+      totalRevenue: 120_000_000,
+      totalCost: 80_000_000,
+      grossProfit: 40_000_000,
+      grossMargin: 1 / 3,
+      totalProjects: 1,
+      projectsWithRevenue: 1,
+      projectsWithoutRevenue: 0,
+    },
+    quarters: [
+      { quarter: 1, revenue: 120_000_000, cost: 80_000_000, grossProfit: 40_000_000 },
+      { quarter: 2, revenue: 0, cost: 0, grossProfit: 0 },
+      { quarter: 3, revenue: 0, cost: 0, grossProfit: 0 },
+      { quarter: 4, revenue: 0, cost: 0, grossProfit: 0 },
+    ],
+    meta: {
+      page: 1,
+      limit: 1,
+      totalItems: 1,
+      totalPages: 1,
+      hasNextPage: false,
+      hasPreviousPage: false,
+    },
+  };
 
   async function createFixture(
     overrides: Partial<Record<keyof ProjectsService, jest.Mock>> = {},
     canManage = true,
     contractList: jest.Mock = jest.fn(() => of(carrierResponse)),
+    revenueList: jest.Mock = jest.fn(() => of(revenueResponse)),
+    revenueUpsert: jest.Mock = jest.fn(() =>
+      of({
+        id: 'actual-1',
+        projectId: project.id,
+        projectCode: project.code,
+        projectName: project.name,
+        fiscalYear: 2025,
+        quarter: 1,
+        revenue: 120_000_000,
+        cost: 80_000_000,
+        grossProfit: 40_000_000,
+        createdAt: '2026-08-14T00:00:00.000Z',
+        updatedAt: '2026-08-14T00:00:00.000Z',
+      } satisfies RevenueActual),
+    ),
   ): Promise<{
     fixture: ComponentFixture<ProjectDetailPage>;
     projects: Record<keyof ProjectsService, jest.Mock>;
     carrierContracts: { list: jest.Mock };
+    revenue: { list: jest.Mock; upsert: jest.Mock };
   }> {
     const projects = {
       list: jest.fn(),
@@ -149,6 +212,7 @@ describe('ProjectDetailPage', () => {
     const carrierContracts = {
       list: contractList,
     };
+    const revenue = { list: revenueList, upsert: revenueUpsert };
     await TestBed.configureTestingModule({
       imports: [ProjectDetailPage],
       providers: [
@@ -167,6 +231,7 @@ describe('ProjectDetailPage', () => {
           useValue: { list: jest.fn(() => of(taskResponse)) },
         },
         { provide: CarrierContractsService, useValue: carrierContracts },
+        { provide: RevenueService, useValue: revenue },
       ],
     }).compileComponents();
     TestBed.inject(AuthSessionStore).setSession({
@@ -184,13 +249,15 @@ describe('ProjectDetailPage', () => {
               'projects.manage',
               'carrier-contracts.read',
               'carrier-contracts.manage',
+              'revenue.read',
+              'revenue.manage',
             ]
-          : ['projects.read', 'carrier-contracts.read'],
+          : ['projects.read', 'carrier-contracts.read', 'revenue.read'],
       },
     });
     const fixture = TestBed.createComponent(ProjectDetailPage);
     fixture.detectChanges();
-    return { fixture, projects, carrierContracts };
+    return { fixture, projects, carrierContracts, revenue };
   }
 
   it('loads project, members and progress together before rendering the workspace', async () => {
@@ -222,6 +289,10 @@ describe('ProjectDetailPage', () => {
         {
           provide: CarrierContractsService,
           useValue: { list: jest.fn(() => of(carrierResponse)) },
+        },
+        {
+          provide: RevenueService,
+          useValue: { list: jest.fn(() => of(revenueResponse)), upsert: jest.fn() },
         },
       ],
     }).compileComponents();
@@ -311,6 +382,177 @@ describe('ProjectDetailPage', () => {
         'a[href="/carrier-contracts?projectId=project-1"]',
       ),
     ).not.toBeNull();
+  });
+
+  it('loads and renders the exact project revenue across four quarters', async () => {
+    const { fixture, revenue } = await createFixture();
+
+    expect(revenue.list).toHaveBeenCalledWith({
+      fiscalYear: 2025,
+      page: 1,
+      limit: 1,
+      projectId: 'project-1',
+    });
+    expect(fixture.nativeElement.textContent).toContain('Doanh thu theo quý');
+    expect(fixture.nativeElement.textContent).toContain('FY2025');
+    expect(fixture.nativeElement.textContent).toContain('Q1');
+    expect(fixture.nativeElement.textContent).toContain('120,000,000');
+    expect(fixture.nativeElement.textContent).toContain('33.3%');
+  });
+
+  it('updates one project quarter and refreshes only the revenue card', async () => {
+    const updatedResponse: RevenueReportResponse = {
+      ...revenueResponse,
+      data: [
+        {
+          ...revenueResponse.data[0],
+          quarters: revenueResponse.data[0].quarters.map((quarter) =>
+            quarter.quarter === 1
+              ? { quarter: 1, revenue: 150_000_000, cost: 90_000_000, grossProfit: 60_000_000 }
+              : quarter,
+          ),
+          revenueTotal: 150_000_000,
+          costTotal: 90_000_000,
+          grossProfit: 60_000_000,
+          grossMargin: 0.4,
+        },
+      ],
+    };
+    const revenueList = jest
+      .fn()
+      .mockReturnValueOnce(of(revenueResponse))
+      .mockReturnValueOnce(of(updatedResponse));
+    const revenueUpsert = jest.fn(() =>
+      of({
+        id: 'actual-1',
+        projectId: project.id,
+        projectCode: project.code,
+        projectName: project.name,
+        fiscalYear: 2025,
+        quarter: 1 as const,
+        revenue: 150_000_000,
+        cost: 90_000_000,
+        grossProfit: 60_000_000,
+        createdAt: '2026-08-14T00:00:00.000Z',
+        updatedAt: '2026-08-14T01:00:00.000Z',
+      }),
+    );
+    const { fixture, projects } = await createFixture(
+      {},
+      true,
+      jest.fn(() => of(carrierResponse)),
+      revenueList,
+      revenueUpsert,
+    );
+    const projectLoadsBeforeSave = projects.getById.mock.calls.length;
+
+    fixture.nativeElement
+      .querySelector('button[aria-label="Chỉnh sửa doanh thu quý 1"]')
+      .click();
+    fixture.detectChanges();
+    const revenueInput = fixture.nativeElement.querySelector(
+      '#revenueValue',
+    ) as HTMLInputElement;
+    const costInput = fixture.nativeElement.querySelector(
+      '#costValue',
+    ) as HTMLInputElement;
+    revenueInput.value = '150000000';
+    revenueInput.dispatchEvent(new Event('input'));
+    costInput.value = '90000000';
+    costInput.dispatchEvent(new Event('input'));
+    fixture.nativeElement
+      .querySelector('.editor button[type="submit"]')
+      .click();
+    fixture.detectChanges();
+
+    expect(revenueUpsert).toHaveBeenCalledWith({
+      projectId: 'project-1',
+      fiscalYear: 2025,
+      quarter: 1,
+      revenue: 150_000_000,
+      cost: 90_000_000,
+    });
+    expect(revenueList).toHaveBeenCalledTimes(2);
+    expect(projects.getById).toHaveBeenCalledTimes(projectLoadsBeforeSave);
+    expect(fixture.nativeElement.textContent).toContain('150,000,000');
+    expect(fixture.nativeElement.querySelector('.editor')).toBeNull();
+  });
+
+  it('keeps project detail usable when revenue cannot be loaded and retries only that card', async () => {
+    const revenueList = jest
+      .fn()
+      .mockReturnValueOnce(throwError(() => new Error('revenue offline')))
+      .mockReturnValueOnce(of(revenueResponse));
+    const { fixture, projects } = await createFixture(
+      {},
+      true,
+      jest.fn(() => of(carrierResponse)),
+      revenueList,
+    );
+    const projectLoadsBeforeRetry = projects.getById.mock.calls.length;
+
+    expect(fixture.nativeElement.textContent).toContain('IDS PMS');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Không thể tải doanh thu của dự án',
+    );
+    fixture.nativeElement.querySelector('.revenue-state button').click();
+    fixture.detectChanges();
+
+    expect(fixture.nativeElement.textContent).toContain('120,000,000');
+    expect(revenueList).toHaveBeenCalledTimes(2);
+    expect(projects.getById).toHaveBeenCalledTimes(projectLoadsBeforeRetry);
+  });
+
+  it('switches fiscal year and closes a stale quarter editor', async () => {
+    const { fixture, revenue } = await createFixture();
+    fixture.nativeElement
+      .querySelector('button[aria-label="Chỉnh sửa doanh thu quý 1"]')
+      .click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.querySelector('.editor')).toBeTruthy();
+
+    const year = fixture.nativeElement.querySelector(
+      '#projectRevenueYear',
+    ) as HTMLSelectElement;
+    year.value = '2026';
+    year.dispatchEvent(new Event('change'));
+    fixture.detectChanges();
+
+    expect(revenue.list).toHaveBeenLastCalledWith({
+      fiscalYear: 2026,
+      page: 1,
+      limit: 1,
+      projectId: 'project-1',
+    });
+    expect(fixture.nativeElement.querySelector('.editor')).toBeNull();
+  });
+
+  it('keeps the quarter editor open with a controlled save error', async () => {
+    const revenueUpsert = jest.fn(() =>
+      throwError(() => new Error('write unavailable')),
+    );
+    const { fixture } = await createFixture(
+      {},
+      true,
+      jest.fn(() => of(carrierResponse)),
+      jest.fn(() => of(revenueResponse)),
+      revenueUpsert,
+    );
+
+    fixture.nativeElement
+      .querySelector('button[aria-label="Chỉnh sửa doanh thu quý 1"]')
+      .click();
+    fixture.detectChanges();
+    fixture.nativeElement
+      .querySelector('.editor button[type="submit"]')
+      .click();
+    fixture.detectChanges();
+
+    expect(revenueUpsert).toHaveBeenCalled();
+    expect(fixture.nativeElement.querySelector('.editor')).toBeTruthy();
+    expect(fixture.nativeElement.textContent).toContain(
+      'Không thể lưu doanh thu',
+    );
   });
 
   it('keeps project detail usable when carrier contracts cannot be loaded', async () => {
@@ -569,6 +811,11 @@ describe('ProjectDetailPage', () => {
       fixture.nativeElement.querySelector('.project-header button'),
     ).toBeNull();
     expect(fixture.nativeElement.querySelector('.role-select')).toBeNull();
+    expect(
+      fixture.nativeElement.querySelector(
+        'button[aria-label="Chỉnh sửa doanh thu quý 1"]',
+      ),
+    ).toBeNull();
     expect(fixture.nativeElement.textContent).toContain('member');
   });
 });

@@ -65,6 +65,17 @@ test('logs an administrator in and exposes authorized navigation', async ({
   await expect(page.getByLabel('Vai trò của E2E Administrator')).toHaveValue(
     'owner',
   );
+  await expect(
+    page.getByRole('heading', { name: 'Doanh thu theo quý' }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Chỉnh sửa doanh thu quý 1' }).click();
+  await page.getByLabel('Doanh thu (VND)').fill('120000000');
+  await page.getByLabel('Chi phí (VND)').fill('80000000');
+  await page.getByRole('button', { name: 'Lưu số liệu' }).click();
+  const firstQuarter = page
+    .locator('app-project-revenue tbody tr')
+    .filter({ hasText: 'Q1' });
+  await expect(firstQuarter).toContainText('120,000,000');
 
   await page.getByRole('link', { name: 'Danh sách dự án' }).click();
   await page.getByLabel('Tìm dự án').fill('IDS E2E Investor');

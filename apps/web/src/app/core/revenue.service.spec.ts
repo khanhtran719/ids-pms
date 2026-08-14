@@ -32,6 +32,18 @@ describe('RevenueService', () => {
       .flush({ data: [], meta: {}, overview: {}, quarters: [] });
   });
 
+  it('requests an exact project-scoped report for project detail', () => {
+    service
+      .list({ fiscalYear: 2025, page: 1, limit: 1, projectId: 'project-1' })
+      .subscribe();
+
+    http
+      .expectOne(
+        '/api/v1/revenue?fiscalYear=2025&page=1&limit=1&projectId=project-1',
+      )
+      .flush({ data: [], meta: {}, overview: {}, quarters: [] });
+  });
+
   it('upserts one project quarter using PUT', () => {
     const input = {
       projectId: 'project-1',

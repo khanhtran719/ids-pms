@@ -114,6 +114,28 @@ describe('RevenueManagementService', () => {
     expect(result.meta.totalItems).toBe(1);
   });
 
+  it('forwards an exact project scope to the report repository', async () => {
+    await service.list(
+      'user-1',
+      ['revenue.read', 'projects.read'],
+      1,
+      1,
+      2025,
+      undefined,
+      'project-1',
+    );
+
+    expect(actuals.getReport).toHaveBeenCalledWith({
+      actorId: 'user-1',
+      canManageAll: false,
+      page: 1,
+      limit: 1,
+      skip: 0,
+      fiscalYear: 2025,
+      projectId: 'project-1',
+    });
+  });
+
   it('upserts one quarterly actual for an accessible project', async () => {
     await service.upsert('user-1', ['revenue.manage', 'projects.read'], {
       projectId: 'project-1',

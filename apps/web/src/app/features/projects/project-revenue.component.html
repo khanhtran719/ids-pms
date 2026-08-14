@@ -1,0 +1,96 @@
+<section class="revenue-card" aria-labelledby="project-revenue-title">
+  <div class="card-heading">
+    <div>
+      <p class="eyebrow">Hiệu quả tài chính</p>
+      <h2 id="project-revenue-title">Doanh thu theo quý</h2>
+    </div>
+    <div class="heading-actions">
+      <label for="projectRevenueYear">Năm tài chính</label>
+      <select
+        id="projectRevenueYear"
+        [value]="fiscalYear()"
+        (change)="changeFiscalYear($event)"
+      >
+        <option [value]="2024">FY2024</option>
+        <option [value]="2025">FY2025</option>
+        <option [value]="2026">FY2026</option>
+        <option [value]="2027">FY2027</option>
+      </select>
+      <a routerLink="/revenue">Toàn bộ doanh thu</a>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="revenue-state" aria-busy="true">Đang tải doanh thu…</div>
+  } @else if (error()) {
+    <div class="revenue-state revenue-state--error" role="alert">
+      <span>Không thể tải doanh thu của dự án.</span>
+      <button type="button" (click)="retry.emit()">Thử lại</button>
+    </div>
+  } @else if (response(); as report) {
+    <div class="revenue-summary" aria-label="Tổng quan doanh thu dự án">
+      <div>
+        <span>Doanh thu FY{{ fiscalYear() }}</span>
+        <strong>{{ report.overview.totalRevenue | currency: 'VND' : 'symbol' : '1.0-0' }}</strong>
+      </div>
+      <div>
+        <span>Chi phí</span>
+        <strong>{{ report.overview.totalCost | currency: 'VND' : 'symbol' : '1.0-0' }}</strong>
+      </div>
+      <div>
+        <span>Lợi nhuận gộp</span>
+        <strong [class.negative]="report.overview.grossProfit < 0">
+          {{ report.overview.grossProfit | currency: 'VND' : 'symbol' : '1.0-0' }}
+        </strong>
+      </div>
+      <div>
+        <span>Biên lợi nhuận</span>
+        <strong>{{
+          report.overview.grossMargin === undefined
+            ? '—'
+            : (report.overview.grossMargin | percent: '1.1-1')
+        }}</strong>
+      </div>
+    </div>
+
+    @if (report.overview.projectsWithRevenue === 0) {
+      <p class="empty-note" role="status">
+        Chưa ghi nhận số liệu cho FY{{ fiscalYear() }}. Bảng dưới đây sẵn sàng để nhập từng quý.
+      </p>
+    }
+    <div class="revenue-table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Quý</th>
+            <th class="number-cell">Doanh thu</th>
+            <th class="number-cell">Chi phí</th>
+            <th class="number-cell">Lợi nhuận</th>
+            @if (canManage()) { <th><span class="sr-only">Thao tác</span></th> }
+          </tr>
+        </thead>
+        <tbody>
+          @for (quarter of quarters(); track quarter.quarter) {
+            <tr>
+              <td><strong>Q{{ quarter.quarter }}</strong></td>
+              <td class="number-cell">{{ quarter.revenue | currency: 'VND' : 'symbol' : '1.0-0' }}</td>
+              <td class="number-cell">{{ quarter.cost | currency: 'VND' : 'symbol' : '1.0-0' }}</td>
+              <td class="number-cell" [class.negative]="quarter.grossProfit < 0">
+                {{ quarter.grossProfit | currency: 'VND' : 'symbol' : '1.0-0' }}
+              </td>
+              @if (canManage()) {
+                <td class="action-cell">
+                  <button
+                    type="button"
+                    (click)="quarterSelected.emit(quarter.quarter)"
+                    [attr.aria-label]="'Chỉnh sửa doanh thu quý ' + quarter.quarter"
+                  >Cập nhật</button>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
