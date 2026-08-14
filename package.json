@@ -13,6 +13,12 @@
     "test:coverage:api": "nx test api --coverage --runInBand",
     "test:coverage:web": "nx test web --coverage --runInBand",
     "test:e2e": "nx e2e api-e2e --runInBand && nx e2e web-e2e",
+    "test:seed": "node --test tools/demo-seed/*.spec.mjs",
+    "seed:demo": "node --env-file-if-exists=.env tools/demo-seed/seed-demo.mjs",
+    "uat:config": "docker compose --env-file .env.uat -f compose.uat.yaml config --quiet",
+    "uat:build": "docker compose --env-file .env.uat -f compose.uat.yaml build",
+    "uat:up": "docker compose --env-file .env.uat -f compose.uat.yaml up -d mongodb api web",
+    "uat:seed": "docker compose --env-file .env.uat -f compose.uat.yaml --profile tools run --rm demo-seed",
     "ai:session:start": "node tools/ai/session-log.mjs start",
     "ai:session:log": "node tools/ai/session-log.mjs note",
     "ai:session:end": "node tools/ai/session-log.mjs end"

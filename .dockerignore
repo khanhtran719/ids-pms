@@ -1,0 +1,14 @@
+.ai-work
+.angular
+.git
+.github
+.nx
+.vscode
+coverage
+dist
+node_modules
+storage/uploads
+.env
+.env.*
+*.log
+IDS-PMS-Demo.html

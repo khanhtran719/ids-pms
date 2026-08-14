@@ -172,6 +172,15 @@ Tài liệu này ghi lại các quyết định dài hạn. Không dùng nó tha
 - Lý do: cung cấp lát cắt có thể sử dụng và đối soát ngay mà không phát minh workflow tài chính chưa được xác nhận. Tham chiếu hợp đồng giữ ngữ cảnh dự án/nhà mạng, còn một `$facet` trả danh sách, KPI, total và nhà mạng trong một query để tránh N+1.
 - Hệ quả và trade-off: `amountPaid` hiện là snapshot tổng thay vì ledger nhiều lần thu; chưa có invoice, giảm trừ/hoàn tiền, chứng từ, import, chống trùng kỳ, audit từng lần thay đổi, duyệt/khóa hoặc notification. Nếu khách yêu cầu payment ledger hay auto-generation, phải bổ sung contract/migration và ADR mới thay vì suy diễn từ v1.
 
+## ADR-021 — UAT self-hosted bằng Docker Compose và seed demo có guard
+
+- Trạng thái: Accepted, temporary
+- Ngày: 2026-08-14
+- Bối cảnh: cần sớm có một môi trường cho khách kiểm thử sơ bộ nhưng chưa có thông tin hạ tầng cloud, domain/TLS hoặc dịch vụ lưu file. Dữ liệu mẫu phải đủ để quan sát các module đã triển khai mà không gây trùng hoặc ghi đè chỉnh sửa trong các lần seed sau.
+- Quyết định: đóng gói Angular/Nginx, NestJS và MongoDB replica set một node bằng `compose.uat.yaml`. Chỉ Nginx mở cổng host; API và MongoDB nằm trên network nội bộ, database cùng upload local dùng named volume. HTTPS được kết thúc tại reverse proxy/load balancer bên ngoài compose. Seed demo chạy tách khỏi bootstrap ứng dụng, chỉ chấp nhận database có hậu tố `_uat`/`_demo` và chuỗi xác nhận chính xác `seed:<database>`; dữ liệu dùng khóa ổn định cùng `$setOnInsert` nên lần chạy sau không sửa bản ghi đã tồn tại.
+- Lý do: một máy Linux có Docker là đủ để dựng UAT lặp lại, giảm khác biệt môi trường và chưa khóa dự án vào nhà cung cấp cloud. Guard nhiều lớp và upsert insert-only giảm rủi ro chạy nhầm hoặc mất thay đổi do khách nhập thử; repository seed gom thao tác theo collection để tránh N+1.
+- Hệ quả và trade-off: replica set một node và local volume không phải thiết kế production có HA; backup, giám sát, TLS certificate, DNS và off-site storage vẫn phải được chốt trước production. Seed yêu cầu tài khoản admin đã được bootstrap từ `SEED_ADMIN_*`; thay đổi bộ demo sau này cần giữ khóa cũ hoặc có chiến lược version riêng, không được biến seed thành migration dữ liệu khách.
+
 ## Mẫu ADR mới
 
 ```text

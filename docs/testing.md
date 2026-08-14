@@ -20,6 +20,7 @@ Baseline được khóa riêng theo ứng dụng:
 Các lệnh:
 
 ```bash
+npm run test:seed
 npm run test:coverage
 npm run test:coverage:api
 npm run test:coverage:web
@@ -44,6 +45,7 @@ Chạy local:
 ```bash
 docker compose up -d mongodb
 npm test
+npm run test:seed
 npm run test:coverage
 npm run lint
 npm run build

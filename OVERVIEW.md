@@ -43,6 +43,7 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 - Mongo/API e2e chạy bằng database và cổng riêng, tự dọn dữ liệu test.
 - Contract envelope chung nằm trong `libs/api-contracts`; Nx tags kiểm soát hướng phụ thuộc web/API/shared.
 - Unit test, API e2e và Chromium e2e đã được thiết lập.
+- Có bộ seed dữ liệu demo idempotent, chỉ cho phép database hậu tố `_uat`/`_demo`, cùng Docker Compose UAT gồm Nginx, API và MongoDB nội bộ có persistent volume.
 
 Project hiện giữ các số tổng hợp tùy chọn như số hợp đồng, doanh thu, chi phí và CPĐT để dựng portfolio theo mockup. Module nguồn hợp đồng nhà mạng, doanh thu/chi phí, công nợ thủ công, hoàn vốn read-only, CRM cơ hội và bình luận nội bộ theo dự án đã có lát cắt v1; các module tài liệu, thông báo và báo cáo nâng cao chưa được triển khai. Phạm vi quan sát từ mockup và các điểm chưa chốt được ghi tại `docs/mockup-functional-scope.md`.
 
@@ -86,6 +87,8 @@ storage/
   uploads/      File runtime local; nội dung không commit
 tools/
   ai/           Công cụ hỗ trợ phiên làm việc với AI
+  demo-seed/    Dữ liệu mẫu kết nối các module và policy bảo vệ môi trường
+docker/         Dockerfile API/web và cấu hình Nginx UAT
 .ai-work/       Log và state local của AI; toàn bộ bị Git ignore
 ```
 
@@ -138,6 +141,9 @@ Sao chép `.env.example` thành `.env`. Không commit `.env`.
 | `REFRESH_TOKEN_TTL_DAYS`     | TTL refresh session, mặc định 30 ngày         |
 | `AUTH_COOKIE_SECURE`         | Bắt buộc HTTPS cookie; bật ở production       |
 | `SEED_ADMIN_*`               | Tùy chọn tạo admin đầu tiên idempotent        |
+| `DEMO_SEED_CONFIRM`          | Xác nhận chính xác `seed:<database>` khi seed |
+
+UAT dùng `.env.uat` (Git ignored) và `compose.uat.yaml`; file mẫu là `.env.uat.example`. Chi tiết build, HTTPS, health check, seed idempotent và cập nhật xem tại `docs/uat-deployment.md`.
 
 ## Tài liệu liên quan
 
@@ -150,3 +156,4 @@ Sao chép `.env.example` thành `.env`. Không commit `.env`.
 - `docs/testing.md`: test layers và cô lập database e2e.
 - `docs/technical-debt.md`: cảnh báo dependency/tooling đã biết và hướng xử lý.
 - `docs/mockup-functional-scope.md`: phạm vi tạm thời từ mockup và các điểm còn phải xác nhận.
+- `docs/uat-deployment.md`: triển khai và vận hành UAT Docker.

@@ -10,6 +10,7 @@ Bộ khung triển khai cho hệ thống quản lý dự án IDS PMS.
 - `DECISIONS.md`: các quyết định kiến trúc đã chốt.
 - `AI_WORKFLOW.md`: quy trình log phiên AI local, không đưa lên Git.
 - `docs/mockup-functional-scope.md`: phạm vi tạm thời rút ra từ mockup và các điểm còn phải xác nhận.
+- `docs/uat-deployment.md`: cách build, cấu hình, seed và vận hành môi trường UAT Docker.
 
 ## Công nghệ
 
@@ -51,6 +52,21 @@ Sau khi khởi động:
 - API liveness/readiness: http://localhost:3000/api/v1/health/live và `/ready`
 - Swagger: http://localhost:3000/api/docs
 
+## Chạy môi trường UAT bằng Docker
+
+UAT gồm Angular/Nginx, NestJS và MongoDB trong các container riêng. Chỉ Nginx được mở cổng ra host; dữ liệu MongoDB và file upload dùng named volume để tồn tại qua lần cập nhật container.
+
+```bash
+cp .env.uat.example .env.uat
+# Thay toàn bộ secret, credential và domain mẫu trong .env.uat
+npm run uat:config
+npm run uat:build
+npm run uat:up
+npm run uat:seed
+```
+
+Mặc định web được phục vụ tại `http://localhost:8080`. Khi bàn giao cho khách, đặt reverse proxy/load balancer HTTPS phía trước và giữ `AUTH_COOKIE_SECURE=true`. Hướng dẫn đầy đủ, health check, cập nhật và rollback an toàn nằm trong `docs/uat-deployment.md`.
+
 ## Tạo tài khoản quản trị đầu tiên
 
 Thiết lập các biến sau trong `.env` trước khi khởi động API lần đầu:
@@ -70,6 +86,7 @@ Trong local dùng `AUTH_COOKIE_SECURE=false`; môi trường HTTPS/production ph
 
 ```bash
 npm test
+npm run test:seed
 npm run test:coverage
 npm run lint
 npm run build
