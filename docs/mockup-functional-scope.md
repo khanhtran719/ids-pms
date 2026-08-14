@@ -16,7 +16,7 @@ Nếu mockup mâu thuẫn với yêu cầu mới của khách hàng, yêu cầu 
 | Hợp đồng nhà mạng  | Hợp đồng theo dự án, nhà mạng, dịch vụ, khối lượng, đơn giá, chu kỳ và hết hạn    | Đã triển khai v1: list/KPI/filter/create/update, filter `projectId` và bảng hợp đồng trong chi tiết dự án                                                 | Cần chốt loại hợp đồng, vòng đời/gia hạn, chống trùng và cách tính Teldata/IBS                    |
 | Doanh thu          | Doanh thu, chi phí, lợi nhuận theo quý và dự án                                   | Đã triển khai v1: KPI năm, so sánh quý, tìm kiếm, phân trang và upsert số thực tế theo dự án/năm/quý                                                      | Dữ liệu Q4 bất thường, doanh thu một lần/định kỳ, kỳ tài chính, nguồn import và quy trình chốt số |
 | Công nợ            | Phải thu, đã thu, còn nợ, quá hạn theo hợp đồng/kỳ                                | Chưa triển khai                                                                                                                                           | Mockup xác nhận file nguồn chưa có hóa đơn, hạn thanh toán và số đã thu                           |
-| Hoàn vốn           | So sánh CPĐT với doanh thu lũy kế                                                 | Chưa triển khai                                                                                                                                           | Nhiều dự án thiếu CPĐT; cần chốt CAPEX gồm khoản nào và cách tính hoàn vốn                        |
+| Hoàn vốn           | So sánh CPĐT với doanh thu lũy kế                                                 | Đã triển khai báo cáo read-only v1 theo project scope, năm, kết luận và pagination                                                                        | Nhiều dự án thiếu CPĐT; cần chốt CAPEX gồm khoản nào và cách tính hoàn vốn                        |
 | Cơ hội kinh doanh  | Pipeline cơ hội theo vùng, giai đoạn, người phụ trách và tính khả thi             | Chưa triển khai                                                                                                                                           | Quy tắc chuyển giai đoạn, xác suất, owner, lịch sử hoạt động và chuyển thành project              |
 | Chất lượng dữ liệu | Theo dõi mã thiếu, xung đột nguồn, thiếu CAPEX/kế hoạch/ngày thật/owner           | Đã triển khai dashboard read-only v1 cho xung đột, CAPEX và tiến độ; chưa có mã thiếu/owner do invariant hiện tại                                         | Quyền sửa dữ liệu, quy trình đối soát, nguồn ưu tiên và cách đóng cảnh báo                        |
 
@@ -57,7 +57,7 @@ Quy tắc đang áp dụng:
 - Chưa tự sinh kế hoạch khi project chuyển trạng thái; hiện người dùng chủ động bấm khởi tạo.
 - Chưa có dependency giữa các bước, phần trăm hoàn thành, người được giao, bình luận, file hoặc lịch sử thay đổi.
 - Chưa gửi thông báo task trễ hạn.
-- Đã có bản ghi hợp đồng nhà mạng và doanh thu/chi phí theo quý v1. Chưa triển khai công nợ, hoàn vốn, CRM hoặc workflow phân công/duyệt/đóng cảnh báo chất lượng dữ liệu.
+- Đã có bản ghi hợp đồng nhà mạng, doanh thu/chi phí theo quý và báo cáo hoàn vốn read-only v1. Chưa triển khai công nợ, CRM hoặc workflow phân công/duyệt/đóng cảnh báo chất lượng dữ liệu.
 
 ## Giả định tạm thời cho hợp đồng nhà mạng v1
 
@@ -98,5 +98,14 @@ Quy tắc đang áp dụng:
 - Luôn trả đủ bốn quý và bốn trạng thái vận hành với giá trị 0 khi chưa có dữ liệu. Top doanh thu giới hạn 8 project; danh sách hợp đồng được gom theo nhà mạng.
 - FY2025 là mặc định UI tạm thời theo mockup. Cơ hội kinh doanh không xuất hiện trên Dashboard v1 vì CRM/opportunity chưa có contract và nguồn dữ liệu.
 - Đây là dashboard vận hành gần thời gian thực, chưa phải báo cáo kế toán đã khóa kỳ. Công thức, timezone chốt ngày, tiền tệ, quyền xem số nhạy cảm và refresh/cache vẫn phải được khách xác nhận.
+
+## Contract tạm thời cho hoàn vốn v1
+
+- `GET /api/v1/payback?fiscalYear=YYYY` yêu cầu `projects.read` và `revenue.read`, áp dụng project membership; `projects.manage` xem toàn portfolio.
+- Doanh thu lũy kế là tổng `revenue_actuals.revenue` của từng project có `fiscalYear` nhỏ hơn hoặc bằng năm được chọn. Không dùng snapshot `project.revenueTotal`.
+- Project chỉ đánh giá được khi `capex > 0`; CAPEX thiếu hoặc bằng 0 được tính vào nhóm không đánh giá được và không xuất hiện trong danh sách tỷ lệ để tránh phép chia không hợp lệ.
+- Tỷ lệ thu hồi vốn tạm tính bằng `doanh thu lũy kế / CAPEX`. Từ 100% trở lên được gắn `paid_back`; dưới 100% là `not_paid_back`.
+- Summary toàn project scope và danh sách đã tìm kiếm/lọc/phân trang được tính trong cùng một MongoDB aggregation `$facet`; `$lookup` doanh thu group ngay trong pipeline để giới hạn dữ liệu trung gian.
+- Đây là chỉ báo doanh thu/CAPEX theo mockup, không phải IRR, NPV hay thời gian hoàn vốn theo dòng tiền. Cần khách xác nhận CAPEX gồm khoản nào, có dùng lợi nhuận/dòng tiền ròng thay doanh thu, thuế, kỳ khóa sổ và quy tắc tại đúng 100%.
 
 Các mục trên chỉ được bổ sung sau khi chốt contract tương ứng để tránh khóa hệ thống vào giả định từ dữ liệu minh họa.

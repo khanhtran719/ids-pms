@@ -837,3 +837,86 @@ describe('Dashboard snapshot', () => {
     expect(invalid.data.code).toBe('VALIDATION_ERROR');
   });
 });
+
+describe('Payback report', () => {
+  it('evaluates cumulative revenue through the selected fiscal year within project scope', async () => {
+    const project = await axios.post(
+      '/api/v1/projects',
+      {
+        code: 'PAY-E2E',
+        name: 'Payback E2E',
+        capex: 300_000_000,
+      },
+      { headers: lifecycleAdminAuthorization },
+    );
+    const projectId = project.data.id as string;
+    await axios.put(
+      '/api/v1/revenue',
+      {
+        projectId,
+        fiscalYear: 2024,
+        quarter: 4,
+        revenue: 100_000_000,
+        cost: 40_000_000,
+      },
+      { headers: lifecycleAdminAuthorization },
+    );
+    await axios.put(
+      '/api/v1/revenue',
+      {
+        projectId,
+        fiscalYear: 2025,
+        quarter: 1,
+        revenue: 250_000_000,
+        cost: 100_000_000,
+      },
+      { headers: lifecycleAdminAuthorization },
+    );
+    await axios.post(
+      `/api/v1/projects/${projectId}/members`,
+      { userId: lifecycleMemberId, role: 'member' },
+      { headers: lifecycleAdminAuthorization },
+    );
+
+    const through2025 = await axios.get(
+      '/api/v1/payback?fiscalYear=2025&search=Payback',
+      { headers: lifecycleMemberAuthorization },
+    );
+    expect(through2025.data).toMatchObject({
+      fiscalYear: 2025,
+      data: [
+        {
+          projectId,
+          capex: 300_000_000,
+          cumulativeRevenue: 350_000_000,
+          recoveryRatio: 350_000_000 / 300_000_000,
+          status: 'paid_back',
+        },
+      ],
+      meta: expect.objectContaining({ totalItems: 1 }),
+      overview: expect.objectContaining({
+        totalProjects: expect.any(Number),
+        evaluableProjects: expect.any(Number),
+      }),
+    });
+
+    const through2024 = await axios.get(
+      '/api/v1/payback?fiscalYear=2024&status=not_paid_back&search=PAY-E2E',
+      { headers: lifecycleMemberAuthorization },
+    );
+    expect(through2024.data.data).toEqual([
+      expect.objectContaining({
+        cumulativeRevenue: 100_000_000,
+        recoveryRatio: 1 / 3,
+        status: 'not_paid_back',
+      }),
+    ]);
+
+    const invalid = await axios.get(
+      '/api/v1/payback?fiscalYear=2025&status=unknown',
+      { headers: lifecycleAdminAuthorization, validateStatus: () => true },
+    );
+    expect(invalid.status).toBe(400);
+    expect(invalid.data.code).toBe('VALIDATION_ERROR');
+  });
+});

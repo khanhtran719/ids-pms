@@ -81,6 +81,18 @@ export const appRoutes: Route[] = [
       ),
   },
   {
+    path: 'payback',
+    canActivate: [
+      authGuard,
+      permissionGuard('projects.read'),
+      permissionGuard('revenue.read'),
+    ],
+    loadComponent: () =>
+      import('./features/payback/payback.page').then(
+        (module) => module.PaybackPage,
+      ),
+  },
+  {
     path: 'users',
     canActivate: [authGuard, permissionGuard('users.read')],
     loadComponent: () =>

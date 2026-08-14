@@ -482,3 +482,38 @@ export interface DashboardResponse {
   topRevenueProjects: DashboardTopRevenueProject[];
   carrierContractsByCarrier: DashboardCarrierContractsSummary[];
 }
+
+export type PaybackStatus = 'paid_back' | 'not_paid_back';
+
+export interface PaybackProjectSummary {
+  projectId: string;
+  projectCode: string;
+  projectName: string;
+  capex: number;
+  cumulativeRevenue: number;
+  recoveryRatio: number;
+  status: PaybackStatus;
+}
+
+export interface PaybackOverview {
+  totalProjects: number;
+  evaluableProjects: number;
+  paidBackProjects: number;
+  notPaidBackProjects: number;
+  missingCapexProjects: number;
+  evaluationCoverage: number;
+}
+
+export interface PaybackReportResponse
+  extends PaginatedResponse<PaybackProjectSummary> {
+  fiscalYear: number;
+  overview: PaybackOverview;
+}
+
+export interface ListPaybackRequest {
+  fiscalYear: number;
+  page?: number;
+  limit?: number;
+  status?: PaybackStatus;
+  search?: string;
+}

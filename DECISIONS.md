@@ -127,6 +127,15 @@ Tài liệu này ghi lại các quyết định dài hạn. Không dùng nó tha
 - Lý do: một snapshot nhất quán giảm round trip, tránh N+1 và không tạo collection tổng hợp có nguy cơ lệch nguồn khi workflow cập nhật/chốt số chưa tồn tại.
 - Hệ quả và trade-off: truy vấn đọc nhiều collection và chưa có cache/materialized view; cần đo hiệu năng khi dữ liệu thật tăng. Dashboard chưa có opportunity, công nợ, hoàn vốn hoặc số đã khóa kỳ. FY2025 và các KPI hiện tại là contract tạm theo mockup, phải điều chỉnh sau khi khách xác nhận.
 
+## ADR-016 — Hoàn vốn v1 là chỉ báo read-only từ doanh thu lũy kế và CAPEX
+
+- Trạng thái: Accepted, temporary
+- Ngày: 2026-08-14
+- Bối cảnh: mockup so sánh doanh thu với Tổng CPĐT nhưng nhiều project thiếu CAPEX và khách chưa chốt định nghĩa đầu tư, dòng tiền, thuế hoặc kỳ khóa sổ. Collection doanh thu theo năm/quý hiện đã đủ để cung cấp một chỉ báo tạm thời có thể đối soát.
+- Quyết định: báo cáo nhận một năm tài chính, cộng doanh thu thực tế của mọi năm nhỏ hơn hoặc bằng năm đó và chia cho `project.capex` khi CAPEX lớn hơn 0. Tỷ lệ từ 100% trở lên tạm coi đã hoàn vốn. Một aggregation theo project scope trả summary cùng danh sách lọc/phân trang; không lưu kết quả dẫn xuất và không tạo permission mới.
+- Lý do: bám mockup và tái sử dụng nguồn dữ liệu hiện có mà không tạo workflow tài chính giả định hoặc dữ liệu tổng hợp dễ lệch nguồn.
+- Hệ quả và trade-off: kết quả là tỷ lệ doanh thu/CAPEX, không phản ánh chi phí vận hành, dòng tiền ròng, giá trị thời gian của tiền, IRR/NPV hoặc thời gian hoàn vốn thực tế. Project thiếu/0 CAPEX không đánh giá được. Công thức phải được thay thế hoặc mở rộng khi khách chốt nghiệp vụ kế toán.
+
 ## Mẫu ADR mới
 
 ```text

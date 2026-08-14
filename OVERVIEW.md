@@ -28,6 +28,8 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 - Trang chi tiết dự án hiển thị doanh thu/chi phí/lợi nhuận Q1-Q4 theo năm, cho phép người có quyền cập nhật từng quý mà không tải lại toàn bộ workspace.
 - NestJS lưu số thực tế trong `revenue_actuals`, upsert theo `projectId + fiscalYear + quarter`; báo cáo, tổng theo quý và độ phủ dự án dùng một aggregation `$facet`, không query N+1.
 - Dashboard tổng hợp KPI tài chính, vận hành, hợp đồng, task quá hạn, chất lượng dữ liệu, doanh thu theo quý và xếp hạng bằng một API/aggregation theo project scope; UI có loading/error/empty state và đổi năm tài chính.
+- Angular có báo cáo Hoàn vốn v1 read-only: KPI độ phủ CAPEX, lọc theo kết luận/năm, doanh thu lũy kế và tỷ lệ thu hồi vốn theo dự án.
+- NestJS tính hoàn vốn từ CAPEX và `revenue_actuals` đến hết năm được chọn trong một aggregation theo project scope, có pagination và không query N+1.
 - Mật khẩu hash bằng Argon2id; refresh token chỉ lưu dạng SHA-256 hash; endpoint auth có throttling và CSRF custom header.
 - Swagger được phục vụ tại `/api/docs`.
 - API có request ID, error contract, structured request log, security headers, body limit, CORS allowlist và rate limit mặc định.
@@ -36,7 +38,7 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 - Contract envelope chung nằm trong `libs/api-contracts`; Nx tags kiểm soát hướng phụ thuộc web/API/shared.
 - Unit test, API e2e và Chromium e2e đã được thiết lập.
 
-Project hiện giữ các số tổng hợp tùy chọn như số hợp đồng, doanh thu, chi phí và CPĐT để dựng portfolio theo mockup. Module nguồn hợp đồng nhà mạng và doanh thu/chi phí thực tế đã có lát cắt v1; các module công nợ, hoàn vốn, CRM, bình luận, tài liệu và báo cáo chưa được triển khai. Phạm vi quan sát từ mockup và các điểm chưa chốt được ghi tại `docs/mockup-functional-scope.md`.
+Project hiện giữ các số tổng hợp tùy chọn như số hợp đồng, doanh thu, chi phí và CPĐT để dựng portfolio theo mockup. Module nguồn hợp đồng nhà mạng, doanh thu/chi phí và báo cáo hoàn vốn read-only đã có lát cắt v1; các module công nợ, CRM, bình luận, tài liệu và báo cáo nâng cao chưa được triển khai. Phạm vi quan sát từ mockup và các điểm chưa chốt được ghi tại `docs/mockup-functional-scope.md`.
 
 ## Kiến trúc
 
@@ -90,9 +92,10 @@ Thứ tự phát triển được đề xuất, chưa đồng nghĩa với yêu 
 3. Tasks và tiến độ 5 bước theo project — đã triển khai lát cắt đầu tiên.
 4. Dữ liệu project đặc thù IDS và portfolio filters — đã triển khai lát cắt đầu tiên theo mockup, vẫn chờ xác nhận nguồn chuẩn/quy tắc import.
 5. Chất lượng dữ liệu dạng read-only — đã triển khai lát cắt v1; workflow duyệt/đóng cảnh báo chờ khách xác nhận.
-6. Hợp đồng nhà mạng và doanh thu theo quý — đã triển khai lát cắt v1 theo mockup; contract, cách ghi nhận và nguồn import vẫn chờ khách xác nhận; sau đó mới đến công nợ và hoàn vốn.
+6. Hợp đồng nhà mạng và doanh thu theo quý — đã triển khai lát cắt v1 theo mockup; contract, cách ghi nhận và nguồn import vẫn chờ khách xác nhận.
 7. Dashboard nghiệp vụ — đã triển khai v1 từ các nguồn hiện có; công thức và thời điểm chốt số vẫn chờ khách xác nhận.
-8. CRM, comment/activity/notification sau khi chốt workflow.
+8. Hoàn vốn — đã triển khai báo cáo read-only v1 từ CAPEX và doanh thu lũy kế; công thức dòng tiền chính thức vẫn chờ xác nhận.
+9. Công nợ, CRM, comment/activity/notification sau khi chốt workflow và nguồn dữ liệu.
 
 ## Điểm truy cập local
 

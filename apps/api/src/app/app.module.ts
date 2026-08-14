@@ -17,6 +17,7 @@ import { DataQualityModule } from './data-quality/data-quality.module';
 import { CarrierContractsModule } from './carrier-contracts/carrier-contracts.module';
 import { RevenueModule } from './revenue/revenue.module';
 import { DashboardModule } from './dashboard/dashboard.module';
+import { PaybackModule } from './payback/payback.module';
 
 @Module({
   imports: [
@@ -56,6 +57,7 @@ import { DashboardModule } from './dashboard/dashboard.module';
     CarrierContractsModule,
     RevenueModule,
     DashboardModule,
+    PaybackModule,
   ],
   providers: [
     {

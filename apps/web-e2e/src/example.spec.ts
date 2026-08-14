@@ -35,6 +35,13 @@ test('logs an administrator in and exposes authorized navigation', async ({
     page.getByRole('heading', { name: 'Trạng thái dự án' }),
   ).toBeVisible();
 
+  await page.getByRole('link', { name: 'Hoàn vốn' }).click();
+  await expect(page).toHaveURL(/\/payback$/);
+  await expect(page.getByRole('heading', { name: 'Hoàn vốn' })).toBeVisible();
+  await expect(
+    page.getByText('Chưa có dự án đủ dữ liệu đánh giá'),
+  ).toBeVisible();
+
   await page.getByRole('link', { name: 'Người dùng' }).click();
   await expect(page).toHaveURL(/\/users$/);
   await expect(page.getByText('admin.e2e@example.test')).toBeVisible();
