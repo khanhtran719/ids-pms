@@ -42,6 +42,7 @@ describe('App', () => {
           'projects.read',
           'tasks.read',
           'revenue.read',
+          'opportunities.read',
         ],
       },
     });
@@ -53,6 +54,7 @@ describe('App', () => {
     expect(fixture.nativeElement.textContent).toContain('Chất lượng');
     expect(fixture.nativeElement.textContent).toContain('Doanh thu');
     expect(fixture.nativeElement.textContent).toContain('Hoàn vốn');
+    expect(fixture.nativeElement.textContent).toContain('Cơ hội kinh doanh');
     expect(fixture.nativeElement.textContent).toContain('Administrator');
   });
 });

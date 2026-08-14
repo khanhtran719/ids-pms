@@ -33,7 +33,8 @@ app-project-detail-page,
 app-tasks-page,
 app-data-quality-page,
 app-carrier-contracts-page,
-app-payback-page {
+app-payback-page,
+app-opportunities-page {
   .primary-button,
   .secondary-button {
     min-height: 2.6rem;
@@ -121,6 +122,18 @@ app-payback-page {
     padding: 0.45rem 0.7rem;
     background: #fff;
     cursor: pointer;
+  }
+
+  .operation-error {
+    color: #963c3c;
+    font-size: 0.75rem;
+  }
+
+  .editor footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
   }
 }
 

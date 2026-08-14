@@ -93,6 +93,14 @@ export const appRoutes: Route[] = [
       ),
   },
   {
+    path: 'opportunities',
+    canActivate: [authGuard, permissionGuard('opportunities.read')],
+    loadComponent: () =>
+      import('./features/opportunities/opportunities.page').then(
+        (module) => module.OpportunitiesPage,
+      ),
+  },
+  {
     path: 'users',
     canActivate: [authGuard, permissionGuard('users.read')],
     loadComponent: () =>

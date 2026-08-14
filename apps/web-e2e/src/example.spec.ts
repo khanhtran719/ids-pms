@@ -42,6 +42,26 @@ test('logs an administrator in and exposes authorized navigation', async ({
     page.getByText('Chưa có dự án đủ dữ liệu đánh giá'),
   ).toBeVisible();
 
+  await page.getByRole('link', { name: 'Cơ hội kinh doanh' }).click();
+  await expect(page).toHaveURL(/\/opportunities$/);
+  await expect(
+    page.getByRole('heading', { name: 'Cơ hội kinh doanh' }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Thêm cơ hội' }).click();
+  const opportunityDialog = page.getByRole('dialog', { name: 'Thêm cơ hội' });
+  await opportunityDialog.getByLabel('Tên dự án').fill('Web E2E Opportunity');
+  await opportunityDialog
+    .getByLabel('Chủ đầu tư')
+    .fill('IDS Opportunity Investor');
+  await opportunityDialog.getByLabel('Người phụ trách').fill('Chị Lan');
+  await opportunityDialog
+    .getByLabel('Giai đoạn')
+    .selectOption({ label: 'GĐ3 · Đã nộp hồ sơ thầu' });
+  await opportunityDialog.getByLabel('Đã đánh giá khả thi').check();
+  await opportunityDialog.getByRole('button', { name: 'Lưu cơ hội' }).click();
+  await expect(page.getByText('Web E2E Opportunity')).toBeVisible();
+  await expect(page.getByText('● khả thi')).toBeVisible();
+
   await page.getByRole('link', { name: 'Người dùng' }).click();
   await expect(page).toHaveURL(/\/users$/);
   await expect(page.getByText('admin.e2e@example.test')).toBeVisible();

@@ -136,6 +136,15 @@ Tài liệu này ghi lại các quyết định dài hạn. Không dùng nó tha
 - Lý do: bám mockup và tái sử dụng nguồn dữ liệu hiện có mà không tạo workflow tài chính giả định hoặc dữ liệu tổng hợp dễ lệch nguồn.
 - Hệ quả và trade-off: kết quả là tỷ lệ doanh thu/CAPEX, không phản ánh chi phí vận hành, dòng tiền ròng, giá trị thời gian của tiền, IRR/NPV hoặc thời gian hoàn vốn thực tế. Project thiếu/0 CAPEX không đánh giá được. Công thức phải được thay thế hoặc mở rộng khi khách chốt nghiệp vụ kế toán.
 
+## ADR-017 — CRM v1 lưu hồ sơ cơ hội độc lập và chưa tự chuyển thành project
+
+- Trạng thái: Accepted, temporary
+- Ngày: 2026-08-14
+- Bối cảnh: mockup có 71 cơ hội ở bốn giai đoạn nhưng dữ liệu cũ không giữ liên kết khi thắng thầu, owner chỉ là tên tự do và khách chưa chốt xác suất, lịch sử hoạt động hay quy tắc chuyển giai đoạn.
+- Quyết định: tạo collection `opportunities` độc lập với bốn giai đoạn cố định theo mockup. V1 quản lý hồ sơ, lọc/phân trang, tính KPI và cho phép cập nhật trực tiếp giai đoạn; `ownerName` là chuỗi nguồn tạm thời. Dùng permission toàn cục `opportunities.read/manage`; chưa tạo project hoặc xóa cơ hội khi đạt giai đoạn 4.
+- Lý do: giữ được pipeline và dữ liệu cơ hội qua các giai đoạn mà không giả định workflow chưa được xác nhận. Collection độc lập phù hợp vì cơ hội tồn tại trước project và tránh nhúng danh sách tăng trưởng vào entity khác.
+- Hệ quả và trade-off: chưa có win/loss rate, xác suất, giá trị dự kiến, activity log, user assignment chuẩn, chống trùng hoặc conversion transaction. Khi khách chốt conversion, bổ sung liên kết `convertedProjectId`, lịch sử trạng thái và transaction trong ADR mới; không tái sử dụng `ownerName` như định danh user.
+
 ## Mẫu ADR mới
 
 ```text

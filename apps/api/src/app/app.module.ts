@@ -18,6 +18,7 @@ import { CarrierContractsModule } from './carrier-contracts/carrier-contracts.mo
 import { RevenueModule } from './revenue/revenue.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { PaybackModule } from './payback/payback.module';
+import { OpportunitiesModule } from './opportunities/opportunities.module';
 
 @Module({
   imports: [
@@ -58,6 +59,7 @@ import { PaybackModule } from './payback/payback.module';
     RevenueModule,
     DashboardModule,
     PaybackModule,
+    OpportunitiesModule,
   ],
   providers: [
     {

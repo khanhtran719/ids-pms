@@ -1,0 +1,289 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Phát triển kinh doanh</p>
+    <h1>Cơ hội kinh doanh</h1>
+    <p>Theo dõi xuyên suốt pipeline, không xóa và nhập lại khi thắng thầu.</p>
+  </div>
+  @if (auth.hasPermission('opportunities.manage')) {
+  <button class="primary-button" type="button" (click)="openCreate()">
+    Thêm cơ hội
+  </button>
+  }
+</header>
+
+@if (state(); as current) { @if (current.kind === 'ready') {
+<section class="metrics" aria-label="Tổng quan pipeline">
+  @for (item of current.value.overview.stages; track item.stage) {
+  <article [attr.data-stage]="item.stage">
+    <span>GĐ{{ item.stage }} · {{ stageLabel(item.stage) }}</span>
+    <strong>{{ item.total }}</strong>
+    <small
+      >{{ current.value.overview.totalOpportunities ? item.total /
+      current.value.overview.totalOpportunities * 100 : 0 | number: '1.0-1' }}%
+      pipeline</small
+    >
+  </article>
+  }
+</section>
+@if (current.value.overview.missingOwner ||
+current.value.overview.missingLastInteraction) {
+<aside class="quality-note">
+  <strong>Dữ liệu cần bổ sung:</strong>
+  <span
+    >{{ current.value.overview.missingOwner }} cơ hội chưa gán người phụ trách ·
+    {{ current.value.overview.missingLastInteraction }} cơ hội chưa ghi nhận
+    tương tác cuối.</span
+  >
+</aside>
+} } }
+
+<section class="toolbar" aria-label="Bộ lọc cơ hội">
+  <div class="field field--search">
+    <label for="opportunitySearch">Tìm kiếm</label>
+    <input
+      id="opportunitySearch"
+      type="search"
+      placeholder="Tên dự án, chủ đầu tư, tỉnh…"
+      [formControl]="search"
+    />
+  </div>
+  <div class="field">
+    <label for="stageFilter">Giai đoạn</label>
+    <select id="stageFilter" [formControl]="stage">
+      <option value="">Tất cả</option>
+      <option [ngValue]="1">GĐ1</option>
+      <option [ngValue]="2">GĐ2</option>
+      <option [ngValue]="3">GĐ3</option>
+      <option [ngValue]="4">GĐ4</option>
+    </select>
+  </div>
+  <div class="field">
+    <label for="regionFilter">Khu vực</label>
+    <select id="regionFilter" [formControl]="region">
+      <option value="">Tất cả</option>
+      <option value="north">Bắc</option>
+      <option value="central">Trung</option>
+      <option value="south">Nam</option>
+    </select>
+  </div>
+  <div class="field">
+    <label for="ownerFilter">Người phụ trách</label>
+    <select id="ownerFilter" [formControl]="ownerName">
+      <option value="">Tất cả</option>
+      @if (state(); as value) { @if (value.kind === 'ready') { @for (owner of
+      value.value.availableOwners; track owner) {
+      <option [value]="owner">{{ owner }}</option>
+      } } }
+    </select>
+  </div>
+  <div class="field">
+    <label for="feasibleFilter">Tính khả thi</label>
+    <select id="feasibleFilter" [formControl]="feasible">
+      <option value="">Tất cả</option>
+      <option value="true">Khả thi</option>
+      <option value="false">Chưa đánh giá khả thi</option>
+    </select>
+  </div>
+</section>
+
+@switch (state().kind) { @case ('loading') {
+<div class="state-panel" aria-busy="true">Đang tải pipeline…</div>
+} @case ('error') {
+<div class="state-panel state-panel--error" role="alert">
+  <span>Không thể tải danh sách cơ hội.</span>
+  <button type="button" (click)="load()">Thử lại</button>
+</div>
+} @case ('ready') { @if (state(); as current) { @if (current.kind === 'ready') {
+@if (!current.value.data.length) {
+<section class="empty" role="status">
+  <span aria-hidden="true">◎</span>
+  <h2>Chưa có cơ hội phù hợp</h2>
+  <p>Thử đổi bộ lọc hoặc thêm cơ hội đầu tiên.</p>
+</section>
+} @else {
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Tên dự án</th>
+        <th>Chủ đầu tư</th>
+        <th>Khu vực</th>
+        <th>Đầu mối</th>
+        <th class="number">Quy mô CH</th>
+        <th>Giai đoạn</th>
+        <th>Tương tác cuối</th>
+        @if (auth.hasPermission('opportunities.manage')) {
+        <th>Thao tác</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (item of current.value.data; track item.id) {
+      <tr>
+        <td>
+          <strong>{{ item.name }}</strong>
+          @if (item.feasible) {<small class="feasible">● khả thi</small>}
+        </td>
+        <td>{{ item.investor || '—' }}</td>
+        <td>{{ regionLabel(item.region) }}</td>
+        <td [class.missing]="!item.ownerName">
+          {{ item.ownerName || 'chưa gán' }}
+        </td>
+        <td class="number">
+          {{ item.unitCount === undefined ? '—' : (item.unitCount | number) }}
+        </td>
+        <td>
+          <span class="stage-badge" [attr.data-stage]="item.stage"
+            >GĐ{{ item.stage }} · {{ stageLabel(item.stage) }}</span
+          >
+        </td>
+        <td [class.missing]="!item.lastInteractionDate">
+          {{ item.lastInteractionDate ? (item.lastInteractionDate | date:
+          'dd/MM/yyyy') : 'không ghi nhận' }}
+        </td>
+        @if (auth.hasPermission('opportunities.manage')) {
+        <td>
+          <button class="edit-button" type="button" (click)="openEdit(item)">
+            Cập nhật
+          </button>
+        </td>
+        }
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>
+<nav class="pagination" aria-label="Phân trang cơ hội">
+  <span
+    >Trang {{ current.value.meta.page }} / {{ current.value.meta.totalPages || 1
+    }}</span
+  >
+  <div>
+    <button
+      class="secondary-button"
+      type="button"
+      (click)="previous()"
+      [disabled]="!current.value.meta.hasPreviousPage"
+    >
+      Trước
+    </button>
+    <button
+      class="secondary-button"
+      type="button"
+      (click)="next()"
+      [disabled]="!current.value.meta.hasNextPage"
+    >
+      Sau
+    </button>
+  </div>
+</nav>
+} } } } } @if (editor()) {
+<div class="dialog-backdrop">
+  <section
+    class="editor"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="opportunityEditorTitle"
+  >
+    <header>
+      <div>
+        <p class="eyebrow">Hồ sơ pipeline</p>
+        <h2 id="opportunityEditorTitle">
+          {{ editor() === 'new' ? 'Thêm cơ hội' : 'Cập nhật cơ hội' }}
+        </h2>
+      </div>
+      <button type="button" (click)="closeEditor()" aria-label="Đóng">×</button>
+    </header>
+    <form [formGroup]="form" (ngSubmit)="save()">
+      <div class="form-grid">
+        <div class="field field--wide">
+          <label for="opportunityName">Tên dự án</label>
+          <input id="opportunityName" formControlName="name" />
+        </div>
+        <div class="field">
+          <label for="opportunityRegion">Khu vực</label>
+          <select id="opportunityRegion" formControlName="region">
+            <option value="north">Bắc</option>
+            <option value="central">Trung</option>
+            <option value="south">Nam</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="opportunityStage">Giai đoạn</label>
+          <select id="opportunityStage" formControlName="stage">
+            <option [ngValue]="1">GĐ1 · Tiếp cận thông tin</option>
+            <option [ngValue]="2">GĐ2 · Gửi phương án HTĐT</option>
+            <option [ngValue]="3">GĐ3 · Đã nộp hồ sơ thầu</option>
+            <option [ngValue]="4">GĐ4 · Thống nhất PAHT / trúng thầu</option>
+          </select>
+        </div>
+        <div class="field field--wide">
+          <label for="opportunityInvestor">Chủ đầu tư</label>
+          <input id="opportunityInvestor" formControlName="investor" />
+        </div>
+        <div class="field">
+          <label for="opportunityProvince">Tỉnh/thành</label>
+          <input id="opportunityProvince" formControlName="province" />
+        </div>
+        <div class="field">
+          <label for="opportunityType">Loại hình</label>
+          <input id="opportunityType" formControlName="projectType" />
+        </div>
+        <div class="field">
+          <label for="opportunityOwner">Người phụ trách</label>
+          <input id="opportunityOwner" formControlName="ownerName" />
+        </div>
+        <div class="field">
+          <label for="opportunityLastInteraction">Tương tác cuối</label>
+          <input
+            id="opportunityLastInteraction"
+            type="date"
+            formControlName="lastInteractionDate"
+          />
+        </div>
+        <div class="field">
+          <label for="opportunityUnits">Quy mô căn hộ</label>
+          <input
+            id="opportunityUnits"
+            type="number"
+            min="0"
+            formControlName="unitCount"
+          />
+        </div>
+        <div class="field">
+          <label for="opportunityArea">Diện tích m²</label>
+          <input
+            id="opportunityArea"
+            type="number"
+            min="0"
+            formControlName="floorAreaM2"
+          />
+        </div>
+        <label class="check-field field--wide">
+          <input type="checkbox" formControlName="feasible" />
+          Đã đánh giá khả thi
+        </label>
+        <div class="field field--wide">
+          <label for="opportunityNote">Ghi chú</label>
+          <textarea
+            id="opportunityNote"
+            rows="3"
+            formControlName="note"
+          ></textarea>
+        </div>
+      </div>
+      @if (operationError()) {
+      <p class="operation-error" role="alert">{{ operationError() }}</p>
+      }
+      <footer>
+        <button class="secondary-button" type="button" (click)="closeEditor()">
+          Hủy
+        </button>
+        <button class="primary-button" type="submit" [disabled]="saving()">
+          {{ saving() ? 'Đang lưu…' : 'Lưu cơ hội' }}
+        </button>
+      </footer>
+    </form>
+  </section>
+</div>
+}

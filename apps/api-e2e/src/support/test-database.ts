@@ -54,6 +54,8 @@ export async function seedTestAuthData(uri: string): Promise<void> {
           'carrier-contracts.manage',
           'revenue.read',
           'revenue.manage',
+          'opportunities.read',
+          'opportunities.manage',
         ],
       },
       {
@@ -69,6 +71,8 @@ export async function seedTestAuthData(uri: string): Promise<void> {
           'carrier-contracts.manage',
           'revenue.read',
           'revenue.manage',
+          'opportunities.read',
+          'opportunities.manage',
         ],
       },
       {
@@ -79,6 +83,7 @@ export async function seedTestAuthData(uri: string): Promise<void> {
           'tasks.read',
           'carrier-contracts.read',
           'revenue.read',
+          'opportunities.read',
         ],
       },
     ]);

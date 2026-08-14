@@ -32,6 +32,8 @@ const ROLE_DEFINITIONS: Array<{
       'carrier-contracts.manage',
       'revenue.read',
       'revenue.manage',
+      'opportunities.read',
+      'opportunities.manage',
     ],
   },
   {
@@ -47,6 +49,8 @@ const ROLE_DEFINITIONS: Array<{
       'carrier-contracts.manage',
       'revenue.read',
       'revenue.manage',
+      'opportunities.read',
+      'opportunities.manage',
     ],
   },
   {
@@ -57,6 +61,7 @@ const ROLE_DEFINITIONS: Array<{
       'tasks.read',
       'carrier-contracts.read',
       'revenue.read',
+      'opportunities.read',
     ],
   },
 ];

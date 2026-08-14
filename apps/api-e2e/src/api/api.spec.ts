@@ -920,3 +920,78 @@ describe('Payback report', () => {
     expect(invalid.data.code).toBe('VALIDATION_ERROR');
   });
 });
+
+describe('Business opportunity lifecycle', () => {
+  it('creates, filters and updates a global opportunity pipeline', async () => {
+    const created = await axios.post(
+      '/api/v1/opportunities',
+      {
+        name: '  Opportunity E2E  ',
+        region: 'south',
+        province: '  Hồ Chí Minh  ',
+        investor: '  IDS Opportunity Investor  ',
+        ownerName: '  Chị Lan  ',
+        stage: 2,
+        unitCount: 420,
+        feasible: true,
+        lastInteractionDate: '2026-08-10',
+      },
+      { headers: lifecycleAdminAuthorization },
+    );
+    expect(created.status).toBe(201);
+    expect(created.data).toMatchObject({
+      name: 'Opportunity E2E',
+      province: 'Hồ Chí Minh',
+      investor: 'IDS Opportunity Investor',
+      ownerName: 'Chị Lan',
+      stage: 2,
+      feasible: true,
+    });
+
+    const listed = await axios.get(
+      '/api/v1/opportunities?search=Opportunity&stage=2&region=south&ownerName=Ch%E1%BB%8B%20Lan&feasible=true',
+      { headers: lifecycleMemberAuthorization },
+    );
+    expect(listed.data).toMatchObject({
+      data: [expect.objectContaining({ id: created.data.id, unitCount: 420 })],
+      meta: expect.objectContaining({ totalItems: 1 }),
+      overview: expect.objectContaining({
+        totalOpportunities: 1,
+        feasibleOpportunities: 1,
+        missingOwner: 0,
+        missingLastInteraction: 0,
+      }),
+      availableOwners: ['Chị Lan'],
+    });
+    expect(listed.data.overview.stages).toEqual([
+      { stage: 1, total: 0 },
+      { stage: 2, total: 1 },
+      { stage: 3, total: 0 },
+      { stage: 4, total: 0 },
+    ]);
+
+    const memberWrite = await axios.patch(
+      `/api/v1/opportunities/${created.data.id as string}`,
+      { stage: 3 },
+      { headers: lifecycleMemberAuthorization, validateStatus: () => true },
+    );
+    expect(memberWrite.status).toBe(403);
+
+    const updated = await axios.patch(
+      `/api/v1/opportunities/${created.data.id as string}`,
+      { stage: 4, ownerName: null, lastInteractionDate: null },
+      { headers: lifecycleAdminAuthorization },
+    );
+    expect(updated.data).toMatchObject({ stage: 4, feasible: true });
+    expect(updated.data.ownerName).toBeUndefined();
+    expect(updated.data.lastInteractionDate).toBeUndefined();
+
+    const invalid = await axios.post(
+      '/api/v1/opportunities',
+      { name: 'Invalid stage', region: 'south', stage: 5 },
+      { headers: lifecycleAdminAuthorization, validateStatus: () => true },
+    );
+    expect(invalid.status).toBe(400);
+    expect(invalid.data.code).toBe('VALIDATION_ERROR');
+  });
+});

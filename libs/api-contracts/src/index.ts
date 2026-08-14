@@ -53,7 +53,9 @@ export type PermissionCode =
   | 'carrier-contracts.read'
   | 'carrier-contracts.manage'
   | 'revenue.read'
-  | 'revenue.manage';
+  | 'revenue.manage'
+  | 'opportunities.read'
+  | 'opportunities.manage';
 
 export interface AuthUser {
   id: string;
@@ -516,4 +518,84 @@ export interface ListPaybackRequest {
   limit?: number;
   status?: PaybackStatus;
   search?: string;
+}
+
+export type OpportunityRegion = 'north' | 'central' | 'south';
+export type OpportunityStage = 1 | 2 | 3 | 4;
+
+export interface BusinessOpportunity {
+  id: string;
+  name: string;
+  region: OpportunityRegion;
+  province?: string;
+  investor?: string;
+  projectType?: string;
+  ownerName?: string;
+  stage: OpportunityStage;
+  unitCount?: number;
+  floorAreaM2?: number;
+  note?: string;
+  feasible: boolean;
+  lastInteractionDate?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface OpportunityStageSummary {
+  stage: OpportunityStage;
+  total: number;
+}
+
+export interface OpportunityOverview {
+  totalOpportunities: number;
+  feasibleOpportunities: number;
+  missingOwner: number;
+  missingLastInteraction: number;
+  stages: OpportunityStageSummary[];
+}
+
+export interface OpportunityListResponse
+  extends PaginatedResponse<BusinessOpportunity> {
+  overview: OpportunityOverview;
+  availableOwners: string[];
+}
+
+export interface ListOpportunitiesRequest {
+  page?: number;
+  limit?: number;
+  search?: string;
+  stage?: OpportunityStage;
+  region?: OpportunityRegion;
+  ownerName?: string;
+  feasible?: boolean;
+}
+
+export interface CreateOpportunityRequest {
+  name: string;
+  region: OpportunityRegion;
+  province?: string;
+  investor?: string;
+  projectType?: string;
+  ownerName?: string;
+  stage: OpportunityStage;
+  unitCount?: number;
+  floorAreaM2?: number;
+  note?: string;
+  feasible?: boolean;
+  lastInteractionDate?: string;
+}
+
+export interface UpdateOpportunityRequest {
+  name?: string;
+  region?: OpportunityRegion;
+  province?: string | null;
+  investor?: string | null;
+  projectType?: string | null;
+  ownerName?: string | null;
+  stage?: OpportunityStage;
+  unitCount?: number | null;
+  floorAreaM2?: number | null;
+  note?: string | null;
+  feasible?: boolean;
+  lastInteractionDate?: string | null;
 }

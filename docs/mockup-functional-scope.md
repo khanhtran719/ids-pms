@@ -17,7 +17,7 @@ Nếu mockup mâu thuẫn với yêu cầu mới của khách hàng, yêu cầu 
 | Doanh thu          | Doanh thu, chi phí, lợi nhuận theo quý và dự án                                   | Đã triển khai v1: KPI năm, so sánh quý, tìm kiếm, phân trang và upsert số thực tế theo dự án/năm/quý                                                      | Dữ liệu Q4 bất thường, doanh thu một lần/định kỳ, kỳ tài chính, nguồn import và quy trình chốt số |
 | Công nợ            | Phải thu, đã thu, còn nợ, quá hạn theo hợp đồng/kỳ                                | Chưa triển khai                                                                                                                                           | Mockup xác nhận file nguồn chưa có hóa đơn, hạn thanh toán và số đã thu                           |
 | Hoàn vốn           | So sánh CPĐT với doanh thu lũy kế                                                 | Đã triển khai báo cáo read-only v1 theo project scope, năm, kết luận và pagination                                                                        | Nhiều dự án thiếu CPĐT; cần chốt CAPEX gồm khoản nào và cách tính hoàn vốn                        |
-| Cơ hội kinh doanh  | Pipeline cơ hội theo vùng, giai đoạn, người phụ trách và tính khả thi             | Chưa triển khai                                                                                                                                           | Quy tắc chuyển giai đoạn, xác suất, owner, lịch sử hoạt động và chuyển thành project              |
+| Cơ hội kinh doanh  | Pipeline cơ hội theo vùng, giai đoạn, người phụ trách và tính khả thi             | Đã triển khai v1: KPI 4 giai đoạn, list/filter/pagination, create/update và cảnh báo dữ liệu thiếu                                                        | Quy tắc chuyển giai đoạn, xác suất, owner, lịch sử hoạt động và chuyển thành project              |
 | Chất lượng dữ liệu | Theo dõi mã thiếu, xung đột nguồn, thiếu CAPEX/kế hoạch/ngày thật/owner           | Đã triển khai dashboard read-only v1 cho xung đột, CAPEX và tiến độ; chưa có mã thiếu/owner do invariant hiện tại                                         | Quyền sửa dữ liệu, quy trình đối soát, nguồn ưu tiên và cách đóng cảnh báo                        |
 
 ## Contract tạm thời cho tiến độ thi công
@@ -57,7 +57,7 @@ Quy tắc đang áp dụng:
 - Chưa tự sinh kế hoạch khi project chuyển trạng thái; hiện người dùng chủ động bấm khởi tạo.
 - Chưa có dependency giữa các bước, phần trăm hoàn thành, người được giao, bình luận, file hoặc lịch sử thay đổi.
 - Chưa gửi thông báo task trễ hạn.
-- Đã có bản ghi hợp đồng nhà mạng, doanh thu/chi phí theo quý và báo cáo hoàn vốn read-only v1. Chưa triển khai công nợ, CRM hoặc workflow phân công/duyệt/đóng cảnh báo chất lượng dữ liệu.
+- Đã có bản ghi hợp đồng nhà mạng, doanh thu/chi phí theo quý, báo cáo hoàn vốn và CRM cơ hội v1. Chưa triển khai công nợ hoặc workflow phân công/duyệt/đóng cảnh báo chất lượng dữ liệu.
 
 ## Giả định tạm thời cho hợp đồng nhà mạng v1
 
@@ -106,6 +106,16 @@ Quy tắc đang áp dụng:
 - Project chỉ đánh giá được khi `capex > 0`; CAPEX thiếu hoặc bằng 0 được tính vào nhóm không đánh giá được và không xuất hiện trong danh sách tỷ lệ để tránh phép chia không hợp lệ.
 - Tỷ lệ thu hồi vốn tạm tính bằng `doanh thu lũy kế / CAPEX`. Từ 100% trở lên được gắn `paid_back`; dưới 100% là `not_paid_back`.
 - Summary toàn project scope và danh sách đã tìm kiếm/lọc/phân trang được tính trong cùng một MongoDB aggregation `$facet`; `$lookup` doanh thu group ngay trong pipeline để giới hạn dữ liệu trung gian.
+
+## Contract tạm thời cho cơ hội kinh doanh v1
+
+- Bốn giai đoạn bám mockup: tiếp cận thông tin, gửi phương án HTĐT, đã nộp hồ sơ thầu và thống nhất PAHT/trúng thầu. V1 cho phép cập nhật trực tiếp giữa các giai đoạn vì workflow duyệt chưa được chốt.
+- Hồ sơ gồm tên, khu vực Bắc/Trung/Nam, tỉnh, chủ đầu tư, loại hình, người phụ trách dạng tên nguồn, quy mô căn hộ/m², tính khả thi, ngày tương tác cuối và ghi chú.
+- `ownerName` tạm giữ chuỗi từ nguồn Excel/mockup, chưa liên kết `userId`; không mặc định các tên minh họa là tài khoản hệ thống.
+- Permission `opportunities.read` xem toàn pipeline; `opportunities.manage` tạo/cập nhật. CRM v1 chưa scope theo project vì cơ hội tồn tại trước project.
+- Overview toàn pipeline, danh sách đã lọc/phân trang và danh mục owner được lấy bằng một MongoDB aggregation `$facet`; tìm kiếm theo tên, chủ đầu tư, tỉnh, loại hình hoặc owner.
+- Chưa import 71 dòng mockup, chưa có activity log, xác suất, doanh thu dự kiến, trạng thái thua/hủy, audit lịch sử field, chống trùng hoặc tự chuyển cơ hội thắng thành project.
+- Cần khách xác nhận: owner phải là user nào, điều kiện/chủ thể duyệt chuyển giai đoạn, dữ liệu bắt buộc, cách ghi nhận thắng/thua và contract chuyển thành project mà không nhập lại.
 - Đây là chỉ báo doanh thu/CAPEX theo mockup, không phải IRR, NPV hay thời gian hoàn vốn theo dòng tiền. Cần khách xác nhận CAPEX gồm khoản nào, có dùng lợi nhuận/dòng tiền ròng thay doanh thu, thuế, kỳ khóa sổ và quy tắc tại đúng 100%.
 
 Các mục trên chỉ được bổ sung sau khi chốt contract tương ứng để tránh khóa hệ thống vào giả định từ dữ liệu minh họa.
