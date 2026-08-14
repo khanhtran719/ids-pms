@@ -49,7 +49,9 @@ export type PermissionCode =
   | 'projects.read'
   | 'projects.manage'
   | 'tasks.read'
-  | 'tasks.manage';
+  | 'tasks.manage'
+  | 'carrier-contracts.read'
+  | 'carrier-contracts.manage';
 
 export interface AuthUser {
   id: string;
@@ -298,4 +300,74 @@ export interface ListDataQualityRequest {
   limit?: number;
   issueType?: DataQualityIssueType;
   search?: string;
+}
+
+export type CarrierServiceType = 'teldata' | 'ibs';
+export type CarrierContractUnit = 'apartment' | 'm2';
+export type CarrierPaymentCycle =
+  | 'monthly'
+  | 'quarterly'
+  | 'semi_annual'
+  | 'annual'
+  | 'one_time';
+
+export interface CarrierContract {
+  id: string;
+  projectId: string;
+  projectCode: string;
+  projectName: string;
+  carrier: string;
+  serviceType: CarrierServiceType;
+  quantity: number;
+  unit: CarrierContractUnit;
+  unitPrice?: number;
+  paymentCycle?: CarrierPaymentCycle;
+  startDate?: string;
+  endDate?: string;
+  termsComplete: boolean;
+  penetrationRate?: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CarrierContractOverview {
+  totalContracts: number;
+  teldataContracts: number;
+  ibsContracts: number;
+  contractsWithTerms: number;
+  coveredProjects: number;
+}
+
+export interface CarrierContractListResponse
+  extends PaginatedResponse<CarrierContract> {
+  overview: CarrierContractOverview;
+  availableCarriers: string[];
+}
+
+export interface ListCarrierContractsRequest {
+  page?: number;
+  limit?: number;
+  carrier?: string;
+  serviceType?: CarrierServiceType;
+}
+
+export interface CreateCarrierContractRequest {
+  projectId: string;
+  carrier: string;
+  serviceType: CarrierServiceType;
+  quantity: number;
+  unitPrice?: number;
+  paymentCycle?: CarrierPaymentCycle;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface UpdateCarrierContractRequest {
+  carrier?: string;
+  serviceType?: CarrierServiceType;
+  quantity?: number;
+  unitPrice?: number | null;
+  paymentCycle?: CarrierPaymentCycle | null;
+  startDate?: string | null;
+  endDate?: string | null;
 }

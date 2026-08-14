@@ -53,6 +53,18 @@ export const appRoutes: Route[] = [
       ),
   },
   {
+    path: 'carrier-contracts',
+    canActivate: [
+      authGuard,
+      permissionGuard('projects.read'),
+      permissionGuard('carrier-contracts.read'),
+    ],
+    loadComponent: () =>
+      import('./features/carrier-contracts/carrier-contracts.page').then(
+        (module) => module.CarrierContractsPage,
+      ),
+  },
+  {
     path: 'users',
     canActivate: [authGuard, permissionGuard('users.read')],
     loadComponent: () =>

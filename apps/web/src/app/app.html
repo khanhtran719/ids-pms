@@ -24,6 +24,11 @@
       <a routerLink="/data-quality" routerLinkActive="active"
         ><span aria-hidden="true">!</span>Chất lượng</a
       >
+      } @if (auth.hasPermission('carrier-contracts.read') &&
+      auth.hasPermission('projects.read')) {
+      <a routerLink="/carrier-contracts" routerLinkActive="active"
+        ><span aria-hidden="true">▤</span>Hợp đồng</a
+      >
       } @if (auth.hasPermission('users.read')) {
       <a routerLink="/users" routerLinkActive="active"
         ><span aria-hidden="true">♙</span>Người dùng</a

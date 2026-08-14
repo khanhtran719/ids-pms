@@ -13,7 +13,7 @@ Nếu mockup mâu thuẫn với yêu cầu mới của khách hàng, yêu cầu 
 | Tổng quan | KPI doanh thu, lợi nhuận, dự án, hợp đồng, task trễ hạn và chất lượng dữ liệu | Chưa triển khai KPI nghiệp vụ; dashboard kỹ thuật đã có | Công thức, nguồn dữ liệu, thời điểm chốt số và quyền xem số liệu |
 | Dự án | Danh sách, lọc, chi tiết, chủ đầu tư, quy mô, hợp đồng, tiến độ và tài chính | Đã triển khai profile IDS, tìm kiếm/lọc, KPI tổng hợp, tiến độ và membership; hợp đồng/tài chính chi tiết chưa có | Quy tắc mã dự án thiếu, nguồn chuẩn, cách đồng bộ số hợp đồng/doanh thu/chi phí/CPĐT |
 | Tiến độ thi công | Theo dõi 5 bước chuẩn, phòng ban, kế hoạch ngày, ngày kết thúc thật và trạng thái | Đã triển khai lát cắt đầu tiên | Có cho phép thêm/bớt/đổi tên bước hay luôn cố định 5 bước; ai xác nhận hoàn thành |
-| Hợp đồng nhà mạng | Hợp đồng theo dự án, nhà mạng, dịch vụ, khối lượng, đơn giá, chu kỳ và hết hạn | Chưa triển khai | Dữ liệu điều khoản hiện thiếu; cần chốt loại hợp đồng và cách tính Teldata/IBS |
+| Hợp đồng nhà mạng | Hợp đồng theo dự án, nhà mạng, dịch vụ, khối lượng, đơn giá, chu kỳ và hết hạn | Đã triển khai v1: list/KPI/filter/create/update theo project scope | Cần chốt loại hợp đồng, vòng đời/gia hạn, chống trùng và cách tính Teldata/IBS |
 | Doanh thu | Doanh thu, chi phí, lợi nhuận theo quý và dự án | Chưa triển khai | Dữ liệu Q4 bất thường, doanh thu một lần/định kỳ, kỳ tài chính và cách ghi nhận |
 | Công nợ | Phải thu, đã thu, còn nợ, quá hạn theo hợp đồng/kỳ | Chưa triển khai | Mockup xác nhận file nguồn chưa có hóa đơn, hạn thanh toán và số đã thu |
 | Hoàn vốn | So sánh CPĐT với doanh thu lũy kế | Chưa triển khai | Nhiều dự án thiếu CPĐT; cần chốt CAPEX gồm khoản nào và cách tính hoàn vốn |
@@ -48,7 +48,7 @@ Quy tắc đang áp dụng:
 - Giữ `status` quản trị hiện có để tương thích dữ liệu/API và bổ sung `operationalStatus`: `not_started`, `in_progress`, `partial`, `operational`.
 - Project profile hỗ trợ chủ đầu tư, tỉnh, địa chỉ, loại hình, mô tả quy mô, số căn hộ/đơn vị, m² sàn, ha đất, đơn vị đầu tư, ngày ký và nguồn `Teldata`/`IBS`/`DoanhThu`.
 - `dataConflict` đánh dấu bản ghi cần đối soát. Danh sách hỗ trợ lọc có doanh thu, thiếu CPĐT hoặc dữ liệu xung đột.
-- `carrierContractCount`, `revenueTotal`, `costTotal`, `capex` hiện là snapshot tổng hợp tùy chọn để hiển thị portfolio; chưa phải sổ cái hay nguồn dữ liệu tài chính chuẩn.
+- `carrierContractCount`, `revenueTotal`, `costTotal`, `capex` hiện là snapshot tổng hợp tùy chọn để hiển thị portfolio; `carrierContractCount` chưa tự đồng bộ với collection hợp đồng v1.
 - Tìm kiếm danh sách chạy phía database theo mã, tên hoặc chủ đầu tư và luôn áp dụng trước pagination.
 
 ## Ngoài phạm vi của lát cắt hiện tại
@@ -57,7 +57,16 @@ Quy tắc đang áp dụng:
 - Chưa tự sinh kế hoạch khi project chuyển trạng thái; hiện người dùng chủ động bấm khởi tạo.
 - Chưa có dependency giữa các bước, phần trăm hoàn thành, người được giao, bình luận, file hoặc lịch sử thay đổi.
 - Chưa gửi thông báo task trễ hạn.
-- Chưa triển khai bản ghi hợp đồng, doanh thu/chi phí theo kỳ, công nợ, hoàn vốn, CRM hoặc workflow phân công/duyệt/đóng cảnh báo chất lượng dữ liệu. Dashboard v1 chỉ tính cảnh báo dẫn xuất và liên kết về màn hình dự án; các số tổng hợp trên project chưa thay thế các module nguồn.
+- Đã có bản ghi hợp đồng nhà mạng v1. Chưa triển khai doanh thu/chi phí theo kỳ, công nợ, hoàn vốn, CRM hoặc workflow phân công/duyệt/đóng cảnh báo chất lượng dữ liệu. Dashboard v1 chỉ tính cảnh báo dẫn xuất và liên kết về màn hình dự án.
+
+## Giả định tạm thời cho hợp đồng nhà mạng v1
+
+- Dịch vụ gồm `teldata` và `ibs`; đơn vị tương ứng được suy ra là căn hộ và m².
+- Đủ điều khoản nghĩa là có đơn giá, chu kỳ thanh toán, ngày bắt đầu và ngày hết hạn.
+- Cho phép nhiều bản ghi cùng dự án/nhà mạng/dịch vụ vì chưa chốt quy tắc gia hạn, phụ lục và chống trùng.
+- KPI tính trên toàn bộ phạm vi dự án được xem; bộ lọc chỉ ảnh hưởng danh sách và phân trang.
+- Chưa import 185 dòng demo và chưa dùng `carrierContractCount` snapshot để sinh ngược hợp đồng.
+- Cần xác nhận: mã hợp đồng, trạng thái hiệu lực, phụ lục/gia hạn, tiền tệ/thuế, tỷ lệ khai thác, quyền duyệt và quy tắc xóa.
 
 ## Contract tạm thời cho chất lượng dữ liệu v1
 

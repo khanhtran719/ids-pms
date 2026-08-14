@@ -100,6 +100,15 @@ Tài liệu này ghi lại các quyết định dài hạn. Không dùng nó tha
 - Lý do: có giá trị đối soát ngay, không tạo collection trạng thái dễ lệch nguồn và tránh hai round trip/N+1 cho một màn hình.
 - Hệ quả và trade-off: kết quả phụ thuộc thời điểm request; task quá hạn có thể thay đổi qua ngày mà không có write event. Chưa có assignee, lịch sử xử lý, lý do bỏ qua hay trạng thái đóng cảnh báo. Nếu khách chốt workflow, bổ sung entity riêng và ADR mới thay vì biến dữ liệu dẫn xuất hiện tại thành workflow ngầm.
 
+## ADR-013 — Hợp đồng nhà mạng là collection nguồn độc lập
+
+- Trạng thái: Accepted, temporary
+- Ngày: 2026-08-14
+- Bối cảnh: mockup biểu diễn 185 hợp đồng theo dự án/nhà mạng/dịch vụ nhưng dữ liệu điều khoản và quy tắc gia hạn chưa được khách xác nhận.
+- Quyết định: tạo collection `carrier_contracts` độc lập, scope theo project membership. Teldata dùng đơn vị căn hộ, IBS dùng m²; các điều khoản được phép để trống. List, KPI và danh mục filter trả trong một aggregation `$facet`.
+- Lý do: tạo nguồn dữ liệu chi tiết có thể phát triển tiếp, tránh nhúng mảng tăng trưởng vào project và tránh N+1 cho màn hình portfolio.
+- Hệ quả và trade-off: chưa chống trùng, chưa xóa/duyệt/import và chưa đồng bộ `project.carrierContractCount`. Các quyết định này chờ khách xác nhận thay vì khóa cứng vào v1.
+
 ## Mẫu ADR mới
 
 ```text

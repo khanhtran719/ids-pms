@@ -14,6 +14,7 @@ import { UsersModule } from './users/users.module';
 import { ProjectsModule } from './projects/projects.module';
 import { TasksModule } from './tasks/tasks.module';
 import { DataQualityModule } from './data-quality/data-quality.module';
+import { CarrierContractsModule } from './carrier-contracts/carrier-contracts.module';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { DataQualityModule } from './data-quality/data-quality.module';
     ProjectsModule,
     TasksModule,
     DataQualityModule,
+    CarrierContractsModule,
   ],
   providers: [
     {

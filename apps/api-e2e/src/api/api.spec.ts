@@ -568,3 +568,59 @@ describe('Data quality report lifecycle', () => {
     expect(invalidFilter.data.code).toBe('VALIDATION_ERROR');
   });
 });
+
+describe('Carrier contract lifecycle', () => {
+  it('creates, scopes, filters and completes contract terms', async () => {
+    const project = await axios.post(
+      '/api/v1/projects',
+      { code: 'CC-E2E', name: 'Carrier Contract E2E', unitCount: 200 },
+      { headers: lifecycleAdminAuthorization },
+    );
+    const projectId = project.data.id as string;
+    const created = await axios.post(
+      '/api/v1/carrier-contracts',
+      { projectId, carrier: 'Viettel', serviceType: 'teldata', quantity: 120 },
+      { headers: lifecycleAdminAuthorization },
+    );
+    expect(created.data).toMatchObject({
+      projectId,
+      unit: 'apartment',
+      termsComplete: false,
+      penetrationRate: 0.6,
+    });
+
+    const outsideScope = await axios.get('/api/v1/carrier-contracts', {
+      headers: lifecycleMemberAuthorization,
+    });
+    expect(outsideScope.data.meta.totalItems).toBe(0);
+
+    await axios.post(
+      `/api/v1/projects/${projectId}/members`,
+      { userId: lifecycleMemberId, role: 'member' },
+      { headers: lifecycleAdminAuthorization },
+    );
+    const memberList = await axios.get(
+      '/api/v1/carrier-contracts?carrier=Viettel&serviceType=teldata',
+      { headers: lifecycleMemberAuthorization },
+    );
+    expect(memberList.data).toMatchObject({
+      meta: expect.objectContaining({ totalItems: 1 }),
+      overview: expect.objectContaining({ totalContracts: 1, teldataContracts: 1 }),
+      availableCarriers: ['Viettel'],
+    });
+
+    const memberWrite = await axios.patch(
+      `/api/v1/carrier-contracts/${created.data.id as string}`,
+      { unitPrice: 50_000 },
+      { headers: lifecycleMemberAuthorization, validateStatus: () => true },
+    );
+    expect(memberWrite.status).toBe(403);
+
+    const completed = await axios.patch(
+      `/api/v1/carrier-contracts/${created.data.id as string}`,
+      { unitPrice: 50_000, paymentCycle: 'monthly', startDate: '2026-01-01', endDate: '2026-12-31' },
+      { headers: lifecycleAdminAuthorization },
+    );
+    expect(completed.data.termsComplete).toBe(true);
+  });
+});
