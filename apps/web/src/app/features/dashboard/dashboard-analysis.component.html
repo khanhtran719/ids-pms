@@ -1,0 +1,60 @@
+<section class="analysis-grid" aria-label="Phân tích danh mục">
+  <article class="panel quarter-panel">
+    <header class="panel-heading">
+      <div>
+        <p class="eyebrow">Tài chính</p>
+        <h2>Doanh thu và chi phí theo quý</h2>
+      </div>
+      <span>FY{{ fiscalYear() }}</span>
+    </header>
+    <div class="quarter-chart">
+      @for (quarter of quarters(); track quarter.quarter) {
+        <div class="quarter-row">
+          <strong>Q{{ quarter.quarter }}</strong>
+          <div class="bars" aria-hidden="true">
+            <span
+              class="bar bar--revenue"
+              [style.width.%]="quarterWidth(quarter.revenue)"
+            ></span>
+            <span
+              class="bar bar--cost"
+              [style.width.%]="quarterWidth(quarter.cost)"
+            ></span>
+          </div>
+          <small>{{
+            quarter.revenue | currency: 'VND' : 'symbol-narrow' : '1.0-0'
+          }}</small>
+        </div>
+      }
+    </div>
+    <footer class="legend">
+      <span><i class="legend-dot legend-dot--revenue"></i>Doanh thu</span>
+      <span><i class="legend-dot legend-dot--cost"></i>Chi phí</span>
+    </footer>
+  </article>
+
+  <article class="panel status-panel">
+    <header class="panel-heading">
+      <div>
+        <p class="eyebrow">Vận hành</p>
+        <h2>Trạng thái dự án</h2>
+      </div>
+    </header>
+    <div class="status-list">
+      @for (item of statuses(); track item.status) {
+        <div class="status-row">
+          <div>
+            <span>{{ statusLabels[item.status] }}</span
+            ><strong>{{ item.projects }}</strong>
+          </div>
+          <span class="status-track" aria-hidden="true">
+            <i
+              [class]="'status-fill status-fill--' + item.status"
+              [style.width.%]="statusWidth(item.projects)"
+            ></i>
+          </span>
+        </div>
+      }
+    </div>
+  </article>
+</section>

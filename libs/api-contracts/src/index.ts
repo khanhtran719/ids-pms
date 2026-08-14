@@ -437,3 +437,48 @@ export interface UpsertRevenueActualRequest {
   revenue: number;
   cost: number;
 }
+
+export interface DashboardOverview {
+  totalRevenue: number;
+  totalCost: number;
+  grossProfit: number;
+  grossMargin?: number;
+  projectsWithRevenue: number;
+  totalProjects: number;
+  operationalProjects: number;
+  totalCarrierContracts: number;
+  teldataContracts: number;
+  ibsContracts: number;
+  totalTasks: number;
+  overdueTasks: number;
+  missingCapexProjects: number;
+  dataConflictProjects: number;
+}
+
+export interface DashboardOperationalStatusSummary {
+  status: ProjectOperationalStatus;
+  projects: number;
+}
+
+export interface DashboardTopRevenueProject {
+  projectId: string;
+  projectCode: string;
+  projectName: string;
+  revenue: number;
+  cost: number;
+  grossProfit: number;
+}
+
+export interface DashboardCarrierContractsSummary {
+  carrier: string;
+  contracts: number;
+}
+
+export interface DashboardResponse {
+  fiscalYear: number;
+  overview: DashboardOverview;
+  quarters: RevenueQuarterSummary[];
+  operationalStatuses: DashboardOperationalStatusSummary[];
+  topRevenueProjects: DashboardTopRevenueProject[];
+  carrierContractsByCarrier: DashboardCarrierContractsSummary[];
+}

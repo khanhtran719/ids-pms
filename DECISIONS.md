@@ -118,6 +118,15 @@ Tài liệu này ghi lại các quyết định dài hạn. Không dùng nó tha
 - Lý do: tạo nguồn chi tiết có thể đối soát và hỗ trợ nhiều năm mà không khóa dữ liệu vào bốn field trên project; upsert phù hợp cả nhập tay lẫn import idempotent sau này.
 - Hệ quả và trade-off: chưa tự tính từ hợp đồng, chưa sinh công nợ, chưa có trạng thái nháp/duyệt/khóa kỳ, tiền tệ/thuế, import hay audit history ngoài actor/timestamps. Chưa đồng bộ `project.revenueTotal/costTotal`; so sánh Q4 chỉ là thông tin cần xác nhận, không phải kết luận kế toán.
 
+## ADR-015 — Dashboard v1 tổng hợp trực tiếp từ các nguồn nghiệp vụ
+
+- Trạng thái: Accepted, temporary
+- Ngày: 2026-08-14
+- Bối cảnh: mockup cần một màn hình tổng quan nhưng khách chưa chốt công thức báo cáo, kỳ khóa sổ, CRM cơ hội hay chính sách cache. Các nguồn project, task, hợp đồng và doanh thu v1 đã đủ để tạo lát cắt vận hành có ích.
+- Quyết định: Dashboard v1 nhận năm tài chính rõ ràng và tổng hợp trực tiếp trong một MongoDB aggregation theo project scope. Các `$lookup` chỉ giữ kết quả đã group theo project; `$facet` trả KPI, bốn quý, bốn trạng thái, top 8 dự án theo doanh thu và số hợp đồng theo nhà mạng. Endpoint dùng các permission đọc hiện có, không tạo permission dashboard mới. Health vẫn là request độc lập vì là dữ liệu hạ tầng, không phải nghiệp vụ.
+- Lý do: một snapshot nhất quán giảm round trip, tránh N+1 và không tạo collection tổng hợp có nguy cơ lệch nguồn khi workflow cập nhật/chốt số chưa tồn tại.
+- Hệ quả và trade-off: truy vấn đọc nhiều collection và chưa có cache/materialized view; cần đo hiệu năng khi dữ liệu thật tăng. Dashboard chưa có opportunity, công nợ, hoàn vốn hoặc số đã khóa kỳ. FY2025 và các KPI hiện tại là contract tạm theo mockup, phải điều chỉnh sau khi khách xác nhận.
+
 ## Mẫu ADR mới
 
 ```text

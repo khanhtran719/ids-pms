@@ -790,3 +790,50 @@ describe('Revenue actual lifecycle', () => {
     expect(invalidProjectFilter.data.code).toBe('VALIDATION_ERROR');
   });
 });
+
+describe('Dashboard snapshot', () => {
+  it('returns one scoped portfolio aggregation and validates the fiscal year', async () => {
+    const snapshot = await axios.get('/api/v1/dashboard?fiscalYear=2025', {
+      headers: lifecycleMemberAuthorization,
+    });
+
+    expect(snapshot.data).toMatchObject({
+      fiscalYear: 2025,
+      overview: expect.objectContaining({
+        totalProjects: expect.any(Number),
+        totalRevenue: 420_000_000,
+        totalCost: 200_000_000,
+        grossProfit: 220_000_000,
+        projectsWithRevenue: 1,
+        totalCarrierContracts: 1,
+        teldataContracts: 1,
+      }),
+      quarters: [
+        expect.objectContaining({ quarter: 1, revenue: 120_000_000 }),
+        expect.objectContaining({ quarter: 2, revenue: 0 }),
+        expect.objectContaining({ quarter: 3, revenue: 0 }),
+        expect.objectContaining({ quarter: 4, revenue: 300_000_000 }),
+      ],
+      operationalStatuses: expect.arrayContaining([
+        expect.objectContaining({ status: 'not_started' }),
+        expect.objectContaining({ status: 'operational' }),
+      ]),
+      topRevenueProjects: [
+        expect.objectContaining({
+          projectCode: 'REV-E2E',
+          revenue: 420_000_000,
+        }),
+      ],
+      carrierContractsByCarrier: [
+        expect.objectContaining({ carrier: 'Viettel', contracts: 1 }),
+      ],
+    });
+
+    const invalid = await axios.get('/api/v1/dashboard?fiscalYear=1999', {
+      headers: lifecycleAdminAuthorization,
+      validateStatus: () => true,
+    });
+    expect(invalid.status).toBe(400);
+    expect(invalid.data.code).toBe('VALIDATION_ERROR');
+  });
+});

@@ -1,0 +1,69 @@
+<section class="ranking-grid" aria-label="Xếp hạng danh mục">
+  <article class="panel">
+    <header class="panel-heading">
+      <div>
+        <p class="eyebrow">Top 8</p>
+        <h2>Dự án theo doanh thu</h2>
+      </div>
+      <a routerLink="/revenue">Xem báo cáo</a>
+    </header>
+    @if (projects().length === 0) {
+      <p class="empty-state">Chưa có số liệu doanh thu trong năm này.</p>
+    } @else {
+      <ol class="ranking-list">
+        @for (project of projects(); track project.projectId) {
+          <li>
+            <span class="rank">{{ $index + 1 }}</span>
+            <div class="ranking-content">
+              <div>
+                <a [routerLink]="['/projects', project.projectId]">{{
+                  project.projectName
+                }}</a>
+                <strong>{{
+                  project.revenue | currency: 'VND' : 'symbol-narrow' : '1.0-0'
+                }}</strong>
+              </div>
+              <small
+                >{{ project.projectCode }} · Lợi nhuận gộp
+                {{
+                  project.grossProfit
+                    | currency: 'VND' : 'symbol-narrow' : '1.0-0'
+                }}</small
+              >
+              <span class="ranking-track" aria-hidden="true"
+                ><i [style.width.%]="projectWidth(project.revenue)"></i
+              ></span>
+            </div>
+          </li>
+        }
+      </ol>
+    }
+  </article>
+
+  <article class="panel">
+    <header class="panel-heading">
+      <div>
+        <p class="eyebrow">Đối tác</p>
+        <h2>Hợp đồng theo nhà mạng</h2>
+      </div>
+      <a routerLink="/carrier-contracts">Quản lý</a>
+    </header>
+    @if (carriers().length === 0) {
+      <p class="empty-state">Chưa có hợp đồng nhà mạng.</p>
+    } @else {
+      <ul class="carrier-list">
+        @for (carrier of carriers(); track carrier.carrier) {
+          <li>
+            <div>
+              <strong>{{ carrier.carrier }}</strong
+              ><span>{{ carrier.contracts }} hợp đồng</span>
+            </div>
+            <span class="carrier-track" aria-hidden="true"
+              ><i [style.width.%]="carrierWidth(carrier.contracts)"></i
+            ></span>
+          </li>
+        }
+      </ul>
+    }
+  </article>
+</section>

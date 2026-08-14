@@ -1,73 +1,137 @@
 <header class="page-header">
   <div>
-    <p class="eyebrow">Tổng quan hôm nay</p>
+    <p class="eyebrow">Tổng quan danh mục</p>
     <h1>Chào {{ auth.user()?.displayName }}</h1>
-    <p>Workspace đã sẵn sàng cho các module nghiệp vụ tiếp theo.</p>
+    <p>
+      Theo dõi vận hành, tài chính và chất lượng dữ liệu trên cùng một màn hình.
+    </p>
   </div>
-  <span class="date-chip">IDS PMS · Local</span>
+  <label class="year-field">
+    <span>Năm tài chính</span>
+    <input
+      type="number"
+      min="2000"
+      max="2100"
+      [formControl]="fiscalYearControl"
+      aria-label="Năm tài chính"
+    />
+  </label>
 </header>
 
-<section class="metric-grid" aria-label="Tóm tắt hệ thống">
-  <article>
-    <span class="metric-icon" aria-hidden="true">01</span>
-    <p>Module hoạt động</p>
-    <strong>Auth · Users · Projects · Tasks · Data Quality</strong>
-  </article>
-  <article>
-    <span class="metric-icon metric-icon--green" aria-hidden="true">02</span>
-    <p>Phiên đăng nhập</p>
-    <strong>Được bảo vệ</strong>
-  </article>
-  <article>
-    <span class="metric-icon metric-icon--amber" aria-hidden="true">03</span>
-    <p>Giai đoạn kế tiếp</p>
-    <strong>Hợp đồng nhà mạng</strong>
-  </article>
-</section>
+<main aria-live="polite">
+  @switch (dashboardState().kind) { @case ('loading') {
+  <section class="dashboard-state" aria-busy="true">
+    <span class="loader" aria-hidden="true"></span>
+    <div>
+      <strong>Đang tổng hợp dữ liệu</strong>
+      <p>Đang tính KPI và phân tích danh mục dự án…</p>
+    </div>
+  </section>
+  } @case ('error') {
+  <section class="dashboard-state dashboard-state--error" role="alert">
+    <div>
+      <strong>Không thể tải dữ liệu tổng quan</strong>
+      <p>Vui lòng kiểm tra kết nối hoặc thử tải lại.</p>
+    </div>
+    <button class="dashboard-retry" type="button" (click)="loadDashboard()">
+      Thử lại
+    </button>
+  </section>
+  } @case ('ready') { @if (dashboardState(); as state) { @if (state.kind ===
+  'ready') {
+  <section class="metric-grid" aria-label="Chỉ số danh mục dự án">
+    <article class="metric metric--primary">
+      <span class="metric-kicker">Tổng doanh thu</span>
+      <strong
+        >{{ state.value.overview.totalRevenue | currency: 'VND' :
+        'symbol-narrow' : '1.0-0' }}</strong
+      >
+      <small
+        >{{ state.value.overview.projectsWithRevenue }} dự án có số liệu · FY{{
+        state.value.fiscalYear }}</small
+      >
+    </article>
+    <article class="metric">
+      <span class="metric-kicker">Lợi nhuận gộp</span>
+      <strong
+        >{{ state.value.overview.grossProfit | currency: 'VND' : 'symbol-narrow'
+        : '1.0-0' }}</strong
+      >
+      <small>
+        Biên lợi nhuận @if (state.value.overview.grossMargin !== undefined) { {{
+        state.value.overview.grossMargin | percent: '1.1-1' }} } @else { — }
+      </small>
+    </article>
+    <article class="metric">
+      <span class="metric-kicker">Danh mục dự án</span>
+      <strong>{{ state.value.overview.totalProjects }} dự án</strong>
+      <small
+        >{{ state.value.overview.operationalProjects }} dự án đã vận hành</small
+      >
+    </article>
+    <article class="metric">
+      <span class="metric-kicker">Hợp đồng nhà mạng</span>
+      <strong>{{ state.value.overview.totalCarrierContracts }}</strong>
+      <small
+        >Teldata {{ state.value.overview.teldataContracts }} · IBS {{
+        state.value.overview.ibsContracts }}</small
+      >
+    </article>
+    <a class="metric metric--warning" routerLink="/tasks">
+      <span class="metric-kicker">Công việc quá hạn</span>
+      <strong>{{ state.value.overview.overdueTasks }}</strong>
+      <small>trên {{ state.value.overview.totalTasks }} công việc</small>
+    </a>
+    <a class="metric metric--warning" routerLink="/data-quality">
+      <span class="metric-kicker">Dự án thiếu CAPEX</span>
+      <strong>{{ state.value.overview.missingCapexProjects }}</strong>
+      <small>Mở báo cáo chất lượng dữ liệu</small>
+    </a>
+    <a class="metric metric--danger" routerLink="/data-quality">
+      <span class="metric-kicker">Xung đột dữ liệu</span>
+      <strong>{{ state.value.overview.dataConflictProjects }}</strong>
+      <small>Dự án cần đối soát nguồn</small>
+    </a>
+  </section>
+
+  <app-dashboard-analysis
+    [fiscalYear]="state.value.fiscalYear"
+    [quarters]="state.value.quarters"
+    [statuses]="state.value.operationalStatuses"
+    [totalProjects]="state.value.overview.totalProjects"
+  />
+  <app-dashboard-rankings
+    [projects]="state.value.topRevenueProjects"
+    [carriers]="state.value.carrierContractsByCarrier"
+  />
+  } } } }
+</main>
 
 <section
   class="health-card"
   aria-labelledby="health-heading"
   aria-live="polite"
 >
-  <div class="card-heading">
-    <div>
-      <p class="eyebrow">Hạ tầng</p>
-      <h2 id="health-heading">Trạng thái dịch vụ</h2>
-    </div>
-    @if (healthState().kind === 'ready') {
-    <span class="status status--ready">Hoạt động</span>
-    }
+  <div>
+    <p class="eyebrow">Hạ tầng</p>
+    <h2 id="health-heading">Trạng thái dịch vụ</h2>
   </div>
-
   @switch (healthState().kind) { @case ('loading') {
-  <div class="state-row" aria-busy="true">
-    <span class="loader" aria-hidden="true"></span>
-    Đang kiểm tra API và cơ sở dữ liệu…
-  </div>
-  } @case ('ready') { @if (healthState(); as state) { @if (state.kind ===
-  'ready') {
-  <div class="service-grid">
-    <div>
-      <span class="dot"></span><strong>NestJS API</strong
-      ><small>Phản hồi bình thường</small>
-    </div>
-    <div>
-      <span
-        class="dot"
-        [class.dot--down]="state.value.services.database === 'down'"
-      ></span
-      ><strong>MongoDB</strong
-      ><small
-        >{{ state.value.services.database === 'up' ? 'Đã kết nối' : 'Chưa kết
-        nối' }}</small
-      >
-    </div>
+  <span class="health-status">Đang kiểm tra…</span> } @case ('ready') { @if
+  (healthState(); as state) { @if (state.kind === 'ready') {
+  <div class="health-services">
+    <span><i></i>API ổn định</span>
+    <span [class.health-down]="state.value.services.database === 'down'"
+      ><i></i>{{ state.value.services.database === 'up' ? 'MongoDB kết nối' :
+      'MongoDB gián đoạn' }}</span
+    >
   </div>
   } } } @case ('error') {
-  <div class="state-row state-row--error" role="alert">
-    <span>Không thể kiểm tra dịch vụ lúc này.</span>
-    <button type="button" (click)="loadHealth()">Thử lại</button>
+  <div class="health-error">
+    <span>Không thể kiểm tra dịch vụ.</span>
+    <button class="health-retry" type="button" (click)="loadHealth()">
+      Thử lại
+    </button>
   </div>
   } }
 </section>

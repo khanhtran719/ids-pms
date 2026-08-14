@@ -27,6 +27,13 @@ test('logs an administrator in and exposes authorized navigation', async ({
   await expect(
     page.getByRole('heading', { name: 'Chào E2E Administrator' }),
   ).toBeVisible();
+  await expect(page.getByText('Tổng doanh thu')).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Doanh thu và chi phí theo quý' }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole('heading', { name: 'Trạng thái dự án' }),
+  ).toBeVisible();
 
   await page.getByRole('link', { name: 'Người dùng' }).click();
   await expect(page).toHaveURL(/\/users$/);
@@ -83,7 +90,9 @@ test('logs an administrator in and exposes authorized navigation', async ({
     .getByRole('region', { name: 'Bộ lọc danh mục dự án' })
     .getByLabel('Trạng thái vận hành')
     .selectOption('operational');
-  await expect(page.getByRole('link', { name: 'Web E2E Project' })).toBeVisible();
+  await expect(
+    page.getByRole('link', { name: 'Web E2E Project' }),
+  ).toBeVisible();
   await page.getByRole('link', { name: 'Web E2E Project' }).click();
 
   await page.getByRole('link', { name: 'Tiến độ', exact: true }).click();
@@ -117,7 +126,9 @@ test('logs an administrator in and exposes authorized navigation', async ({
   await expect(qualityRow).toBeVisible();
   expect(
     await page.evaluate(
-      () => document.documentElement.scrollWidth <= document.documentElement.clientWidth,
+      () =>
+        document.documentElement.scrollWidth <=
+        document.documentElement.clientWidth,
     ),
   ).toBe(true);
   await page.setViewportSize({ width: 1280, height: 720 });

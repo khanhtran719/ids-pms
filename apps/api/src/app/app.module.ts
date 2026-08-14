@@ -16,6 +16,7 @@ import { TasksModule } from './tasks/tasks.module';
 import { DataQualityModule } from './data-quality/data-quality.module';
 import { CarrierContractsModule } from './carrier-contracts/carrier-contracts.module';
 import { RevenueModule } from './revenue/revenue.module';
+import { DashboardModule } from './dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -54,6 +55,7 @@ import { RevenueModule } from './revenue/revenue.module';
     DataQualityModule,
     CarrierContractsModule,
     RevenueModule,
+    DashboardModule,
   ],
   providers: [
     {

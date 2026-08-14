@@ -11,7 +11,7 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 - Angular gọi `GET /api/v1/health`.
 - NestJS trả trạng thái API và kết nối database.
 - Mongoose kết nối MongoDB replica set local.
-- Angular có đăng nhập, khôi phục phiên, app shell, dashboard, hồ sơ, trang không có quyền và quản lý người dùng.
+- Angular có đăng nhập, khôi phục phiên, app shell, dashboard nghiệp vụ, hồ sơ, trang không có quyền và quản lý người dùng.
 - Access token chỉ giữ trong memory; refresh token dùng cookie HttpOnly và được xoay vòng phía server.
 - NestJS có `login`, `refresh`, `logout`, `me`, danh sách và tạo người dùng; RBAC kiểm tra permission tại backend.
 - Angular có danh mục dự án bám mockup IDS: tìm theo mã/tên/chủ đầu tư, lọc trạng thái vận hành/chất lượng dữ liệu, phân trang và trang chi tiết gồm profile, KPI tổng hợp, hợp đồng nhà mạng, tiến độ 5 bước và thành viên.
@@ -27,6 +27,7 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 - Angular có trang Doanh thu v1 theo mockup: KPI năm tài chính, so sánh doanh thu/chi phí theo quý, tìm kiếm, phân trang và ghi nhận số thực tế cho từng dự án/quý.
 - Trang chi tiết dự án hiển thị doanh thu/chi phí/lợi nhuận Q1-Q4 theo năm, cho phép người có quyền cập nhật từng quý mà không tải lại toàn bộ workspace.
 - NestJS lưu số thực tế trong `revenue_actuals`, upsert theo `projectId + fiscalYear + quarter`; báo cáo, tổng theo quý và độ phủ dự án dùng một aggregation `$facet`, không query N+1.
+- Dashboard tổng hợp KPI tài chính, vận hành, hợp đồng, task quá hạn, chất lượng dữ liệu, doanh thu theo quý và xếp hạng bằng một API/aggregation theo project scope; UI có loading/error/empty state và đổi năm tài chính.
 - Mật khẩu hash bằng Argon2id; refresh token chỉ lưu dạng SHA-256 hash; endpoint auth có throttling và CSRF custom header.
 - Swagger được phục vụ tại `/api/docs`.
 - API có request ID, error contract, structured request log, security headers, body limit, CORS allowlist và rate limit mặc định.
@@ -90,7 +91,8 @@ Thứ tự phát triển được đề xuất, chưa đồng nghĩa với yêu 
 4. Dữ liệu project đặc thù IDS và portfolio filters — đã triển khai lát cắt đầu tiên theo mockup, vẫn chờ xác nhận nguồn chuẩn/quy tắc import.
 5. Chất lượng dữ liệu dạng read-only — đã triển khai lát cắt v1; workflow duyệt/đóng cảnh báo chờ khách xác nhận.
 6. Hợp đồng nhà mạng và doanh thu theo quý — đã triển khai lát cắt v1 theo mockup; contract, cách ghi nhận và nguồn import vẫn chờ khách xác nhận; sau đó mới đến công nợ và hoàn vốn.
-7. CRM, comment/activity/notification và dashboard nghiệp vụ sau khi chốt workflow/KPI.
+7. Dashboard nghiệp vụ — đã triển khai v1 từ các nguồn hiện có; công thức và thời điểm chốt số vẫn chờ khách xác nhận.
+8. CRM, comment/activity/notification sau khi chốt workflow.
 
 ## Điểm truy cập local
 

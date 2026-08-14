@@ -10,7 +10,7 @@ Nếu mockup mâu thuẫn với yêu cầu mới của khách hàng, yêu cầu 
 
 | Màn hình           | Mục đích quan sát được                                                            | Trạng thái triển khai                                                                                                                                     | Điểm còn phải xác nhận                                                                            |
 | ------------------ | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| Tổng quan          | KPI doanh thu, lợi nhuận, dự án, hợp đồng, task trễ hạn và chất lượng dữ liệu     | Chưa triển khai KPI nghiệp vụ; dashboard kỹ thuật đã có                                                                                                   | Công thức, nguồn dữ liệu, thời điểm chốt số và quyền xem số liệu                                  |
+| Tổng quan          | KPI doanh thu, lợi nhuận, dự án, hợp đồng, task trễ hạn và chất lượng dữ liệu     | Đã triển khai v1 theo project scope: KPI, phân tích quý/trạng thái, top doanh thu, hợp đồng theo nhà mạng và health                                       | Công thức, nguồn dữ liệu, thời điểm chốt số và quyền xem số liệu                                  |
 | Dự án              | Danh sách, lọc, chi tiết, chủ đầu tư, quy mô, hợp đồng, tiến độ và tài chính      | Đã triển khai profile IDS, tìm kiếm/lọc, KPI tổng hợp, hợp đồng nhà mạng, tiến độ và membership; doanh thu có trang riêng, chưa gắn bảng quý vào chi tiết | Quy tắc mã dự án thiếu, nguồn chuẩn, cách đồng bộ số hợp đồng/doanh thu/chi phí/CPĐT              |
 | Tiến độ thi công   | Theo dõi 5 bước chuẩn, phòng ban, kế hoạch ngày, ngày kết thúc thật và trạng thái | Đã triển khai lát cắt đầu tiên                                                                                                                            | Có cho phép thêm/bớt/đổi tên bước hay luôn cố định 5 bước; ai xác nhận hoàn thành                 |
 | Hợp đồng nhà mạng  | Hợp đồng theo dự án, nhà mạng, dịch vụ, khối lượng, đơn giá, chu kỳ và hết hạn    | Đã triển khai v1: list/KPI/filter/create/update, filter `projectId` và bảng hợp đồng trong chi tiết dự án                                                 | Cần chốt loại hợp đồng, vòng đời/gia hạn, chống trùng và cách tính Teldata/IBS                    |
@@ -57,7 +57,7 @@ Quy tắc đang áp dụng:
 - Chưa tự sinh kế hoạch khi project chuyển trạng thái; hiện người dùng chủ động bấm khởi tạo.
 - Chưa có dependency giữa các bước, phần trăm hoàn thành, người được giao, bình luận, file hoặc lịch sử thay đổi.
 - Chưa gửi thông báo task trễ hạn.
-- Đã có bản ghi hợp đồng nhà mạng và doanh thu/chi phí theo quý v1. Chưa triển khai công nợ, hoàn vốn, CRM hoặc workflow phân công/duyệt/đóng cảnh báo chất lượng dữ liệu. Dashboard v1 chỉ tính cảnh báo dẫn xuất và liên kết về màn hình dự án.
+- Đã có bản ghi hợp đồng nhà mạng và doanh thu/chi phí theo quý v1. Chưa triển khai công nợ, hoàn vốn, CRM hoặc workflow phân công/duyệt/đóng cảnh báo chất lượng dữ liệu.
 
 ## Giả định tạm thời cho hợp đồng nhà mạng v1
 
@@ -88,5 +88,15 @@ Quy tắc đang áp dụng:
 - Trang chi tiết dự án cho phép chọn năm 2024-2027, xem đủ Q1-Q4 kể cả khi chưa có actual và chỉ hiển thị thao tác cập nhật khi có `revenue.manage`.
 - Không suy doanh thu từ đơn giá/chu kỳ hợp đồng, không tự sinh công nợ và chưa đồng bộ snapshot `project.revenueTotal/costTotal`; các luồng này chờ khách xác nhận.
 - So sánh Q4 với trung bình ba quý đầu chỉ là gợi ý đối soát, chưa phải quy tắc cảnh báo hoặc kết luận kế toán.
+
+## Contract tạm thời cho dashboard v1
+
+- `GET /api/v1/dashboard?fiscalYear=YYYY` yêu cầu đồng thời quyền đọc project, task, hợp đồng nhà mạng và doanh thu; dữ liệu luôn theo project membership, trừ người có `projects.manage` được xem toàn portfolio.
+- Một MongoDB aggregation xuất phát từ project và dùng `$lookup` có `$group` giới hạn dữ liệu trung gian cho task, hợp đồng và doanh thu; `$facet` trả toàn bộ KPI, quý, trạng thái và xếp hạng trong một response, không query N+1.
+- KPI gồm tổng doanh thu/chi phí/lợi nhuận/biên lợi nhuận, dự án có doanh thu, dự án đã vận hành, hợp đồng Teldata/IBS, task quá hạn, project thiếu CAPEX và project xung đột dữ liệu.
+- Biểu đồ quý dùng `revenue_actuals` đúng năm; hợp đồng dùng collection chi tiết thay vì snapshot trên project. Task quá hạn được tính tại thời điểm request.
+- Luôn trả đủ bốn quý và bốn trạng thái vận hành với giá trị 0 khi chưa có dữ liệu. Top doanh thu giới hạn 8 project; danh sách hợp đồng được gom theo nhà mạng.
+- FY2025 là mặc định UI tạm thời theo mockup. Cơ hội kinh doanh không xuất hiện trên Dashboard v1 vì CRM/opportunity chưa có contract và nguồn dữ liệu.
+- Đây là dashboard vận hành gần thời gian thực, chưa phải báo cáo kế toán đã khóa kỳ. Công thức, timezone chốt ngày, tiền tệ, quyền xem số nhạy cảm và refresh/cache vẫn phải được khách xác nhận.
 
 Các mục trên chỉ được bổ sung sau khi chốt contract tương ứng để tránh khóa hệ thống vào giả định từ dữ liệu minh họa.

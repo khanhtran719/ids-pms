@@ -10,7 +10,13 @@ export const appRoutes: Route[] = [
   },
   {
     path: 'dashboard',
-    canActivate: [authGuard],
+    canActivate: [
+      authGuard,
+      permissionGuard('projects.read'),
+      permissionGuard('tasks.read'),
+      permissionGuard('carrier-contracts.read'),
+      permissionGuard('revenue.read'),
+    ],
     loadComponent: () =>
       import('./features/dashboard/dashboard.page').then(
         (module) => module.DashboardPage,

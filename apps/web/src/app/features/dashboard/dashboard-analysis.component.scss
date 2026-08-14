@@ -1,0 +1,154 @@
+:host {
+  display: block;
+}
+.analysis-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(17rem, 0.75fr);
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+}
+.panel {
+  min-width: 0;
+  border: 1px solid #dce3e0;
+  border-radius: 0.75rem;
+  background: #fff;
+}
+.panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid #e7ecea;
+}
+.panel-heading > span {
+  color: #72807b;
+  font-size: 0.7rem;
+}
+.eyebrow {
+  margin: 0 0 0.4rem;
+  color: #148266;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+h2 {
+  margin: 0;
+  color: #22322e;
+  font-size: 1rem;
+}
+.quarter-chart {
+  padding: 0.25rem 1rem 0.5rem;
+}
+.quarter-row {
+  display: grid;
+  grid-template-columns: 2rem minmax(5rem, 1fr) minmax(7rem, auto);
+  align-items: center;
+  gap: 0.75rem;
+  padding-top: 0.85rem;
+}
+.quarter-row > strong,
+.quarter-row > small {
+  font-size: 0.7rem;
+}
+.quarter-row > small {
+  color: #596762;
+  text-align: right;
+}
+.bars {
+  display: grid;
+  gap: 0.2rem;
+}
+.bar {
+  display: block;
+  min-width: 0.12rem;
+  height: 0.38rem;
+  border-radius: 99px;
+}
+.bar--revenue {
+  background: #188268;
+}
+.bar--cost {
+  background: #b6c1bd;
+}
+.legend {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem 0.9rem;
+  color: #71807b;
+  font-size: 0.65rem;
+}
+.legend span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.legend-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+}
+.legend-dot--revenue {
+  background: #188268;
+}
+.legend-dot--cost {
+  background: #b6c1bd;
+}
+.status-list {
+  padding: 0.3rem 1rem 1rem;
+}
+.status-row {
+  padding-top: 0.85rem;
+}
+.status-row > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  color: #596863;
+  font-size: 0.72rem;
+}
+.status-row strong {
+  color: #24352f;
+}
+.status-track {
+  display: block;
+  overflow: hidden;
+  height: 0.34rem;
+  margin-top: 0.35rem;
+  border-radius: 99px;
+  background: #edf1ef;
+}
+.status-fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #318a73;
+}
+.status-fill--not_started {
+  background: #a7b1ad;
+}
+.status-fill--in_progress {
+  background: #447fb0;
+}
+.status-fill--partial {
+  background: #c18d37;
+}
+.status-fill--operational {
+  background: #22836a;
+}
+@media (max-width: 52rem) {
+  .analysis-grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 38rem) {
+  .quarter-row {
+    grid-template-columns: 1.7rem 1fr;
+  }
+  .quarter-row > small {
+    grid-column: 2;
+    text-align: left;
+  }
+}

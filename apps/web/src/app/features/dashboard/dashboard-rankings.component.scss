@@ -1,0 +1,144 @@
+:host {
+  display: block;
+}
+.ranking-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+  margin-top: 0.8rem;
+}
+.panel {
+  min-width: 0;
+  border: 1px solid #dce3e0;
+  border-radius: 0.75rem;
+  background: #fff;
+}
+.panel-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+  border-bottom: 1px solid #e7ecea;
+}
+.panel-heading > a {
+  color: #16765f;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+.eyebrow {
+  margin: 0 0 0.4rem;
+  color: #148266;
+  font-size: 0.68rem;
+  font-weight: 850;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+h2 {
+  margin: 0;
+  color: #22322e;
+  font-size: 1rem;
+}
+.ranking-list,
+.carrier-list {
+  margin: 0;
+  padding: 0.25rem 1rem 1rem;
+  list-style: none;
+}
+.ranking-list li {
+  display: flex;
+  gap: 0.7rem;
+  padding-top: 0.8rem;
+}
+.rank {
+  display: grid;
+  flex: none;
+  width: 1.55rem;
+  height: 1.55rem;
+  place-items: center;
+  border-radius: 0.4rem;
+  color: #24715d;
+  background: #eaf5f1;
+  font-size: 0.65rem;
+  font-weight: 850;
+}
+.ranking-content {
+  min-width: 0;
+  flex: 1;
+}
+.ranking-content > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+.ranking-content a {
+  overflow: hidden;
+  color: #293b35;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ranking-content strong {
+  flex: none;
+  color: #394a44;
+  font-size: 0.68rem;
+}
+.ranking-content small {
+  display: block;
+  overflow: hidden;
+  margin-top: 0.2rem;
+  color: #83908b;
+  font-size: 0.6rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ranking-track,
+.carrier-track {
+  display: block;
+  overflow: hidden;
+  height: 0.22rem;
+  margin-top: 0.38rem;
+  border-radius: 99px;
+  background: #edf1ef;
+}
+.ranking-track i,
+.carrier-track i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: #318a73;
+}
+.carrier-list li {
+  padding-top: 0.85rem;
+}
+.carrier-list li > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  color: #52615c;
+  font-size: 0.72rem;
+}
+.carrier-list li span {
+  color: #7a8782;
+  font-size: 0.65rem;
+}
+.carrier-track {
+  height: 0.34rem;
+  margin-top: 0.35rem;
+}
+.carrier-track i {
+  background: #5d86a9;
+}
+.empty-state {
+  padding: 1rem;
+  color: #7a8782;
+  font-size: 0.75rem;
+}
+@media (max-width: 52rem) {
+  .ranking-grid {
+    grid-template-columns: 1fr;
+  }
+}
