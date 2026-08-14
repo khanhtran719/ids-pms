@@ -61,11 +61,12 @@ cp .env.uat.example .env.uat
 # Thay toàn bộ secret, credential và domain mẫu trong .env.uat
 npm run uat:config
 npm run uat:build
+npm run uat:push
 npm run uat:up
 npm run uat:seed
 ```
 
-Mặc định web được phục vụ tại `http://localhost:8080`. Khi bàn giao cho khách, đặt reverse proxy/load balancer HTTPS phía trước và giữ `AUTH_COOKIE_SECURE=true`. Hướng dẫn đầy đủ, health check, cập nhật và rollback an toàn nằm trong `docs/uat-deployment.md`.
+`npm run uat:publish` có thể dùng thay cho hai lệnh build/push. Image mặc định được đẩy lên `khanhtrn2608/ids-pms-api:uat` và `khanhtrn2608/ids-pms-web:uat`; đổi `DOCKER_IMAGE_TAG` trong `.env.uat` để phát hành tag bất biến. Mặc định web được phục vụ tại `http://localhost:8080`. Khi bàn giao cho khách, đặt reverse proxy/load balancer HTTPS phía trước và giữ `AUTH_COOKIE_SECURE=true`. Hướng dẫn đầy đủ, health check, cập nhật và rollback an toàn nằm trong `docs/uat-deployment.md`.
 
 ## Tạo tài khoản quản trị đầu tiên
 

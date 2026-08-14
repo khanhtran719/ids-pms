@@ -44,7 +44,8 @@ services:
       - no-new-privileges:true
 
   api:
-    image: ids-pms-api:uat
+    image: ${DOCKER_API_IMAGE:-khanhtrn2608/ids-pms-api}:${DOCKER_IMAGE_TAG:-uat}
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
     build:
       context: .
       dockerfile: docker/api.Dockerfile
@@ -74,7 +75,8 @@ services:
       - no-new-privileges:true
 
   web:
-    image: ids-pms-web:uat
+    image: ${DOCKER_WEB_IMAGE:-khanhtrn2608/ids-pms-web}:${DOCKER_IMAGE_TAG:-uat}
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
     build:
       context: .
       dockerfile: docker/web.Dockerfile
@@ -97,7 +99,8 @@ services:
       - no-new-privileges:true
 
   demo-seed:
-    image: ids-pms-api:uat
+    image: ${DOCKER_API_IMAGE:-khanhtrn2608/ids-pms-api}:${DOCKER_IMAGE_TAG:-uat}
+    platform: ${DOCKER_PLATFORM:-linux/amd64}
     profiles: ['tools']
     command: ['node', 'tools/demo-seed/seed-demo.mjs']
     environment:

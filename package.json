@@ -17,6 +17,8 @@
     "seed:demo": "node --env-file-if-exists=.env tools/demo-seed/seed-demo.mjs",
     "uat:config": "docker compose --env-file .env.uat -f compose.uat.yaml config --quiet",
     "uat:build": "docker compose --env-file .env.uat -f compose.uat.yaml build",
+    "uat:push": "docker compose --env-file .env.uat -f compose.uat.yaml push api web",
+    "uat:publish": "npm run uat:build && npm run uat:push",
     "uat:up": "docker compose --env-file .env.uat -f compose.uat.yaml up -d mongodb api web",
     "uat:seed": "docker compose --env-file .env.uat -f compose.uat.yaml --profile tools run --rm demo-seed",
     "ai:session:start": "node tools/ai/session-log.mjs start",

@@ -142,6 +142,10 @@ Sao chép `.env.example` thành `.env`. Không commit `.env`.
 | `AUTH_COOKIE_SECURE`         | Bắt buộc HTTPS cookie; bật ở production       |
 | `SEED_ADMIN_*`               | Tùy chọn tạo admin đầu tiên idempotent        |
 | `DEMO_SEED_CONFIRM`          | Xác nhận chính xác `seed:<database>` khi seed |
+| `DOCKER_API_IMAGE`           | Repository image API trên registry            |
+| `DOCKER_WEB_IMAGE`           | Repository image Web trên registry            |
+| `DOCKER_IMAGE_TAG`           | Tag phát hành dùng chung cho API và Web       |
+| `DOCKER_PLATFORM`            | Nền tảng image UAT, mặc định `linux/amd64`    |
 
 UAT dùng `.env.uat` (Git ignored) và `compose.uat.yaml`; file mẫu là `.env.uat.example`. Chi tiết build, HTTPS, health check, seed idempotent và cập nhật xem tại `docs/uat-deployment.md`.
 

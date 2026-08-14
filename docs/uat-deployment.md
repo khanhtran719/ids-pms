@@ -20,6 +20,9 @@ cp .env.uat.example .env.uat
 - `MONGODB_DATABASE`: giữ hậu tố `_uat` để seed an toàn.
 - `DEMO_SEED_CONFIRM`: phải bằng `seed:<MONGODB_DATABASE>`.
 - `UAT_HTTP_PORT`: cổng host mà reverse proxy chuyển tiếp vào, mặc định `8080`.
+- `DOCKER_API_IMAGE`/`DOCKER_WEB_IMAGE`: mặc định là hai repository Docker Hub `khanhtrn2608/ids-pms-api` và `khanhtrn2608/ids-pms-web`.
+- `DOCKER_IMAGE_TAG`: tag dùng chung cho API/Web; nên dùng tag bất biến như `uat-20260814-1` thay vì ghi đè `uat` khi gửi khách.
+- `DOCKER_PLATFORM`: mặc định `linux/amd64` để image build trên Mac Apple Silicon chạy được trên server x86.
 
 `.env.uat` đã được Git ignore. Không đưa file này, log chứa secret hoặc database dump lên repository.
 
@@ -31,8 +34,25 @@ docker compose --env-file .env.uat -f compose.uat.yaml config --quiet
 
 ## 2. Build và khởi động
 
+Đăng nhập Docker Hub một lần trên máy build, sau đó build và push hai image:
+
 ```bash
-docker compose --env-file .env.uat -f compose.uat.yaml build
+docker login
+npm run uat:publish
+```
+
+Hai lệnh riêng tương đương:
+
+```bash
+npm run uat:build
+npm run uat:push
+```
+
+Lệnh push không ghi credential vào repository; Docker CLI sử dụng phiên đăng nhập cục bộ. Kiểm tra tag trên Docker Hub trước khi cập nhật server.
+
+Khởi động từ image vừa build hoặc pull:
+
+```bash
 docker compose --env-file .env.uat -f compose.uat.yaml up -d mongodb api web
 docker compose --env-file .env.uat -f compose.uat.yaml ps
 ```
@@ -84,7 +104,7 @@ Cập nhật phiên bản:
 
 ```bash
 git pull
-docker compose --env-file .env.uat -f compose.uat.yaml build
+docker compose --env-file .env.uat -f compose.uat.yaml pull api web
 docker compose --env-file .env.uat -f compose.uat.yaml up -d api web
 ```
 
