@@ -109,6 +109,15 @@ Tài liệu này ghi lại các quyết định dài hạn. Không dùng nó tha
 - Lý do: tạo nguồn dữ liệu chi tiết có thể phát triển tiếp, tránh nhúng mảng tăng trưởng vào project và tránh N+1 cho màn hình portfolio.
 - Hệ quả và trade-off: chưa chống trùng, chưa xóa/duyệt/import và chưa đồng bộ `project.carrierContractCount`. Các quyết định này chờ khách xác nhận thay vì khóa cứng vào v1.
 
+## ADR-014 — Doanh thu thực tế lưu độc lập theo dự án, năm và quý
+
+- Trạng thái: Accepted, temporary
+- Ngày: 2026-08-14
+- Bối cảnh: mockup có doanh thu/chi phí FY2025 theo bốn quý và nhận định Q4 bất thường, nhưng chưa có quy tắc ghi nhận doanh thu định kỳ/một lần, nguồn import hay quy trình chốt số.
+- Quyết định: tạo collection `revenue_actuals` với unique key `projectId + fiscalYear + quarter`; mỗi bản ghi lưu doanh thu và chi phí thực tế không âm. Lợi nhuận/biên được dẫn xuất khi đọc. Báo cáo scope theo project membership và trả KPI, tổng quý cùng danh sách bằng một aggregation `$facet`. UI mặc định FY2025 theo mockup nhưng API nhận năm rõ ràng.
+- Lý do: tạo nguồn chi tiết có thể đối soát và hỗ trợ nhiều năm mà không khóa dữ liệu vào bốn field trên project; upsert phù hợp cả nhập tay lẫn import idempotent sau này.
+- Hệ quả và trade-off: chưa tự tính từ hợp đồng, chưa sinh công nợ, chưa có trạng thái nháp/duyệt/khóa kỳ, tiền tệ/thuế, import hay audit history ngoài actor/timestamps. Chưa đồng bộ `project.revenueTotal/costTotal`; so sánh Q4 chỉ là thông tin cần xác nhận, không phải kết luận kế toán.
+
 ## Mẫu ADR mới
 
 ```text

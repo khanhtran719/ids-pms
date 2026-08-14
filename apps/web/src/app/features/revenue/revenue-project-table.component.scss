@@ -1,0 +1,95 @@
+.revenue-table {
+  overflow: hidden;
+  border: 1px solid #dce3e0;
+  border-radius: 0.7rem;
+  background: #fff;
+}
+.table-wrap {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  min-width: 70rem;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+}
+th,
+td {
+  border-bottom: 1px solid #e6ebe9;
+  padding: 0.7rem 0.8rem;
+  text-align: left;
+}
+th {
+  color: #73807b;
+  background: #f5f7f6;
+  font-size: 0.63rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+td:first-child a {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 12rem;
+  color: inherit;
+  text-decoration: none;
+}
+td:first-child strong {
+  color: #18715c;
+  font-size: 0.65rem;
+}
+td:first-child span {
+  font-weight: 750;
+}
+.number-cell {
+  text-align: right;
+  white-space: nowrap;
+}
+.total-cell {
+  font-weight: 800;
+}
+.muted-cell {
+  color: #6f7c77;
+}
+.negative {
+  color: #a24b3a;
+}
+.quarter-button {
+  border: 0;
+  padding: 0.25rem;
+  color: #176e59;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 0.2rem;
+}
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 0.75rem;
+  color: #697670;
+  font-size: 0.75rem;
+}
+.pagination div {
+  display: flex;
+  gap: 0.4rem;
+}
+.pagination button {
+  border: 1px solid #d4dcda;
+  border-radius: 0.4rem;
+  padding: 0.45rem 0.7rem;
+  background: #fff;
+  cursor: pointer;
+}
+.pagination button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+@media (max-width: 34rem) {
+  .pagination {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.6rem;
+  }
+}

@@ -36,9 +36,7 @@ export const appRoutes: Route[] = [
     path: 'tasks',
     canActivate: [authGuard, permissionGuard('tasks.read')],
     loadComponent: () =>
-      import('./features/tasks/tasks.page').then(
-        (module) => module.TasksPage,
-      ),
+      import('./features/tasks/tasks.page').then((module) => module.TasksPage),
   },
   {
     path: 'data-quality',
@@ -62,6 +60,18 @@ export const appRoutes: Route[] = [
     loadComponent: () =>
       import('./features/carrier-contracts/carrier-contracts.page').then(
         (module) => module.CarrierContractsPage,
+      ),
+  },
+  {
+    path: 'revenue',
+    canActivate: [
+      authGuard,
+      permissionGuard('projects.read'),
+      permissionGuard('revenue.read'),
+    ],
+    loadComponent: () =>
+      import('./features/revenue/revenue.page').then(
+        (module) => module.RevenuePage,
       ),
   },
   {

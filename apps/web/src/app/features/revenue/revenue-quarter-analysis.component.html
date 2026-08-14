@@ -1,0 +1,45 @@
+<section class="analysis-grid" aria-label="Phân tích doanh thu theo quý">
+  <article class="quarter-chart">
+    <header>
+      <h2>Doanh thu và chi phí theo quý</h2>
+      <span>FY{{ fiscalYear() }}</span>
+    </header>
+    @for (quarter of quarters(); track quarter.quarter) {
+      <div class="quarter-row">
+        <strong>Q{{ quarter.quarter }}</strong>
+        <div class="bars">
+          <span
+            class="bar bar--revenue"
+            [style.width.%]="barWidth(quarter.revenue)"
+          ></span>
+          <span
+            class="bar bar--cost"
+            [style.width.%]="barWidth(quarter.cost)"
+          ></span>
+        </div>
+        <small>{{
+          quarter.revenue | currency: 'VND' : 'symbol' : '1.0-0'
+        }}</small>
+      </div>
+    }
+    <footer>
+      <span><i class="legend revenue"></i>Doanh thu</span
+      ><span><i class="legend cost"></i>Chi phí</span>
+    </footer>
+  </article>
+  <aside class="year-note">
+    <span aria-hidden="true">!</span>
+    <div>
+      <h2>Đối soát phân bổ cuối năm</h2>
+      @if (q4Ratio(); as ratio) {
+        <p>
+          Doanh thu Q4 bằng
+          <strong>{{ ratio | number: '1.2-2' }} lần</strong> trung bình ba quý
+          đầu. Cần xác nhận phần quyết toán hoặc phí một lần.
+        </p>
+      } @else {
+        <p>Chưa đủ số liệu ba quý đầu để so sánh với Q4.</p>
+      }
+    </div>
+  </aside>
+</section>

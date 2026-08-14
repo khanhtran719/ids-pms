@@ -22,12 +22,18 @@ describe('CarrierContractsService', () => {
 
   it('sends one paginated request with carrier and service filters', () => {
     service
-      .list({ page: 2, limit: 20, carrier: 'Viettel', serviceType: 'teldata' })
+      .list({
+        page: 2,
+        limit: 20,
+        projectId: 'project-1',
+        carrier: 'Viettel',
+        serviceType: 'teldata',
+      })
       .subscribe();
 
     http
       .expectOne(
-        '/api/v1/carrier-contracts?page=2&limit=20&carrier=Viettel&serviceType=teldata',
+        '/api/v1/carrier-contracts?page=2&limit=20&projectId=project-1&carrier=Viettel&serviceType=teldata',
       )
       .flush({ data: [], meta: {}, overview: {}, availableCarriers: [] });
   });

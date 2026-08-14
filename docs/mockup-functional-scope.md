@@ -8,17 +8,17 @@ Nếu mockup mâu thuẫn với yêu cầu mới của khách hàng, yêu cầu 
 
 ## Bản đồ màn hình trong mockup
 
-| Màn hình | Mục đích quan sát được | Trạng thái triển khai | Điểm còn phải xác nhận |
-| --- | --- | --- | --- |
-| Tổng quan | KPI doanh thu, lợi nhuận, dự án, hợp đồng, task trễ hạn và chất lượng dữ liệu | Chưa triển khai KPI nghiệp vụ; dashboard kỹ thuật đã có | Công thức, nguồn dữ liệu, thời điểm chốt số và quyền xem số liệu |
-| Dự án | Danh sách, lọc, chi tiết, chủ đầu tư, quy mô, hợp đồng, tiến độ và tài chính | Đã triển khai profile IDS, tìm kiếm/lọc, KPI tổng hợp, tiến độ và membership; hợp đồng/tài chính chi tiết chưa có | Quy tắc mã dự án thiếu, nguồn chuẩn, cách đồng bộ số hợp đồng/doanh thu/chi phí/CPĐT |
-| Tiến độ thi công | Theo dõi 5 bước chuẩn, phòng ban, kế hoạch ngày, ngày kết thúc thật và trạng thái | Đã triển khai lát cắt đầu tiên | Có cho phép thêm/bớt/đổi tên bước hay luôn cố định 5 bước; ai xác nhận hoàn thành |
-| Hợp đồng nhà mạng | Hợp đồng theo dự án, nhà mạng, dịch vụ, khối lượng, đơn giá, chu kỳ và hết hạn | Đã triển khai v1: list/KPI/filter/create/update theo project scope | Cần chốt loại hợp đồng, vòng đời/gia hạn, chống trùng và cách tính Teldata/IBS |
-| Doanh thu | Doanh thu, chi phí, lợi nhuận theo quý và dự án | Chưa triển khai | Dữ liệu Q4 bất thường, doanh thu một lần/định kỳ, kỳ tài chính và cách ghi nhận |
-| Công nợ | Phải thu, đã thu, còn nợ, quá hạn theo hợp đồng/kỳ | Chưa triển khai | Mockup xác nhận file nguồn chưa có hóa đơn, hạn thanh toán và số đã thu |
-| Hoàn vốn | So sánh CPĐT với doanh thu lũy kế | Chưa triển khai | Nhiều dự án thiếu CPĐT; cần chốt CAPEX gồm khoản nào và cách tính hoàn vốn |
-| Cơ hội kinh doanh | Pipeline cơ hội theo vùng, giai đoạn, người phụ trách và tính khả thi | Chưa triển khai | Quy tắc chuyển giai đoạn, xác suất, owner, lịch sử hoạt động và chuyển thành project |
-| Chất lượng dữ liệu | Theo dõi mã thiếu, xung đột nguồn, thiếu CAPEX/kế hoạch/ngày thật/owner | Đã triển khai dashboard read-only v1 cho xung đột, CAPEX và tiến độ; chưa có mã thiếu/owner do invariant hiện tại | Quyền sửa dữ liệu, quy trình đối soát, nguồn ưu tiên và cách đóng cảnh báo |
+| Màn hình           | Mục đích quan sát được                                                            | Trạng thái triển khai                                                                                                                                     | Điểm còn phải xác nhận                                                                            |
+| ------------------ | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Tổng quan          | KPI doanh thu, lợi nhuận, dự án, hợp đồng, task trễ hạn và chất lượng dữ liệu     | Chưa triển khai KPI nghiệp vụ; dashboard kỹ thuật đã có                                                                                                   | Công thức, nguồn dữ liệu, thời điểm chốt số và quyền xem số liệu                                  |
+| Dự án              | Danh sách, lọc, chi tiết, chủ đầu tư, quy mô, hợp đồng, tiến độ và tài chính      | Đã triển khai profile IDS, tìm kiếm/lọc, KPI tổng hợp, hợp đồng nhà mạng, tiến độ và membership; doanh thu có trang riêng, chưa gắn bảng quý vào chi tiết | Quy tắc mã dự án thiếu, nguồn chuẩn, cách đồng bộ số hợp đồng/doanh thu/chi phí/CPĐT              |
+| Tiến độ thi công   | Theo dõi 5 bước chuẩn, phòng ban, kế hoạch ngày, ngày kết thúc thật và trạng thái | Đã triển khai lát cắt đầu tiên                                                                                                                            | Có cho phép thêm/bớt/đổi tên bước hay luôn cố định 5 bước; ai xác nhận hoàn thành                 |
+| Hợp đồng nhà mạng  | Hợp đồng theo dự án, nhà mạng, dịch vụ, khối lượng, đơn giá, chu kỳ và hết hạn    | Đã triển khai v1: list/KPI/filter/create/update, filter `projectId` và bảng hợp đồng trong chi tiết dự án                                                 | Cần chốt loại hợp đồng, vòng đời/gia hạn, chống trùng và cách tính Teldata/IBS                    |
+| Doanh thu          | Doanh thu, chi phí, lợi nhuận theo quý và dự án                                   | Đã triển khai v1: KPI năm, so sánh quý, tìm kiếm, phân trang và upsert số thực tế theo dự án/năm/quý                                                      | Dữ liệu Q4 bất thường, doanh thu một lần/định kỳ, kỳ tài chính, nguồn import và quy trình chốt số |
+| Công nợ            | Phải thu, đã thu, còn nợ, quá hạn theo hợp đồng/kỳ                                | Chưa triển khai                                                                                                                                           | Mockup xác nhận file nguồn chưa có hóa đơn, hạn thanh toán và số đã thu                           |
+| Hoàn vốn           | So sánh CPĐT với doanh thu lũy kế                                                 | Chưa triển khai                                                                                                                                           | Nhiều dự án thiếu CPĐT; cần chốt CAPEX gồm khoản nào và cách tính hoàn vốn                        |
+| Cơ hội kinh doanh  | Pipeline cơ hội theo vùng, giai đoạn, người phụ trách và tính khả thi             | Chưa triển khai                                                                                                                                           | Quy tắc chuyển giai đoạn, xác suất, owner, lịch sử hoạt động và chuyển thành project              |
+| Chất lượng dữ liệu | Theo dõi mã thiếu, xung đột nguồn, thiếu CAPEX/kế hoạch/ngày thật/owner           | Đã triển khai dashboard read-only v1 cho xung đột, CAPEX và tiến độ; chưa có mã thiếu/owner do invariant hiện tại                                         | Quyền sửa dữ liệu, quy trình đối soát, nguồn ưu tiên và cách đóng cảnh báo                        |
 
 ## Contract tạm thời cho tiến độ thi công
 
@@ -57,7 +57,7 @@ Quy tắc đang áp dụng:
 - Chưa tự sinh kế hoạch khi project chuyển trạng thái; hiện người dùng chủ động bấm khởi tạo.
 - Chưa có dependency giữa các bước, phần trăm hoàn thành, người được giao, bình luận, file hoặc lịch sử thay đổi.
 - Chưa gửi thông báo task trễ hạn.
-- Đã có bản ghi hợp đồng nhà mạng v1. Chưa triển khai doanh thu/chi phí theo kỳ, công nợ, hoàn vốn, CRM hoặc workflow phân công/duyệt/đóng cảnh báo chất lượng dữ liệu. Dashboard v1 chỉ tính cảnh báo dẫn xuất và liên kết về màn hình dự án.
+- Đã có bản ghi hợp đồng nhà mạng và doanh thu/chi phí theo quý v1. Chưa triển khai công nợ, hoàn vốn, CRM hoặc workflow phân công/duyệt/đóng cảnh báo chất lượng dữ liệu. Dashboard v1 chỉ tính cảnh báo dẫn xuất và liên kết về màn hình dự án.
 
 ## Giả định tạm thời cho hợp đồng nhà mạng v1
 
@@ -77,5 +77,15 @@ Quy tắc đang áp dụng:
 - `missing_actual_end`: task có trạng thái `done` nhưng thiếu ngày kết thúc thực tế; kiểm tra này bảo vệ dữ liệu legacy/import dù API write hiện đã chặn trạng thái đó.
 - Summary toàn scope và danh sách lọc/phân trang được tính trong cùng một MongoDB aggregation `$facet`; tìm kiếm theo mã, tên hoặc chủ đầu tư.
 - V1 không lưu cảnh báo thành collection riêng, không có assignee, SLA, bình luận, lý do bỏ qua hoặc trạng thái đóng.
+
+## Contract tạm thời cho doanh thu v1
+
+- Số thực tế được lưu theo khóa duy nhất `projectId + fiscalYear + quarter`; ghi lại cùng khóa là cập nhật idempotent, không sinh thêm dòng.
+- Mỗi dòng chỉ gồm doanh thu và chi phí không âm. Lợi nhuận gộp được tính bằng `doanh thu - chi phí`; biên lợi nhuận chỉ có khi doanh thu lớn hơn 0.
+- Người có `revenue.read` chỉ thấy dữ liệu trong project scope; `projects.manage` có scope toàn bộ. Ghi số liệu yêu cầu `revenue.manage` và project phải thuộc scope.
+- KPI toàn năm, tổng từng quý, số dự án có/chưa có doanh thu và danh sách phân trang được trả bằng một MongoDB aggregation `$facet`.
+- FY2025 là giá trị mặc định tạm thời trên UI vì mockup đang dùng năm này; API luôn nhận năm tài chính rõ ràng và hỗ trợ nhiều năm.
+- Không suy doanh thu từ đơn giá/chu kỳ hợp đồng, không tự sinh công nợ và chưa đồng bộ snapshot `project.revenueTotal/costTotal`; các luồng này chờ khách xác nhận.
+- So sánh Q4 với trung bình ba quý đầu chỉ là gợi ý đối soát, chưa phải quy tắc cảnh báo hoặc kết luận kế toán.
 
 Các mục trên chỉ được bổ sung sau khi chốt contract tương ứng để tránh khóa hệ thống vào giả định từ dữ liệu minh họa.

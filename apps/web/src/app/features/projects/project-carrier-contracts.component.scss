@@ -1,0 +1,124 @@
+:host {
+  display: block;
+  margin-bottom: 1rem;
+}
+.contracts-card {
+  overflow: hidden;
+  border: 1px solid #dce3e0;
+  border-radius: 0.7rem;
+  background: #fff;
+}
+.card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid #e5ebe8;
+}
+.card-heading h2 {
+  margin: 0;
+}
+.eyebrow {
+  margin: 0 0 0.35rem;
+  color: #148266;
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+.contracts-link {
+  flex: none;
+  color: #176e59;
+  font-size: 0.75rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+.contracts-link:hover {
+  text-decoration: underline;
+}
+.contracts-state {
+  display: flex;
+  min-height: 5rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  color: #71807a;
+  font-size: 0.8rem;
+}
+.contracts-state--error {
+  color: #963c3c;
+}
+.contracts-state button {
+  border: 1px solid #d4dcda;
+  border-radius: 0.4rem;
+  padding: 0.4rem 0.65rem;
+  color: inherit;
+  background: #fff;
+  cursor: pointer;
+}
+.contracts-table-wrap {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  min-width: 46rem;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+th,
+td {
+  border-top: 1px solid #e7ece9;
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+th {
+  color: #74817d;
+  background: #f7f9f8;
+  font-size: 0.65rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+td:last-child {
+  min-width: 13rem;
+}
+td small {
+  display: block;
+  margin-top: 0.28rem;
+  color: #7b8783;
+  font-size: 0.66rem;
+}
+.number-cell {
+  text-align: right;
+}
+.service-chip,
+.terms {
+  display: inline-flex;
+  border-radius: 999px;
+  padding: 0.24rem 0.48rem;
+  font-size: 0.65rem;
+  font-weight: 750;
+}
+.service-chip {
+  color: #176e59;
+  background: #e5f4ef;
+}
+.service-chip[data-service='ibs'] {
+  color: #67559b;
+  background: #eeeafa;
+}
+.terms--complete {
+  color: #176e59;
+  background: #e5f4ef;
+}
+.terms--missing {
+  color: #9a4c3d;
+  background: #fae9e3;
+}
+@media (max-width: 40rem) {
+  .card-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

@@ -1,0 +1,54 @@
+<section class="editor" aria-labelledby="revenue-editor-title">
+  <header>
+    <div>
+      <p>FY{{ fiscalYear() }}</p>
+      <h2 id="revenue-editor-title">Ghi nhận số thực tế</h2>
+    </div>
+    <button type="button" (click)="closed.emit()">Đóng</button>
+  </header>
+  <form [formGroup]="form" (ngSubmit)="submit()">
+    <div class="field">
+      <label for="revenueProject">Dự án</label>
+      <select id="revenueProject" formControlName="projectId">
+        <option value="">Chọn dự án</option>
+        @for (project of projects(); track project.id) {
+          <option [value]="project.id">
+            {{ project.code }} · {{ project.name }}
+          </option>
+        }
+      </select>
+    </div>
+    <div class="field">
+      <label for="revenueQuarter">Quý</label>
+      <select id="revenueQuarter" formControlName="quarter">
+        <option [ngValue]="1">Quý 1</option>
+        <option [ngValue]="2">Quý 2</option>
+        <option [ngValue]="3">Quý 3</option>
+        <option [ngValue]="4">Quý 4</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="revenueValue">Doanh thu (VND)</label
+      ><input
+        id="revenueValue"
+        type="number"
+        min="0"
+        formControlName="revenue"
+      />
+    </div>
+    <div class="field">
+      <label for="costValue">Chi phí (VND)</label
+      ><input id="costValue" type="number" min="0" formControlName="cost" />
+    </div>
+    <button
+      class="primary-button"
+      type="submit"
+      [disabled]="form.invalid || saving()"
+    >
+      {{ saving() ? 'Đang lưu…' : 'Lưu số liệu' }}
+    </button>
+  </form>
+  @if (error()) {
+    <p class="operation-error" role="alert">{{ error() }}</p>
+  }
+</section>

@@ -51,7 +51,9 @@ export type PermissionCode =
   | 'tasks.read'
   | 'tasks.manage'
   | 'carrier-contracts.read'
-  | 'carrier-contracts.manage';
+  | 'carrier-contracts.manage'
+  | 'revenue.read'
+  | 'revenue.manage';
 
 export interface AuthUser {
   id: string;
@@ -347,6 +349,7 @@ export interface CarrierContractListResponse
 export interface ListCarrierContractsRequest {
   page?: number;
   limit?: number;
+  projectId?: string;
   carrier?: string;
   serviceType?: CarrierServiceType;
 }
@@ -370,4 +373,66 @@ export interface UpdateCarrierContractRequest {
   paymentCycle?: CarrierPaymentCycle | null;
   startDate?: string | null;
   endDate?: string | null;
+}
+
+export type FiscalQuarter = 1 | 2 | 3 | 4;
+
+export interface RevenueQuarterSummary {
+  quarter: FiscalQuarter;
+  revenue: number;
+  cost: number;
+  grossProfit: number;
+}
+
+export interface RevenueActual extends RevenueQuarterSummary {
+  id: string;
+  projectId: string;
+  projectCode: string;
+  projectName: string;
+  fiscalYear: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RevenueProjectSummary {
+  projectId: string;
+  projectCode: string;
+  projectName: string;
+  quarters: RevenueQuarterSummary[];
+  revenueTotal: number;
+  costTotal: number;
+  grossProfit: number;
+  grossMargin?: number;
+}
+
+export interface RevenueOverview {
+  totalRevenue: number;
+  totalCost: number;
+  grossProfit: number;
+  grossMargin?: number;
+  totalProjects: number;
+  projectsWithRevenue: number;
+  projectsWithoutRevenue: number;
+}
+
+export interface RevenueReportResponse
+  extends PaginatedResponse<RevenueProjectSummary> {
+  fiscalYear: number;
+  overview: RevenueOverview;
+  quarters: RevenueQuarterSummary[];
+}
+
+export interface ListRevenueRequest {
+  fiscalYear: number;
+  page?: number;
+  limit?: number;
+  search?: string;
+}
+
+export interface UpsertRevenueActualRequest {
+  projectId: string;
+  fiscalYear: number;
+  quarter: FiscalQuarter;
+  revenue: number;
+  cost: number;
 }

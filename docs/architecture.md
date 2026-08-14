@@ -75,3 +75,11 @@ Các feature lớn lazy-load theo route. `core/` chỉ dành cho singleton toàn
 3. Pipeline tính số bước/ngày kế hoạch thiếu, task quá hạn, task hoàn thành thiếu ngày thật cùng cờ xung đột/CAPEX từ project.
 4. `$facet` trả summary toàn scope, page data và total cho bộ lọc trong cùng query; application service chỉ ghép pagination contract, không duyệt lại mảng kết quả.
 5. Cảnh báo v1 là dữ liệu dẫn xuất tại thời điểm đọc, không lưu collection và không ngầm tạo workflow khi khách chưa xác nhận.
+
+## Luồng doanh thu theo quý
+
+1. Angular gửi một request báo cáo theo năm tài chính; tìm kiếm debounce 300 ms và dùng `switchMap` để bỏ request cũ.
+2. API scope collection project theo membership, sau đó `$lookup` `revenue_actuals` đúng năm tài chính.
+3. `$facet` trả đồng thời KPI toàn scope, tổng bốn quý, danh sách project đã lọc/phân trang và total; application service không query hoặc duyệt lại từng project.
+4. Số thực tế dùng upsert atomic theo unique index `projectId + fiscalYear + quarter`. Business service xác nhận project scope trước khi ghi.
+5. Doanh thu v1 là nguồn chi tiết độc lập, chưa tự suy từ hợp đồng và chưa đồng bộ các snapshot tài chính cũ trên project.

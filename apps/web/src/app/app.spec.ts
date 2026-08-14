@@ -37,7 +37,12 @@ describe('App', () => {
         displayName: 'Administrator',
         status: 'active',
         roleCodes: ['admin'],
-        permissions: ['users.read', 'projects.read', 'tasks.read'],
+        permissions: [
+          'users.read',
+          'projects.read',
+          'tasks.read',
+          'revenue.read',
+        ],
       },
     });
     const fixture = TestBed.createComponent(App);
@@ -46,6 +51,7 @@ describe('App', () => {
     expect(fixture.nativeElement.textContent).toContain('Tổng quan');
     expect(fixture.nativeElement.textContent).toContain('Người dùng');
     expect(fixture.nativeElement.textContent).toContain('Chất lượng');
+    expect(fixture.nativeElement.textContent).toContain('Doanh thu');
     expect(fixture.nativeElement.textContent).toContain('Administrator');
   });
 });

@@ -30,6 +30,8 @@ const ROLE_DEFINITIONS: Array<{
       'tasks.manage',
       'carrier-contracts.read',
       'carrier-contracts.manage',
+      'revenue.read',
+      'revenue.manage',
     ],
   },
   {
@@ -43,12 +45,19 @@ const ROLE_DEFINITIONS: Array<{
       'tasks.manage',
       'carrier-contracts.read',
       'carrier-contracts.manage',
+      'revenue.read',
+      'revenue.manage',
     ],
   },
   {
     code: 'member',
     name: 'Member',
-    permissions: ['projects.read', 'tasks.read', 'carrier-contracts.read'],
+    permissions: [
+      'projects.read',
+      'tasks.read',
+      'carrier-contracts.read',
+      'revenue.read',
+    ],
   },
 ];
 

@@ -1,0 +1,89 @@
+<section class="contracts-card" aria-labelledby="contracts-title">
+  <div class="card-heading">
+    <div>
+      <p class="eyebrow">Khai thác hạ tầng</p>
+      <h2 id="contracts-title">
+        Hợp đồng khai thác nhà mạng ({{ response()?.meta?.totalItems || 0 }})
+      </h2>
+    </div>
+    <a
+      class="contracts-link"
+      routerLink="/carrier-contracts"
+      [queryParams]="{ projectId: projectId() }"
+      >Quản lý hợp đồng</a
+    >
+  </div>
+
+  @if (loading()) {
+    <div class="contracts-state" aria-busy="true">Đang tải hợp đồng…</div>
+  } @else if (error()) {
+    <div class="contracts-state contracts-state--error" role="alert">
+      <span>Không thể tải hợp đồng của dự án.</span>
+      <button type="button" (click)="retry.emit()">Thử lại</button>
+    </div>
+  } @else if (response(); as contracts) {
+    @if (contracts.data.length === 0) {
+      <div class="contracts-state" role="status">
+        Chưa có hợp đồng nhà mạng.
+      </div>
+    } @else {
+      <div class="contracts-table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nhà mạng</th>
+              <th>Dịch vụ</th>
+              <th class="number-cell">Khối lượng</th>
+              <th class="number-cell">Tỷ lệ thâm nhập</th>
+              <th>Điều khoản</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (contract of contracts.data; track contract.id) {
+              <tr>
+                <td>
+                  <strong>{{ contract.carrier }}</strong>
+                </td>
+                <td>
+                  <span
+                    class="service-chip"
+                    [attr.data-service]="contract.serviceType"
+                  >
+                    {{ contract.serviceType === 'teldata' ? 'Teldata' : 'IBS' }}
+                  </span>
+                </td>
+                <td class="number-cell">
+                  {{ contract.quantity | number }}
+                  {{ contractUnitLabel(contract.unit) }}
+                </td>
+                <td class="number-cell">
+                  {{
+                    contract.penetrationRate === undefined
+                      ? '—'
+                      : (contract.penetrationRate | percent: '1.0-1')
+                  }}
+                </td>
+                <td>
+                  @if (contract.termsComplete) {
+                    <span class="terms terms--complete">Đủ điều khoản</span>
+                    <small>
+                      {{
+                        contract.unitPrice
+                          | currency: 'VND' : 'symbol' : '1.0-0'
+                      }}
+                      · {{ paymentCycleLabel(contract.paymentCycle) }} · hết hạn
+                      {{ contract.endDate | date: 'dd/MM/yyyy' }}
+                    </small>
+                  } @else {
+                    <span class="terms terms--missing">Thiếu điều khoản</span>
+                    <small>Đơn giá, chu kỳ hoặc thời hạn chưa đầy đủ</small>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</section>

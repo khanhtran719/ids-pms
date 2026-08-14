@@ -14,7 +14,7 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 - Angular có đăng nhập, khôi phục phiên, app shell, dashboard, hồ sơ, trang không có quyền và quản lý người dùng.
 - Access token chỉ giữ trong memory; refresh token dùng cookie HttpOnly và được xoay vòng phía server.
 - NestJS có `login`, `refresh`, `logout`, `me`, danh sách và tạo người dùng; RBAC kiểm tra permission tại backend.
-- Angular có danh mục dự án bám mockup IDS: tìm theo mã/tên/chủ đầu tư, lọc trạng thái vận hành/chất lượng dữ liệu, phân trang và trang chi tiết gồm profile, KPI tổng hợp, tiến độ 5 bước và thành viên.
+- Angular có danh mục dự án bám mockup IDS: tìm theo mã/tên/chủ đầu tư, lọc trạng thái vận hành/chất lượng dữ liệu, phân trang và trang chi tiết gồm profile, KPI tổng hợp, hợp đồng nhà mạng, tiến độ 5 bước và thành viên.
 - NestJS có project profile IDS, bộ lọc portfolio, create/read/update project và CRUD membership; creator trở thành owner trong transaction và hệ thống bảo vệ owner cuối cùng.
 - Người có `projects.manage` truy cập toàn bộ dự án; người còn lại chỉ thấy dự án mà mình là thành viên.
 - Angular có trang Tiến độ thi công bám mockup IDS: KPI, lọc trạng thái, nhóm 5 bước theo dự án, khởi tạo kế hoạch và cập nhật ngày/trạng thái.
@@ -22,8 +22,10 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 - Task list join project/membership và tính overview bằng một MongoDB aggregation `$facet`, không query N+1.
 - Angular có trang Chất lượng dữ liệu v1: KPI theo phạm vi truy cập, tìm kiếm, lọc cảnh báo, phân trang và liên kết về dự án cần xử lý.
 - NestJS tổng hợp xung đột nguồn, thiếu CAPEX, thiếu kế hoạch 5 bước, task quá hạn và thiếu ngày thực tế bằng một aggregation `$facet`; không lưu bản sao cảnh báo và không query N+1.
-- Angular có trang Hợp đồng nhà mạng theo mockup với KPI, bộ lọc, phân trang, thêm hợp đồng và cập nhật điều khoản.
+- Angular có trang Hợp đồng nhà mạng theo mockup với KPI, bộ lọc, phân trang, thêm hợp đồng và cập nhật điều khoản; có thể mở từ chi tiết dự án với scope dự án được giữ trên URL.
 - NestJS lưu hợp đồng theo project scope; danh sách, KPI và danh mục nhà mạng dùng một aggregation `$facet`, không query N+1.
+- Angular có trang Doanh thu v1 theo mockup: KPI năm tài chính, so sánh doanh thu/chi phí theo quý, tìm kiếm, phân trang và ghi nhận số thực tế cho từng dự án/quý.
+- NestJS lưu số thực tế trong `revenue_actuals`, upsert theo `projectId + fiscalYear + quarter`; báo cáo, tổng theo quý và độ phủ dự án dùng một aggregation `$facet`, không query N+1.
 - Mật khẩu hash bằng Argon2id; refresh token chỉ lưu dạng SHA-256 hash; endpoint auth có throttling và CSRF custom header.
 - Swagger được phục vụ tại `/api/docs`.
 - API có request ID, error contract, structured request log, security headers, body limit, CORS allowlist và rate limit mặc định.
@@ -32,7 +34,7 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 - Contract envelope chung nằm trong `libs/api-contracts`; Nx tags kiểm soát hướng phụ thuộc web/API/shared.
 - Unit test, API e2e và Chromium e2e đã được thiết lập.
 
-Project hiện giữ các số tổng hợp tùy chọn như số hợp đồng, doanh thu, chi phí và CPĐT để dựng portfolio theo mockup. Module nguồn hợp đồng nhà mạng đã có lát cắt v1; các module doanh thu/chi phí, công nợ, hoàn vốn, CRM, bình luận, tài liệu và báo cáo chưa được triển khai. Phạm vi quan sát từ mockup và các điểm chưa chốt được ghi tại `docs/mockup-functional-scope.md`.
+Project hiện giữ các số tổng hợp tùy chọn như số hợp đồng, doanh thu, chi phí và CPĐT để dựng portfolio theo mockup. Module nguồn hợp đồng nhà mạng và doanh thu/chi phí thực tế đã có lát cắt v1; các module công nợ, hoàn vốn, CRM, bình luận, tài liệu và báo cáo chưa được triển khai. Phạm vi quan sát từ mockup và các điểm chưa chốt được ghi tại `docs/mockup-functional-scope.md`.
 
 ## Kiến trúc
 
@@ -86,7 +88,7 @@ Thứ tự phát triển được đề xuất, chưa đồng nghĩa với yêu 
 3. Tasks và tiến độ 5 bước theo project — đã triển khai lát cắt đầu tiên.
 4. Dữ liệu project đặc thù IDS và portfolio filters — đã triển khai lát cắt đầu tiên theo mockup, vẫn chờ xác nhận nguồn chuẩn/quy tắc import.
 5. Chất lượng dữ liệu dạng read-only — đã triển khai lát cắt v1; workflow duyệt/đóng cảnh báo chờ khách xác nhận.
-6. Hợp đồng nhà mạng — đã triển khai lát cắt v1 theo mockup, contract vẫn chờ khách xác nhận; sau đó mới đến doanh thu, công nợ và hoàn vốn.
+6. Hợp đồng nhà mạng và doanh thu theo quý — đã triển khai lát cắt v1 theo mockup; contract, cách ghi nhận và nguồn import vẫn chờ khách xác nhận; sau đó mới đến công nợ và hoàn vốn.
 7. CRM, comment/activity/notification và dashboard nghiệp vụ sau khi chốt workflow/KPI.
 
 ## Điểm truy cập local

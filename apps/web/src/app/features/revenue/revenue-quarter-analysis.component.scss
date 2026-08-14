@@ -1,0 +1,113 @@
+.analysis-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(16rem, 0.7fr);
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+}
+.quarter-chart,
+.year-note {
+  border: 1px solid #dce3e0;
+  border-radius: 0.7rem;
+  padding: 1rem;
+  background: #fff;
+}
+.quarter-chart header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+.quarter-chart header span {
+  color: #75817d;
+  font-size: 0.7rem;
+}
+.quarter-row {
+  display: grid;
+  grid-template-columns: 2rem minmax(8rem, 1fr) 8rem;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.75rem;
+}
+.quarter-row strong,
+.quarter-row small {
+  font-size: 0.7rem;
+}
+.quarter-row small {
+  text-align: right;
+}
+.bars {
+  display: grid;
+  gap: 0.18rem;
+}
+.bar {
+  display: block;
+  min-width: 0.15rem;
+  height: 0.35rem;
+  border-radius: 0.2rem;
+}
+.bar--revenue,
+.legend.revenue {
+  background: #1f8068;
+}
+.bar--cost,
+.legend.cost {
+  background: #abb7b2;
+}
+.quarter-chart footer {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.8rem;
+  color: #73807b;
+  font-size: 0.65rem;
+}
+.quarter-chart footer span {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.legend {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 0.15rem;
+}
+.year-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+  color: #76591d;
+  background: #fffaf0;
+}
+.year-note > span {
+  display: grid;
+  flex: none;
+  width: 1.7rem;
+  height: 1.7rem;
+  place-items: center;
+  border-radius: 50%;
+  color: #fff;
+  background: #a97728;
+  font-weight: 850;
+}
+.year-note p {
+  margin: 0.5rem 0 0;
+  color: #715f3c;
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+@media (max-width: 48rem) {
+  .analysis-grid {
+    grid-template-columns: 1fr;
+  }
+  .quarter-row {
+    grid-template-columns: 2rem 1fr;
+  }
+  .quarter-row small {
+    grid-column: 2;
+    text-align: left;
+  }
+}

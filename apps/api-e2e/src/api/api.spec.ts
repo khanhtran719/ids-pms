@@ -402,11 +402,31 @@ describe('Project task plan lifecycle', () => {
     expect(initialized.status).toBe(200);
     expect(initialized.data).toHaveLength(5);
     expect(initialized.data).toEqual([
-      expect.objectContaining({ step: 1, department: 'P.KTDA', status: 'todo' }),
-      expect.objectContaining({ step: 2, department: 'P.KTDA', status: 'todo' }),
-      expect.objectContaining({ step: 3, department: 'P.KTDA', status: 'todo' }),
-      expect.objectContaining({ step: 4, department: 'P.KDHT', status: 'todo' }),
-      expect.objectContaining({ step: 5, department: 'P.KTDA', status: 'todo' }),
+      expect.objectContaining({
+        step: 1,
+        department: 'P.KTDA',
+        status: 'todo',
+      }),
+      expect.objectContaining({
+        step: 2,
+        department: 'P.KTDA',
+        status: 'todo',
+      }),
+      expect.objectContaining({
+        step: 3,
+        department: 'P.KTDA',
+        status: 'todo',
+      }),
+      expect.objectContaining({
+        step: 4,
+        department: 'P.KDHT',
+        status: 'todo',
+      }),
+      expect.objectContaining({
+        step: 5,
+        department: 'P.KTDA',
+        status: 'todo',
+      }),
     ]);
 
     const initializedAgain = await axios.post(
@@ -600,12 +620,15 @@ describe('Carrier contract lifecycle', () => {
       { headers: lifecycleAdminAuthorization },
     );
     const memberList = await axios.get(
-      '/api/v1/carrier-contracts?carrier=Viettel&serviceType=teldata',
+      `/api/v1/carrier-contracts?projectId=${projectId}&carrier=Viettel&serviceType=teldata`,
       { headers: lifecycleMemberAuthorization },
     );
     expect(memberList.data).toMatchObject({
       meta: expect.objectContaining({ totalItems: 1 }),
-      overview: expect.objectContaining({ totalContracts: 1, teldataContracts: 1 }),
+      overview: expect.objectContaining({
+        totalContracts: 1,
+        teldataContracts: 1,
+      }),
       availableCarriers: ['Viettel'],
     });
 
@@ -618,9 +641,115 @@ describe('Carrier contract lifecycle', () => {
 
     const completed = await axios.patch(
       `/api/v1/carrier-contracts/${created.data.id as string}`,
-      { unitPrice: 50_000, paymentCycle: 'monthly', startDate: '2026-01-01', endDate: '2026-12-31' },
+      {
+        unitPrice: 50_000,
+        paymentCycle: 'monthly',
+        startDate: '2026-01-01',
+        endDate: '2026-12-31',
+      },
       { headers: lifecycleAdminAuthorization },
     );
     expect(completed.data.termsComplete).toBe(true);
+  });
+});
+
+describe('Revenue actual lifecycle', () => {
+  it('upserts, scopes and aggregates project quarters for a fiscal year', async () => {
+    const project = await axios.post(
+      '/api/v1/projects',
+      { code: 'REV-E2E', name: 'Revenue E2E' },
+      { headers: lifecycleAdminAuthorization },
+    );
+    const projectId = project.data.id as string;
+
+    const outsideScope = await axios.get('/api/v1/revenue?fiscalYear=2025', {
+      headers: lifecycleMemberAuthorization,
+    });
+    expect(outsideScope.data.meta.totalItems).toBe(0);
+    expect(outsideScope.data.data).toEqual([]);
+
+    await axios.put(
+      '/api/v1/revenue',
+      {
+        projectId,
+        fiscalYear: 2025,
+        quarter: 1,
+        revenue: 120_000_000,
+        cost: 80_000_000,
+      },
+      { headers: lifecycleAdminAuthorization },
+    );
+    await axios.put(
+      '/api/v1/revenue',
+      {
+        projectId,
+        fiscalYear: 2025,
+        quarter: 4,
+        revenue: 300_000_000,
+        cost: 120_000_000,
+      },
+      { headers: lifecycleAdminAuthorization },
+    );
+
+    await axios.post(
+      `/api/v1/projects/${projectId}/members`,
+      { userId: lifecycleMemberId, role: 'member' },
+      { headers: lifecycleAdminAuthorization },
+    );
+    const report = await axios.get(
+      '/api/v1/revenue?fiscalYear=2025&search=Revenue',
+      { headers: lifecycleMemberAuthorization },
+    );
+    expect(report.data).toMatchObject({
+      fiscalYear: 2025,
+      data: [
+        {
+          projectId,
+          revenueTotal: 420_000_000,
+          costTotal: 200_000_000,
+          grossProfit: 220_000_000,
+          quarters: [
+            { quarter: 1, revenue: 120_000_000 },
+            { quarter: 2, revenue: 0 },
+            { quarter: 3, revenue: 0 },
+            { quarter: 4, revenue: 300_000_000 },
+          ],
+        },
+      ],
+      overview: expect.objectContaining({
+        projectsWithRevenue: 1,
+        totalRevenue: 420_000_000,
+      }),
+      quarters: expect.arrayContaining([
+        expect.objectContaining({ quarter: 4, revenue: 300_000_000 }),
+      ]),
+    });
+
+    const memberWrite = await axios.put(
+      '/api/v1/revenue',
+      {
+        projectId,
+        fiscalYear: 2025,
+        quarter: 2,
+        revenue: 1,
+        cost: 0,
+      },
+      { headers: lifecycleMemberAuthorization, validateStatus: () => true },
+    );
+    expect(memberWrite.status).toBe(403);
+
+    const invalid = await axios.put(
+      '/api/v1/revenue',
+      {
+        projectId,
+        fiscalYear: 2025,
+        quarter: 5,
+        revenue: -1,
+        cost: 0,
+      },
+      { headers: lifecycleAdminAuthorization, validateStatus: () => true },
+    );
+    expect(invalid.status).toBe(400);
+    expect(invalid.data.code).toBe('VALIDATION_ERROR');
   });
 });

@@ -1,0 +1,72 @@
+<section class="revenue-table" aria-label="Doanh thu theo dự án">
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Dự án</th>
+          <th>Q1</th>
+          <th>Q2</th>
+          <th>Q3</th>
+          <th>Q4</th>
+          <th>Tổng doanh thu</th>
+          <th>Tổng chi phí</th>
+          <th>Lợi nhuận</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (project of report().data; track project.projectId) {
+          <tr>
+            <td>
+              <a [routerLink]="['/projects', project.projectId]"
+                ><strong>{{ project.projectCode }}</strong
+                ><span>{{ project.projectName }}</span></a
+              >
+            </td>
+            @for (quarter of project.quarters; track quarter.quarter) {
+              <td class="number-cell">
+                @if (canManage()) {
+                  <button
+                    class="quarter-button"
+                    type="button"
+                    (click)="quarterSelected.emit({ project, quarter })"
+                  >
+                    {{ quarter.revenue | currency: 'VND' : 'symbol' : '1.0-0' }}
+                  </button>
+                } @else {
+                  {{ quarter.revenue | currency: 'VND' : 'symbol' : '1.0-0' }}
+                }
+              </td>
+            }
+            <td class="number-cell total-cell">
+              {{ project.revenueTotal | currency: 'VND' : 'symbol' : '1.0-0' }}
+            </td>
+            <td class="number-cell muted-cell">
+              {{ project.costTotal | currency: 'VND' : 'symbol' : '1.0-0' }}
+            </td>
+            <td class="number-cell" [class.negative]="project.grossProfit < 0">
+              {{ project.grossProfit | currency: 'VND' : 'symbol' : '1.0-0' }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</section>
+<nav class="pagination" aria-label="Phân trang doanh thu">
+  <span>Trang {{ report().meta.page }} / {{ report().meta.totalPages }}</span>
+  <div>
+    <button
+      type="button"
+      (click)="previousRequested.emit()"
+      [disabled]="!report().meta.hasPreviousPage"
+    >
+      Trước</button
+    ><button
+      type="button"
+      (click)="nextRequested.emit()"
+      [disabled]="!report().meta.hasNextPage"
+    >
+      Sau
+    </button>
+  </div>
+</nav>

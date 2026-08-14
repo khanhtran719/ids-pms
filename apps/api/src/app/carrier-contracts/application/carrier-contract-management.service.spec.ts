@@ -67,6 +67,7 @@ describe('CarrierContractManagementService', () => {
       ['carrier-contracts.read', 'projects.read'],
       1,
       20,
+      'project-1',
       '  Viettel  ',
       'teldata',
     );
@@ -77,6 +78,7 @@ describe('CarrierContractManagementService', () => {
       page: 1,
       limit: 20,
       skip: 0,
+      projectId: 'project-1',
       carrier: 'Viettel',
       serviceType: 'teldata',
     });
@@ -112,16 +114,12 @@ describe('CarrierContractManagementService', () => {
     projects.findByIdWithAccess.mockResolvedValue(null);
 
     await expect(
-      service.create(
-        'user-1',
-        ['carrier-contracts.manage', 'projects.read'],
-        {
-          projectId: 'outside-project',
-          carrier: 'VNPT',
-          serviceType: 'ibs',
-          quantity: 5_000,
-        },
-      ),
+      service.create('user-1', ['carrier-contracts.manage', 'projects.read'], {
+        projectId: 'outside-project',
+        carrier: 'VNPT',
+        serviceType: 'ibs',
+        quantity: 5_000,
+      }),
     ).rejects.toBeInstanceOf(NotFoundException);
   });
 

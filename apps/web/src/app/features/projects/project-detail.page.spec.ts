@@ -6,6 +6,7 @@ import {
   provideRouter,
 } from '@angular/router';
 import type {
+  CarrierContractListResponse,
   ProjectDetail,
   ProjectMember,
   ProjectMemberCandidate,
@@ -13,6 +14,7 @@ import type {
 } from '@project-ql/api-contracts';
 import { of, Subject, throwError } from 'rxjs';
 import { AuthSessionStore } from '../../core/auth-session.store';
+import { CarrierContractsService } from '../../core/carrier-contracts.service';
 import { ProjectsService } from '../../core/projects.service';
 import { TasksService } from '../../core/tasks.service';
 import { ProjectDetailPage } from './project-detail.page';
@@ -85,13 +87,53 @@ describe('ProjectDetailPage', () => {
       hasPreviousPage: false,
     },
   };
+  const carrierResponse: CarrierContractListResponse = {
+    data: [
+      {
+        id: 'contract-1',
+        projectId: project.id,
+        projectCode: project.code,
+        projectName: project.name,
+        carrier: 'Viettel',
+        serviceType: 'teldata',
+        quantity: 210,
+        unit: 'apartment',
+        unitPrice: 50_000,
+        paymentCycle: 'monthly',
+        startDate: '2026-01-01T00:00:00.000Z',
+        endDate: '2026-12-31T00:00:00.000Z',
+        termsComplete: true,
+        penetrationRate: 0.5,
+        createdAt: '2026-01-01T00:00:00.000Z',
+        updatedAt: '2026-08-14T00:00:00.000Z',
+      },
+    ],
+    overview: {
+      totalContracts: 1,
+      teldataContracts: 1,
+      ibsContracts: 0,
+      contractsWithTerms: 1,
+      coveredProjects: 1,
+    },
+    availableCarriers: ['Viettel'],
+    meta: {
+      page: 1,
+      limit: 20,
+      totalItems: 1,
+      totalPages: 1,
+      hasNextPage: false,
+      hasPreviousPage: false,
+    },
+  };
 
   async function createFixture(
     overrides: Partial<Record<keyof ProjectsService, jest.Mock>> = {},
     canManage = true,
+    contractList: jest.Mock = jest.fn(() => of(carrierResponse)),
   ): Promise<{
     fixture: ComponentFixture<ProjectDetailPage>;
     projects: Record<keyof ProjectsService, jest.Mock>;
+    carrierContracts: { list: jest.Mock };
   }> {
     const projects = {
       list: jest.fn(),
@@ -104,6 +146,9 @@ describe('ProjectDetailPage', () => {
       removeMember: jest.fn(),
       ...overrides,
     } as Record<keyof ProjectsService, jest.Mock>;
+    const carrierContracts = {
+      list: contractList,
+    };
     await TestBed.configureTestingModule({
       imports: [ProjectDetailPage],
       providers: [
@@ -121,6 +166,7 @@ describe('ProjectDetailPage', () => {
           provide: TasksService,
           useValue: { list: jest.fn(() => of(taskResponse)) },
         },
+        { provide: CarrierContractsService, useValue: carrierContracts },
       ],
     }).compileComponents();
     TestBed.inject(AuthSessionStore).setSession({
@@ -133,13 +179,18 @@ describe('ProjectDetailPage', () => {
         status: 'active',
         roleCodes: [canManage ? 'admin' : 'member'],
         permissions: canManage
-          ? ['projects.read', 'projects.manage']
-          : ['projects.read'],
+          ? [
+              'projects.read',
+              'projects.manage',
+              'carrier-contracts.read',
+              'carrier-contracts.manage',
+            ]
+          : ['projects.read', 'carrier-contracts.read'],
       },
     });
     const fixture = TestBed.createComponent(ProjectDetailPage);
     fixture.detectChanges();
-    return { fixture, projects };
+    return { fixture, projects, carrierContracts };
   }
 
   it('loads project, members and progress together before rendering the workspace', async () => {
@@ -167,6 +218,10 @@ describe('ProjectDetailPage', () => {
         {
           provide: TasksService,
           useValue: { list: jest.fn(() => of(taskResponse)) },
+        },
+        {
+          provide: CarrierContractsService,
+          useValue: { list: jest.fn(() => of(carrierResponse)) },
         },
       ],
     }).compileComponents();
@@ -235,6 +290,44 @@ describe('ProjectDetailPage', () => {
       'Hồ sơ thiết kế phê duyệt',
     );
     expect(fixture.nativeElement.textContent).toContain('Hoàn thành');
+  });
+
+  it('shows project carrier contracts, penetration and a scoped management link', async () => {
+    const { fixture, carrierContracts } = await createFixture();
+
+    expect(carrierContracts.list).toHaveBeenCalledWith({
+      page: 1,
+      limit: 20,
+      projectId: 'project-1',
+    });
+    expect(fixture.nativeElement.textContent).toContain(
+      'Hợp đồng khai thác nhà mạng (1)',
+    );
+    expect(fixture.nativeElement.textContent).toContain('Viettel');
+    expect(fixture.nativeElement.textContent).toContain('50%');
+    expect(fixture.nativeElement.textContent).toContain('Đủ điều khoản');
+    expect(
+      fixture.nativeElement.querySelector(
+        'a[href="/carrier-contracts?projectId=project-1"]',
+      ),
+    ).not.toBeNull();
+  });
+
+  it('keeps project detail usable when carrier contracts cannot be loaded', async () => {
+    const contractList = jest
+      .fn()
+      .mockReturnValueOnce(throwError(() => new Error('contracts offline')))
+      .mockReturnValue(of(carrierResponse));
+    const { fixture } = await createFixture({}, true, contractList);
+
+    expect(fixture.nativeElement.textContent).toContain('IDS PMS');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Không thể tải hợp đồng của dự án',
+    );
+    fixture.nativeElement.querySelector('.contracts-state button').click();
+    fixture.detectChanges();
+    expect(fixture.nativeElement.textContent).toContain('Viettel');
+    expect(contractList).toHaveBeenCalledTimes(2);
   });
 
   it('renders a safe load error and retries both bounded requests', async () => {

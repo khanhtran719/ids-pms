@@ -18,6 +18,7 @@ export interface CarrierContractProjectAccess {
 export interface ListCarrierContractsQuery extends Pagination {
   actorId: string;
   canManageAll: boolean;
+  projectId?: string;
   carrier?: string;
   serviceType?: CarrierServiceType;
 }
@@ -75,7 +76,9 @@ export interface CarrierContractProjectDirectory {
   ): Promise<CarrierContractProjectAccess | null>;
 }
 
-export const CARRIER_CONTRACT_REPOSITORY = Symbol('CARRIER_CONTRACT_REPOSITORY');
+export const CARRIER_CONTRACT_REPOSITORY = Symbol(
+  'CARRIER_CONTRACT_REPOSITORY',
+);
 export const CARRIER_CONTRACT_PROJECT_DIRECTORY = Symbol(
   'CARRIER_CONTRACT_PROJECT_DIRECTORY',
 );

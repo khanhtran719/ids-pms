@@ -8,6 +8,7 @@ import {
 } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import type {
+  CarrierContractListResponse,
   ProjectDetail,
   ProjectMember,
   ProjectMemberCandidate,
@@ -18,8 +19,10 @@ import type {
 } from '@project-ql/api-contracts';
 import { catchError, finalize, forkJoin, map, of } from 'rxjs';
 import { AuthSessionStore } from '../../core/auth-session.store';
+import { CarrierContractsService } from '../../core/carrier-contracts.service';
 import { ProjectsService } from '../../core/projects.service';
 import { TasksService } from '../../core/tasks.service';
+import { ProjectCarrierContractsComponent } from './project-carrier-contracts.component';
 import { ProjectPortfolioSummaryComponent } from './project-portfolio-summary.component';
 
 type DetailState =
@@ -41,13 +44,19 @@ const OPERATIONAL_STATUS_LABELS: Record<ProjectOperationalStatus, string> = {
 
 @Component({
   selector: 'app-project-detail-page',
-  imports: [ProjectPortfolioSummaryComponent, ReactiveFormsModule, RouterLink],
+  imports: [
+    ProjectCarrierContractsComponent,
+    ProjectPortfolioSummaryComponent,
+    ReactiveFormsModule,
+    RouterLink,
+  ],
   templateUrl: './project-detail.page.html',
   styleUrl: './project-detail.page.scss',
 })
 export class ProjectDetailPage {
   private readonly projects = inject(ProjectsService);
   private readonly tasks = inject(TasksService);
+  private readonly contracts = inject(CarrierContractsService);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly projectId =
@@ -58,6 +67,10 @@ export class ProjectDetailPage {
   protected readonly memberPanelOpen = signal(false);
   protected readonly saving = signal(false);
   protected readonly operationError = signal<string | null>(null);
+  protected readonly carrierContracts =
+    signal<CarrierContractListResponse | null>(null);
+  protected readonly carrierContractsLoading = signal(false);
+  protected readonly carrierContractsError = signal(false);
   protected readonly candidates = signal<ProjectMemberCandidate[]>([]);
   protected readonly candidatesLoading = signal(false);
   protected readonly pendingRemoval = signal<string | null>(null);
@@ -111,6 +124,24 @@ export class ProjectDetailPage {
 
   constructor() {
     this.load();
+    if (this.auth.hasPermission('carrier-contracts.read')) {
+      this.loadCarrierContracts();
+    }
+  }
+
+  protected loadCarrierContracts(): void {
+    this.carrierContractsLoading.set(true);
+    this.carrierContractsError.set(false);
+    this.contracts
+      .list({ page: 1, limit: 20, projectId: this.projectId })
+      .pipe(
+        finalize(() => this.carrierContractsLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (response) => this.carrierContracts.set(response),
+        error: () => this.carrierContractsError.set(true),
+      });
   }
 
   protected load(): void {
@@ -118,12 +149,10 @@ export class ProjectDetailPage {
     forkJoin({
       project: this.projects.getById(this.projectId),
       members: this.projects.listMembers(this.projectId),
-      tasks: this.tasks
-        .list(1, 5, this.projectId)
-        .pipe(
-          map((response) => response.data),
-          catchError(() => of([] as ProjectTask[])),
-        ),
+      tasks: this.tasks.list(1, 5, this.projectId).pipe(
+        map((response) => response.data),
+        catchError(() => of([] as ProjectTask[])),
+      ),
     })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({

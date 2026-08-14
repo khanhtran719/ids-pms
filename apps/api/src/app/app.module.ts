@@ -15,6 +15,7 @@ import { ProjectsModule } from './projects/projects.module';
 import { TasksModule } from './tasks/tasks.module';
 import { DataQualityModule } from './data-quality/data-quality.module';
 import { CarrierContractsModule } from './carrier-contracts/carrier-contracts.module';
+import { RevenueModule } from './revenue/revenue.module';
 
 @Module({
   imports: [
@@ -52,6 +53,7 @@ import { CarrierContractsModule } from './carrier-contracts/carrier-contracts.mo
     TasksModule,
     DataQualityModule,
     CarrierContractsModule,
+    RevenueModule,
   ],
   providers: [
     {

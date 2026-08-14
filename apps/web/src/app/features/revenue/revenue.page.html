@@ -1,0 +1,115 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Hiệu quả khai thác</p>
+    <h1>Doanh thu</h1>
+    <p>Số thực tế theo dự án và quý, tách biệt với điều khoản hợp đồng.</p>
+  </div>
+  @if (auth.hasPermission('revenue.manage')) {
+  <button class="add-button" type="button" (click)="openCreate()">
+    + Ghi nhận số liệu
+  </button>
+  }
+</header>
+
+@if (state(); as current) { @if (current.kind === 'ready') {
+<section class="metric-grid" aria-label="Tóm tắt doanh thu năm tài chính">
+  <article>
+    <span>Doanh thu FY{{ current.value.fiscalYear }}</span>
+    <strong
+      >{{ current.value.overview.totalRevenue | currency: 'VND' : 'symbol' :
+      '1.0-0' }}</strong
+    >
+    <small
+      >{{ current.value.overview.projectsWithRevenue }} dự án có số liệu</small
+    >
+  </article>
+  <article>
+    <span>Chi phí năm</span>
+    <strong
+      >{{ current.value.overview.totalCost | currency: 'VND' : 'symbol' :
+      '1.0-0' }}</strong
+    >
+    <small>chi phí thực tế đã ghi nhận</small>
+  </article>
+  <article [class.metric--negative]="current.value.overview.grossProfit < 0">
+    <span>Lợi nhuận gộp</span>
+    <strong
+      >{{ current.value.overview.grossProfit | currency: 'VND' : 'symbol' :
+      '1.0-0' }}</strong
+    >
+    <small
+      >biên {{ current.value.overview.grossMargin === undefined ? '—' :
+      (current.value.overview.grossMargin | percent: '1.1-1') }}</small
+    >
+  </article>
+  <article class="metric--warning">
+    <span>Dự án chưa có doanh thu</span>
+    <strong
+      >{{ current.value.overview.projectsWithoutRevenue }}/{{
+      current.value.overview.totalProjects }}</strong
+    >
+    <small>trong phạm vi bạn được truy cập</small>
+  </article>
+</section>
+
+<app-revenue-quarter-analysis
+  [fiscalYear]="current.value.fiscalYear"
+  [quarters]="current.value.quarters"
+/>
+} }
+
+<section class="toolbar" aria-label="Bộ lọc doanh thu">
+  <div class="field field--year">
+    <label for="fiscalYear">Năm tài chính</label>
+    <input
+      id="fiscalYear"
+      type="number"
+      min="2000"
+      max="2100"
+      [formControl]="fiscalYearControl"
+    />
+  </div>
+  <div class="field field--search">
+    <label for="revenueSearch">Tìm dự án</label>
+    <input
+      id="revenueSearch"
+      type="search"
+      [formControl]="searchControl"
+      placeholder="Mã hoặc tên dự án"
+    />
+  </div>
+</section>
+
+@if (editor(); as editorValue) {
+<app-revenue-actual-editor
+  [fiscalYear]="fiscalYearControl.value"
+  [initialValue]="editorValue"
+  [projects]="projectChoices()"
+  [saving]="saving()"
+  [error]="operationError()"
+  (submitted)="save($event)"
+  (closed)="closeEditor()"
+/>
+} @switch (state().kind) { @case ('loading') {
+<div class="state-panel" aria-busy="true">Đang tổng hợp doanh thu…</div>
+} @case ('error') {
+<div class="state-panel state-panel--error" role="alert">
+  <span>Không thể tải báo cáo doanh thu.</span>
+  <button type="button" (click)="load()">Thử lại</button>
+</div>
+} @case ('ready') { @if (state(); as current) { @if (current.kind === 'ready') {
+@if (current.value.data.length === 0) {
+<section class="empty-state" role="status">
+  <span aria-hidden="true">₫</span>
+  <h2>Chưa có số liệu doanh thu</h2>
+  <p>Hãy ghi nhận doanh thu và chi phí theo từng quý của dự án.</p>
+</section>
+} @else {
+<app-revenue-project-table
+  [report]="current.value"
+  [canManage]="auth.hasPermission('revenue.manage')"
+  (quarterSelected)="openQuarter($event.project, $event.quarter)"
+  (previousRequested)="previous()"
+  (nextRequested)="next()"
+/>
+} } } } }

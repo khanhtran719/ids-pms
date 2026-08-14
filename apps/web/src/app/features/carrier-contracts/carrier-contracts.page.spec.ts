@@ -1,5 +1,9 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import {
+  ActivatedRoute,
+  convertToParamMap,
+  provideRouter,
+} from '@angular/router';
 import type {
   AuthUser,
   CarrierContractListResponse,
@@ -53,7 +57,7 @@ describe('CarrierContractsPage', () => {
     update: jest.Mock;
   };
 
-  async function setup(canManage = true) {
+  async function setup(canManage = true, projectId = '') {
     contracts = {
       list: jest.fn().mockReturnValue(of(RESPONSE)),
       create: jest.fn().mockReturnValue(of(RESPONSE.data[0])),
@@ -63,22 +67,37 @@ describe('CarrierContractsPage', () => {
       imports: [CarrierContractsPage],
       providers: [
         provideRouter([]),
+        {
+          provide: ActivatedRoute,
+          useValue: {
+            snapshot: { queryParamMap: convertToParamMap({ projectId }) },
+          },
+        },
         { provide: CarrierContractsService, useValue: contracts },
         {
           provide: ProjectsService,
-          useValue: { list: jest.fn().mockReturnValue(of({ data: [], meta: {} })) },
+          useValue: {
+            list: jest.fn().mockReturnValue(of({ data: [], meta: {} })),
+          },
         },
       ],
     }).compileComponents();
     const user = {
-      id: 'user-1', email: 'manager@example.com', displayName: 'Manager',
-      status: 'active', roleCodes: ['manager'], permissions: [
-        'projects.read', 'carrier-contracts.read',
+      id: 'user-1',
+      email: 'manager@example.com',
+      displayName: 'Manager',
+      status: 'active',
+      roleCodes: ['manager'],
+      permissions: [
+        'projects.read',
+        'carrier-contracts.read',
         ...(canManage ? (['carrier-contracts.manage'] as const) : []),
       ],
     } satisfies AuthUser;
     TestBed.inject(AuthSessionStore).setSession({
-      accessToken: 'token', expiresInSeconds: 900, user,
+      accessToken: 'token',
+      expiresInSeconds: 900,
+      user,
     });
     fixture = TestBed.createComponent(CarrierContractsPage);
     fixture.detectChanges();
@@ -112,6 +131,16 @@ describe('CarrierContractsPage', () => {
       limit: 20,
       carrier: 'Viettel',
       serviceType: 'teldata',
+    });
+  });
+
+  it('keeps the project scope from the detail-page link', async () => {
+    await setup(true, 'project-1');
+
+    expect(contracts.list).toHaveBeenCalledWith({
+      page: 1,
+      limit: 20,
+      projectId: 'project-1',
     });
   });
 
@@ -154,13 +183,33 @@ describe('CarrierContractsPage', () => {
       unitLabel(value: object): string;
     };
     page.openCreate();
-    page.form.setValue({ projectId: 'project-1', carrier: ' VNPT ', serviceType: 'ibs', quantity: 2000, unitPrice: null, paymentCycle: '', startDate: '2026-12-31', endDate: '2026-01-01' });
+    page.form.setValue({
+      projectId: 'project-1',
+      carrier: ' VNPT ',
+      serviceType: 'ibs',
+      quantity: 2000,
+      unitPrice: null,
+      paymentCycle: '',
+      startDate: '2026-12-31',
+      endDate: '2026-01-01',
+    });
     page.save();
     expect(contracts.create).not.toHaveBeenCalled();
 
-    page.form.setValue({ projectId: 'project-1', carrier: ' VNPT ', serviceType: 'ibs', quantity: 2000, unitPrice: 50000, paymentCycle: 'annual', startDate: '2026-01-01', endDate: '2026-12-31' });
+    page.form.setValue({
+      projectId: 'project-1',
+      carrier: ' VNPT ',
+      serviceType: 'ibs',
+      quantity: 2000,
+      unitPrice: 50000,
+      paymentCycle: 'annual',
+      startDate: '2026-01-01',
+      endDate: '2026-12-31',
+    });
     page.save();
-    expect(contracts.create).toHaveBeenCalledWith(expect.objectContaining({ carrier: 'VNPT', serviceType: 'ibs' }));
+    expect(contracts.create).toHaveBeenCalledWith(
+      expect.objectContaining({ carrier: 'VNPT', serviceType: 'ibs' }),
+    );
     expect(page.editor()).toBeNull();
 
     page.page.set(1);
@@ -183,12 +232,17 @@ describe('CarrierContractsPage', () => {
     };
     page.openEdit(RESPONSE.data[0]);
     page.save();
-    expect(contracts.update).toHaveBeenCalledWith('contract-1', expect.objectContaining({ carrier: 'Viettel' }));
+    expect(contracts.update).toHaveBeenCalledWith(
+      'contract-1',
+      expect.objectContaining({ carrier: 'Viettel' }),
+    );
 
     contracts.update.mockReturnValue(throwError(() => new Error('failed')));
     page.openEdit(RESPONSE.data[0]);
     page.save();
     fixture.detectChanges();
-    expect(fixture.nativeElement.textContent).toContain('Không thể lưu hợp đồng');
+    expect(fixture.nativeElement.textContent).toContain(
+      'Không thể lưu hợp đồng',
+    );
   });
 });

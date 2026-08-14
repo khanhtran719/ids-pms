@@ -52,6 +52,8 @@ export async function seedTestAuthData(uri: string): Promise<void> {
           'tasks.manage',
           'carrier-contracts.read',
           'carrier-contracts.manage',
+          'revenue.read',
+          'revenue.manage',
         ],
       },
       {
@@ -65,12 +67,19 @@ export async function seedTestAuthData(uri: string): Promise<void> {
           'tasks.manage',
           'carrier-contracts.read',
           'carrier-contracts.manage',
+          'revenue.read',
+          'revenue.manage',
         ],
       },
       {
         code: 'member',
         name: 'Member',
-        permissions: ['projects.read', 'tasks.read', 'carrier-contracts.read'],
+        permissions: [
+          'projects.read',
+          'tasks.read',
+          'carrier-contracts.read',
+          'revenue.read',
+        ],
       },
     ]);
     const hashOptions = {

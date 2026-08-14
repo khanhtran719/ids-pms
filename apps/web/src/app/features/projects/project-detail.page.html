@@ -12,7 +12,9 @@
   <div>
     <div class="title-meta">
       <span class="code">{{ current.project.code }}</span>
-      <span class="status" [attr.data-status]="current.project.operationalStatus || 'not_started'"
+      <span
+        class="status"
+        [attr.data-status]="current.project.operationalStatus || 'not_started'"
         >{{ operationalStatusLabel(current.project.operationalStatus) }}</span
       >
     </div>
@@ -85,15 +87,30 @@
     </div>
     <div class="field">
       <label for="editUnitCount">Số căn hộ / đơn vị</label>
-      <input id="editUnitCount" type="number" min="0" formControlName="unitCount" />
+      <input
+        id="editUnitCount"
+        type="number"
+        min="0"
+        formControlName="unitCount"
+      />
     </div>
     <div class="field">
       <label for="editFloorArea">Diện tích sàn (m²)</label>
-      <input id="editFloorArea" type="number" min="0" formControlName="floorAreaM2" />
+      <input
+        id="editFloorArea"
+        type="number"
+        min="0"
+        formControlName="floorAreaM2"
+      />
     </div>
     <div class="field">
       <label for="editLandArea">Diện tích đất (ha)</label>
-      <input id="editLandArea" type="number" min="0" formControlName="landAreaHa" />
+      <input
+        id="editLandArea"
+        type="number"
+        min="0"
+        formControlName="landAreaHa"
+      />
     </div>
     <div class="field">
       <label for="editCapex">Tổng CPĐT (VNĐ)</label>
@@ -101,14 +118,27 @@
     </div>
     <div class="field field--wide">
       <label for="editScale">Mô tả quy mô</label>
-      <textarea id="editScale" formControlName="scaleDescription" rows="3"></textarea>
+      <textarea
+        id="editScale"
+        formControlName="scaleDescription"
+        rows="3"
+      ></textarea>
     </div>
     <fieldset class="source-fields field--wide">
       <legend>Nguồn dữ liệu</legend>
-      <label><input type="checkbox" formControlName="sourceTeldata" /> Teldata</label>
+      <label
+        ><input type="checkbox" formControlName="sourceTeldata" />
+        Teldata</label
+      >
       <label><input type="checkbox" formControlName="sourceIbs" /> IBS</label>
-      <label><input type="checkbox" formControlName="sourceRevenue" /> DoanhThu</label>
-      <label><input type="checkbox" formControlName="dataConflict" /> Có dữ liệu xung đột</label>
+      <label
+        ><input type="checkbox" formControlName="sourceRevenue" />
+        DoanhThu</label
+      >
+      <label
+        ><input type="checkbox" formControlName="dataConflict" /> Có dữ liệu
+        xung đột</label
+      >
     </fieldset>
     <div class="field">
       <label for="editStart">Ngày bắt đầu</label
@@ -133,6 +163,16 @@
   [project]="current.project"
   [tasks]="current.tasks"
 />
+
+@if (auth.hasPermission('carrier-contracts.read')) {
+<app-project-carrier-contracts
+  [projectId]="current.project.id"
+  [response]="carrierContracts()"
+  [loading]="carrierContractsLoading()"
+  [error]="carrierContractsError()"
+  (retry)="loadCarrierContracts()"
+/>
+}
 
 <section class="members-card" aria-labelledby="members-title">
   <div class="card-heading">
