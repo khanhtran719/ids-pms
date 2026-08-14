@@ -17,6 +17,7 @@ import type {
 import { of, Subject, throwError } from 'rxjs';
 import { AuthSessionStore } from '../../core/auth-session.store';
 import { CarrierContractsService } from '../../core/carrier-contracts.service';
+import { ProjectActivitiesService } from '../../core/project-activities.service';
 import { ProjectsService } from '../../core/projects.service';
 import { RevenueService } from '../../core/revenue.service';
 import { TasksService } from '../../core/tasks.service';
@@ -135,7 +136,12 @@ describe('ProjectDetailPage', () => {
         projectCode: project.code,
         projectName: project.name,
         quarters: [
-          { quarter: 1, revenue: 120_000_000, cost: 80_000_000, grossProfit: 40_000_000 },
+          {
+            quarter: 1,
+            revenue: 120_000_000,
+            cost: 80_000_000,
+            grossProfit: 40_000_000,
+          },
           { quarter: 2, revenue: 0, cost: 0, grossProfit: 0 },
           { quarter: 3, revenue: 0, cost: 0, grossProfit: 0 },
           { quarter: 4, revenue: 0, cost: 0, grossProfit: 0 },
@@ -157,7 +163,12 @@ describe('ProjectDetailPage', () => {
       projectsWithoutRevenue: 0,
     },
     quarters: [
-      { quarter: 1, revenue: 120_000_000, cost: 80_000_000, grossProfit: 40_000_000 },
+      {
+        quarter: 1,
+        revenue: 120_000_000,
+        cost: 80_000_000,
+        grossProfit: 40_000_000,
+      },
       { quarter: 2, revenue: 0, cost: 0, grossProfit: 0 },
       { quarter: 3, revenue: 0, cost: 0, grossProfit: 0 },
       { quarter: 4, revenue: 0, cost: 0, grossProfit: 0 },
@@ -231,6 +242,25 @@ describe('ProjectDetailPage', () => {
           useValue: { list: jest.fn(() => of(taskResponse)) },
         },
         { provide: CarrierContractsService, useValue: carrierContracts },
+        {
+          provide: ProjectActivitiesService,
+          useValue: {
+            list: jest.fn(() =>
+              of({
+                data: [],
+                meta: {
+                  page: 1,
+                  limit: 20,
+                  totalItems: 0,
+                  totalPages: 0,
+                  hasNextPage: false,
+                  hasPreviousPage: false,
+                },
+              }),
+            ),
+            createComment: jest.fn(),
+          },
+        },
         { provide: RevenueService, useValue: revenue },
       ],
     }).compileComponents();
@@ -291,8 +321,30 @@ describe('ProjectDetailPage', () => {
           useValue: { list: jest.fn(() => of(carrierResponse)) },
         },
         {
+          provide: ProjectActivitiesService,
+          useValue: {
+            list: jest.fn(() =>
+              of({
+                data: [],
+                meta: {
+                  page: 1,
+                  limit: 20,
+                  totalItems: 0,
+                  totalPages: 0,
+                  hasNextPage: false,
+                  hasPreviousPage: false,
+                },
+              }),
+            ),
+            createComment: jest.fn(),
+          },
+        },
+        {
           provide: RevenueService,
-          useValue: { list: jest.fn(() => of(revenueResponse)), upsert: jest.fn() },
+          useValue: {
+            list: jest.fn(() => of(revenueResponse)),
+            upsert: jest.fn(),
+          },
         },
       ],
     }).compileComponents();
@@ -351,6 +403,7 @@ describe('ProjectDetailPage', () => {
     expect(fixture.nativeElement.textContent).toContain('4,20 tỷ');
     expect(fixture.nativeElement.textContent).toContain('dữ liệu xung đột');
     expect(fixture.nativeElement.textContent).toContain('Teldata');
+    expect(fixture.nativeElement.textContent).toContain('Hoạt động dự án');
   });
 
   it('shows the five-step project progress without per-task requests', async () => {
@@ -408,7 +461,12 @@ describe('ProjectDetailPage', () => {
           ...revenueResponse.data[0],
           quarters: revenueResponse.data[0].quarters.map((quarter) =>
             quarter.quarter === 1
-              ? { quarter: 1, revenue: 150_000_000, cost: 90_000_000, grossProfit: 60_000_000 }
+              ? {
+                  quarter: 1,
+                  revenue: 150_000_000,
+                  cost: 90_000_000,
+                  grossProfit: 60_000_000,
+                }
               : quarter,
           ),
           revenueTotal: 150_000_000,

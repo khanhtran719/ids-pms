@@ -68,6 +68,14 @@ Các feature lớn lazy-load theo route. `core/` chỉ dành cho singleton toàn
 4. Người không có `projects.manage` bị scope bằng `project_memberships` trong pipeline. Write endpoint vẫn yêu cầu `tasks.manage` và quyền đọc project nền.
 5. Application service merge trạng thái hiện tại với patch rồi kiểm tra date range và invariant `done <=> actualEndDate` trước một atomic update.
 
+## Luồng hoạt động và bình luận dự án
+
+1. Timeline v1 là component riêng trong project detail; component gọi data service và không đặt HTTP/business logic vào page cha.
+2. List aggregation xuất phát từ đúng một project, áp dụng membership scope rồi `$lookup` `project_activities`; `$facet` bên trong lookup trả page mới nhất và total trong cùng round trip.
+3. Người có `projects.manage` bỏ qua membership lookup; người còn lại phải có membership. Project không tồn tại và ngoài scope dùng cùng một not-found contract.
+4. Khi tạo comment, repository giải quyết project scope và author context rồi lưu snapshot tên/email với nội dung bất biến. Timeline đọc không join `users` cho từng hoạt động nên không phát sinh N+1.
+5. Angular prepend comment vừa tạo và tải thêm page cũ theo yêu cầu; không reload các nguồn project, task, hợp đồng, doanh thu hoặc membership.
+
 ## Luồng chất lượng dữ liệu
 
 1. Angular debounce nội dung tìm kiếm 300 ms; mỗi query mới đi qua `switchMap` để hủy request cũ không còn giá trị.

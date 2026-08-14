@@ -26,6 +26,7 @@ import { ProjectsService } from '../../core/projects.service';
 import { RevenueService } from '../../core/revenue.service';
 import { TasksService } from '../../core/tasks.service';
 import { ProjectCarrierContractsComponent } from './project-carrier-contracts.component';
+import { ProjectActivityComponent } from './project-activity.component';
 import { ProjectPortfolioSummaryComponent } from './project-portfolio-summary.component';
 import { ProjectRevenueComponent } from './project-revenue.component';
 import {
@@ -53,6 +54,7 @@ const OPERATIONAL_STATUS_LABELS: Record<ProjectOperationalStatus, string> = {
 @Component({
   selector: 'app-project-detail-page',
   imports: [
+    ProjectActivityComponent,
     ProjectCarrierContractsComponent,
     ProjectPortfolioSummaryComponent,
     ProjectRevenueComponent,

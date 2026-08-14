@@ -172,9 +172,7 @@
   [error]="carrierContractsError()"
   (retry)="loadCarrierContracts()"
 />
-}
-
-@if (auth.hasPermission('revenue.read')) {
+} @if (auth.hasPermission('revenue.read')) {
 <app-project-revenue
   [projectId]="current.project.id"
   [fiscalYear]="revenueFiscalYear()"
@@ -196,8 +194,9 @@
   (submitted)="saveRevenue($event)"
   (closed)="revenueEditor.set(null)"
 />
-}
-}
+} }
+
+<app-project-activity [projectId]="current.project.id" />
 
 <section class="members-card" aria-labelledby="members-title">
   <div class="card-heading">

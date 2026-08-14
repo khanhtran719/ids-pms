@@ -226,6 +226,30 @@ export interface UpsertProjectMemberRequest {
   role: ProjectMembershipRole;
 }
 
+export type ProjectActivityType = 'comment';
+
+export interface ProjectActivity {
+  id: string;
+  projectId: string;
+  type: ProjectActivityType;
+  content: string;
+  authorId: string;
+  authorDisplayName: string;
+  authorEmail: string;
+  createdAt: string;
+}
+
+export type ProjectActivityListResponse = PaginatedResponse<ProjectActivity>;
+
+export interface ListProjectActivitiesRequest {
+  page?: number;
+  limit?: number;
+}
+
+export interface CreateProjectCommentRequest {
+  content: string;
+}
+
 export type TaskStatus = 'todo' | 'in_progress' | 'done';
 
 export interface ProjectTask {

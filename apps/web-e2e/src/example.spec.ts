@@ -104,6 +104,18 @@ test('logs an administrator in and exposes authorized navigation', async ({
   await expect(page.getByLabel('Vai trò của E2E Administrator')).toHaveValue(
     'owner',
   );
+  const activity = page.locator('app-project-activity');
+  await expect(
+    activity.getByRole('heading', { name: 'Hoạt động dự án' }),
+  ).toBeVisible();
+  await activity
+    .getByLabel('Bình luận nội bộ')
+    .fill('Đã xác nhận mặt bằng từ luồng Web E2E.');
+  await activity.getByRole('button', { name: 'Đăng bình luận' }).click();
+  await expect(
+    activity.getByText('Đã xác nhận mặt bằng từ luồng Web E2E.'),
+  ).toBeVisible();
+  await expect(activity.getByText('E2E Administrator')).toBeVisible();
   await expect(
     page.getByRole('heading', { name: 'Doanh thu theo quý' }),
   ).toBeVisible();

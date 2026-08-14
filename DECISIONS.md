@@ -154,6 +154,15 @@ Tài liệu này ghi lại các quyết định dài hạn. Không dùng nó tha
 - Lý do: giữ snapshot màn hình trong một round trip, lookup chỉ chạy một lần thay vì theo từng project, tái sử dụng collection nguồn và thực thi permission tại backend.
 - Hệ quả và trade-off: KPI project có membership scope còn CRM hiện là scope toàn cục theo ADR-017 nên UI phải ghi nhận đây là hai phạm vi khác nhau. Aggregation đọc thêm collection; cần đo `explain` và cân nhắc cache/materialized reporting khi dữ liệu thật đủ lớn.
 
+## ADR-019 — Hoạt động dự án v1 là bình luận nội bộ bất biến
+
+- Trạng thái: Accepted, temporary
+- Ngày: 2026-08-14
+- Bối cảnh: khách cho phép tiếp tục bám UI mockup nhưng chưa chốt workflow cộng tác, chỉnh sửa/xóa, mention, file đính kèm hoặc notification. Trang chi tiết dự án vẫn cần một nơi ghi nhận cập nhật vận hành có tác giả và thời gian rõ ràng.
+- Quyết định: tạo collection `project_activities` độc lập; v1 chỉ có type `comment` và không có API sửa/xóa. Người có `projects.read` cùng quyền truy cập project được đọc/đăng; `projects.manage` có scope toàn bộ. Mỗi bản ghi snapshot `authorId`, tên và email tại thời điểm tạo. List xuất phát từ project, kiểm tra membership rồi lookup timeline đã sort/phân trang trong một aggregation.
+- Lý do: cung cấp nhật ký cộng tác tối thiểu nhưng không khóa vào workflow chưa chốt; dữ liệu bất biến giữ ngữ cảnh audit, author snapshot loại bỏ join user trên từng dòng và truy vấn theo project tránh N+1.
+- Hệ quả và trade-off: tên/email cũ không đổi khi hồ sơ user thay đổi; chưa phải audit history tự động của project/task và không dùng lại cho activity log của CRM. Chỉnh sửa/xóa, moderation, mention, notification, file và retention policy phải được khách xác nhận trước khi mở rộng contract.
+
 ## Mẫu ADR mới
 
 ```text

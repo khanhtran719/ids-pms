@@ -19,6 +19,7 @@ import { RevenueModule } from './revenue/revenue.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { PaybackModule } from './payback/payback.module';
 import { OpportunitiesModule } from './opportunities/opportunities.module';
+import { ProjectActivitiesModule } from './project-activities/project-activities.module';
 
 @Module({
   imports: [
@@ -60,6 +61,7 @@ import { OpportunitiesModule } from './opportunities/opportunities.module';
     DashboardModule,
     PaybackModule,
     OpportunitiesModule,
+    ProjectActivitiesModule,
   ],
   providers: [
     {

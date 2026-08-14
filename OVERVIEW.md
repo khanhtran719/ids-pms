@@ -14,9 +14,11 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 - Angular có đăng nhập, khôi phục phiên, app shell, dashboard nghiệp vụ, hồ sơ, trang không có quyền và quản lý người dùng.
 - Access token chỉ giữ trong memory; refresh token dùng cookie HttpOnly và được xoay vòng phía server.
 - NestJS có `login`, `refresh`, `logout`, `me`, danh sách và tạo người dùng; RBAC kiểm tra permission tại backend.
-- Angular có danh mục dự án bám mockup IDS: tìm theo mã/tên/chủ đầu tư, lọc trạng thái vận hành/chất lượng dữ liệu, phân trang và trang chi tiết gồm profile, KPI tổng hợp, hợp đồng nhà mạng, tiến độ 5 bước và thành viên.
+- Angular có danh mục dự án bám mockup IDS: tìm theo mã/tên/chủ đầu tư, lọc trạng thái vận hành/chất lượng dữ liệu, phân trang và trang chi tiết gồm profile, KPI tổng hợp, hợp đồng nhà mạng, tiến độ 5 bước, hoạt động nội bộ và thành viên.
 - NestJS có project profile IDS, bộ lọc portfolio, create/read/update project và CRUD membership; creator trở thành owner trong transaction và hệ thống bảo vệ owner cuối cùng.
 - Người có `projects.manage` truy cập toàn bộ dự án; người còn lại chỉ thấy dự án mà mình là thành viên.
+- Angular có timeline hoạt động trong chi tiết dự án, hỗ trợ đăng bình luận nội bộ, tải thêm theo trang và cập nhật tức thời mà không reload toàn workspace.
+- NestJS lưu bình luận bất biến trong `project_activities`; list kiểm tra project scope và phân trang trong một aggregation, còn author name/email được snapshot khi ghi để tránh N+1 khi đọc.
 - Angular có trang Tiến độ thi công bám mockup IDS: KPI, lọc trạng thái, nhóm 5 bước theo dự án, khởi tạo kế hoạch và cập nhật ngày/trạng thái.
 - NestJS có task list theo project scope, khởi tạo 5 bước idempotent và ràng buộc task hoàn thành phải có ngày kết thúc thực tế.
 - Task list join project/membership và tính overview bằng một MongoDB aggregation `$facet`, không query N+1.
@@ -40,7 +42,7 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 - Contract envelope chung nằm trong `libs/api-contracts`; Nx tags kiểm soát hướng phụ thuộc web/API/shared.
 - Unit test, API e2e và Chromium e2e đã được thiết lập.
 
-Project hiện giữ các số tổng hợp tùy chọn như số hợp đồng, doanh thu, chi phí và CPĐT để dựng portfolio theo mockup. Module nguồn hợp đồng nhà mạng, doanh thu/chi phí, hoàn vốn read-only và CRM cơ hội đã có lát cắt v1; các module công nợ, bình luận, tài liệu và báo cáo nâng cao chưa được triển khai. Phạm vi quan sát từ mockup và các điểm chưa chốt được ghi tại `docs/mockup-functional-scope.md`.
+Project hiện giữ các số tổng hợp tùy chọn như số hợp đồng, doanh thu, chi phí và CPĐT để dựng portfolio theo mockup. Module nguồn hợp đồng nhà mạng, doanh thu/chi phí, hoàn vốn read-only, CRM cơ hội và bình luận nội bộ theo dự án đã có lát cắt v1; các module công nợ, tài liệu, thông báo và báo cáo nâng cao chưa được triển khai. Phạm vi quan sát từ mockup và các điểm chưa chốt được ghi tại `docs/mockup-functional-scope.md`.
 
 ## Kiến trúc
 
@@ -98,7 +100,8 @@ Thứ tự phát triển được đề xuất, chưa đồng nghĩa với yêu 
 7. Dashboard nghiệp vụ — đã triển khai v1 từ các nguồn hiện có; công thức và thời điểm chốt số vẫn chờ khách xác nhận.
 8. Hoàn vốn — đã triển khai báo cáo read-only v1 từ CAPEX và doanh thu lũy kế; công thức dòng tiền chính thức vẫn chờ xác nhận.
 9. Cơ hội kinh doanh — đã triển khai hồ sơ/pipeline v1; chuyển thành project, xác suất và lịch sử hoạt động chờ xác nhận.
-10. Công nợ, comment/activity/notification sau khi chốt workflow và nguồn dữ liệu.
+10. Bình luận/hoạt động nội bộ theo dự án — đã triển khai v1; chỉnh sửa/xóa, mention, file và notification chờ khách xác nhận.
+11. Công nợ, tài liệu và notification sau khi chốt workflow và nguồn dữ liệu.
 
 ## Điểm truy cập local
 

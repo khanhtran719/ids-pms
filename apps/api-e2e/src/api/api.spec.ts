@@ -382,6 +382,75 @@ describe('Projects and memberships lifecycle', () => {
   });
 });
 
+describe('Project activity lifecycle', () => {
+  it('scopes project comments, snapshots the author, and validates content', async () => {
+    const project = await axios.post(
+      '/api/v1/projects',
+      { code: 'ACT-E2E', name: 'Project Activity E2E' },
+      { headers: lifecycleAdminAuthorization },
+    );
+    const projectId = project.data.id as string;
+
+    const outsideScope = await axios.get(
+      `/api/v1/projects/${projectId}/activities`,
+      {
+        headers: lifecycleMemberAuthorization,
+        validateStatus: () => true,
+      },
+    );
+    expect(outsideScope.status).toBe(404);
+    expect(outsideScope.data.code).toBe('PROJECT_ACTIVITY_NOT_FOUND');
+
+    await axios.post(
+      `/api/v1/projects/${projectId}/members`,
+      { userId: lifecycleMemberId, role: 'member' },
+      { headers: lifecycleAdminAuthorization },
+    );
+    const created = await axios.post(
+      `/api/v1/projects/${projectId}/activities/comments`,
+      { content: '  Đã xác nhận mặt bằng thi công.  ' },
+      { headers: lifecycleMemberAuthorization },
+    );
+    expect(created.status).toBe(201);
+    expect(created.data).toMatchObject({
+      projectId,
+      type: 'comment',
+      content: 'Đã xác nhận mặt bằng thi công.',
+      authorId: lifecycleMemberId,
+      authorDisplayName: 'E2E Member',
+      authorEmail: TEST_MEMBER_EMAIL,
+      createdAt: expect.any(String),
+    });
+
+    const timeline = await axios.get(
+      `/api/v1/projects/${projectId}/activities?page=1&limit=20`,
+      { headers: lifecycleMemberAuthorization },
+    );
+    expect(timeline.data).toEqual({
+      data: [expect.objectContaining({ id: created.data.id })],
+      meta: {
+        page: 1,
+        limit: 20,
+        totalItems: 1,
+        totalPages: 1,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      },
+    });
+
+    const invalid = await axios.post(
+      `/api/v1/projects/${projectId}/activities/comments`,
+      { content: '   ' },
+      {
+        headers: lifecycleMemberAuthorization,
+        validateStatus: () => true,
+      },
+    );
+    expect(invalid.status).toBe(400);
+    expect(invalid.data.code).toBe('VALIDATION_ERROR');
+  });
+});
+
 describe('Project task plan lifecycle', () => {
   it('initializes five steps, scopes reads, and requires actual completion dates', async () => {
     const adminAuthorization = lifecycleAdminAuthorization;

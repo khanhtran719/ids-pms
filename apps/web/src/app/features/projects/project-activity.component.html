@@ -1,0 +1,101 @@
+<section class="activity-card" aria-labelledby="project-activity-title">
+  <div class="card-heading">
+    <div>
+      <p class="eyebrow">Internal timeline</p>
+      <h2 id="project-activity-title">Hoạt động dự án</h2>
+    </div>
+    @if (response(); as current) {
+      <span class="activity-count"
+        >{{ current.meta.totalItems }} hoạt động</span
+      >
+    }
+  </div>
+
+  <form
+    class="comment-composer"
+    [formGroup]="commentForm"
+    (ngSubmit)="submit()"
+  >
+    <label for="projectComment">Bình luận nội bộ</label>
+    <textarea
+      id="projectComment"
+      rows="3"
+      maxlength="2000"
+      formControlName="comment"
+      placeholder="Ghi nhận quyết định, cập nhật hoặc vấn đề cần theo dõi…"
+    ></textarea>
+    <div class="composer-footer">
+      <span class="field-hint">Tối đa 2.000 ký tự</span>
+      <button
+        class="primary-button"
+        type="submit"
+        [disabled]="comment.invalid || posting()"
+      >
+        {{ posting() ? 'Đang đăng…' : 'Đăng bình luận' }}
+      </button>
+    </div>
+    @if (comment.touched && comment.hasError('required')) {
+      <p class="operation-error" role="alert">
+        Vui lòng nhập nội dung bình luận.
+      </p>
+    }
+    @if (postError()) {
+      <p class="operation-error" role="alert">{{ postError() }}</p>
+    }
+  </form>
+
+  <div class="timeline-region" aria-live="polite">
+    @if (loading()) {
+      <div class="activity-state">Đang tải hoạt động…</div>
+    } @else if (loadError() && !response()) {
+      <div class="activity-state activity-state--error">
+        <span>Không thể tải hoạt động dự án.</span>
+        <button type="button" data-action="retry" (click)="load()">
+          Thử lại
+        </button>
+      </div>
+    } @else if (response(); as current) {
+      @if (current.data.length === 0) {
+        <div class="activity-state">
+          Chưa có hoạt động. Hãy đăng bình luận đầu tiên cho dự án.
+        </div>
+      } @else {
+        <ol class="activity-list" aria-label="Dòng thời gian hoạt động dự án">
+          @for (activity of current.data; track activity.id) {
+            <li>
+              <span class="activity-marker" aria-hidden="true"></span>
+              <article>
+                <header>
+                  <div>
+                    <strong>{{ activity.authorDisplayName }}</strong>
+                    <span>{{ activity.authorEmail }}</span>
+                  </div>
+                  <time [attr.datetime]="activity.createdAt">
+                    {{ activity.createdAt | date: 'dd/MM/yyyy, HH:mm' }}
+                  </time>
+                </header>
+                <p>{{ activity.content }}</p>
+              </article>
+            </li>
+          }
+        </ol>
+        @if (current.meta.hasNextPage) {
+          <button
+            class="load-more"
+            type="button"
+            data-action="load-more"
+            [disabled]="loadingMore()"
+            (click)="loadMore()"
+          >
+            {{ loadingMore() ? 'Đang tải…' : 'Xem hoạt động cũ hơn' }}
+          </button>
+        }
+        @if (loadError()) {
+          <p class="load-more-error" role="alert">
+            Không thể tải hoạt động cũ hơn. Bạn có thể thử lại.
+          </p>
+        }
+      }
+    }
+  </div>
+</section>
