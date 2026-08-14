@@ -15,7 +15,7 @@ Nếu mockup mâu thuẫn với yêu cầu mới của khách hàng, yêu cầu 
 | Tiến độ thi công   | Theo dõi 5 bước chuẩn, phòng ban, kế hoạch ngày, ngày kết thúc thật và trạng thái | Đã triển khai lát cắt đầu tiên                                                                                                      | Có cho phép thêm/bớt/đổi tên bước hay luôn cố định 5 bước; ai xác nhận hoàn thành                 |
 | Hợp đồng nhà mạng  | Hợp đồng theo dự án, nhà mạng, dịch vụ, khối lượng, đơn giá, chu kỳ và hết hạn    | Đã triển khai v1: list/KPI/filter/create/update, filter `projectId` và bảng hợp đồng trong chi tiết dự án                           | Cần chốt loại hợp đồng, vòng đời/gia hạn, chống trùng và cách tính Teldata/IBS                    |
 | Doanh thu          | Doanh thu, chi phí, lợi nhuận theo quý và dự án                                   | Đã triển khai v1: KPI năm, so sánh quý, tìm kiếm, phân trang và upsert số thực tế theo dự án/năm/quý                                | Dữ liệu Q4 bất thường, doanh thu một lần/định kỳ, kỳ tài chính, nguồn import và quy trình chốt số |
-| Công nợ            | Phải thu, đã thu, còn nợ, quá hạn theo hợp đồng/kỳ                                | Chưa triển khai                                                                                                                     | Mockup xác nhận file nguồn chưa có hóa đơn, hạn thanh toán và số đã thu                           |
+| Công nợ            | Phải thu, đã thu, còn nợ, quá hạn theo hợp đồng/kỳ                                | Đã triển khai v1: list/KPI/filter/create/update thủ công theo hợp đồng và project scope                                             | File nguồn chưa có hóa đơn, hạn/số đã thu; cần chốt tự sinh kỳ, invoice, duyệt và khóa số         |
 | Hoàn vốn           | So sánh CPĐT với doanh thu lũy kế                                                 | Đã triển khai báo cáo read-only v1 theo project scope, năm, kết luận và pagination                                                  | Nhiều dự án thiếu CPĐT; cần chốt CAPEX gồm khoản nào và cách tính hoàn vốn                        |
 | Cơ hội kinh doanh  | Pipeline cơ hội theo vùng, giai đoạn, người phụ trách và tính khả thi             | Đã triển khai v1: KPI 4 giai đoạn, list/filter/pagination, create/update và cảnh báo dữ liệu thiếu                                  | Quy tắc chuyển giai đoạn, xác suất, owner, lịch sử hoạt động và chuyển thành project              |
 | Chất lượng dữ liệu | Theo dõi mã thiếu, xung đột nguồn, thiếu CAPEX/kế hoạch/ngày thật/owner           | Đã triển khai read-only v1 cho xung đột, CAPEX, tiến độ và CRM thiếu owner/tương tác cuối; chưa có workflow đóng cảnh báo           | Quyền sửa dữ liệu, quy trình đối soát, nguồn ưu tiên và cách đóng cảnh báo                        |
@@ -66,7 +66,7 @@ Quy tắc đang áp dụng:
 - Chưa tự sinh kế hoạch khi project chuyển trạng thái; hiện người dùng chủ động bấm khởi tạo.
 - Chưa có dependency giữa các bước, phần trăm hoàn thành, người được giao, bình luận riêng cho task, file hoặc lịch sử thay đổi tự động.
 - Chưa gửi thông báo task trễ hạn.
-- Đã có bản ghi hợp đồng nhà mạng, doanh thu/chi phí theo quý, báo cáo hoàn vốn và CRM cơ hội v1. Chưa triển khai công nợ hoặc workflow phân công/duyệt/đóng cảnh báo chất lượng dữ liệu.
+- Đã có bản ghi hợp đồng nhà mạng, doanh thu/chi phí theo quý, công nợ nhập thủ công, báo cáo hoàn vốn và CRM cơ hội v1. Chưa có workflow phân công/duyệt/đóng cảnh báo chất lượng dữ liệu.
 
 ## Giả định tạm thời cho hợp đồng nhà mạng v1
 
@@ -97,6 +97,17 @@ Quy tắc đang áp dụng:
 - Trang chi tiết dự án cho phép chọn năm 2024-2027, xem đủ Q1-Q4 kể cả khi chưa có actual và chỉ hiển thị thao tác cập nhật khi có `revenue.manage`.
 - Không suy doanh thu từ đơn giá/chu kỳ hợp đồng, không tự sinh công nợ và chưa đồng bộ snapshot `project.revenueTotal/costTotal`; các luồng này chờ khách xác nhận.
 - So sánh Q4 với trung bình ba quý đầu chỉ là gợi ý đối soát, chưa phải quy tắc cảnh báo hoặc kết luận kế toán.
+
+## Contract tạm thời cho công nợ v1
+
+- Mỗi khoản phải thu tham chiếu một hợp đồng nhà mạng; project và nhà mạng được lấy từ hợp đồng tại thời điểm đọc, không cho đổi hợp đồng sau khi tạo.
+- Người dùng nhập thủ công kỳ, số phải thu, số đã thu, hạn thanh toán, ngày thu đủ và ghi chú. V1 chưa tự sinh kỳ từ chu kỳ/đơn giá hợp đồng vì công thức chưa được khách xác nhận.
+- Trạng thái được dẫn xuất: `unpaid` khi chưa thu, `partial` khi thu một phần và `paid` khi đã thu đủ. Không cho thu âm, thu vượt hoặc đánh dấu thu đủ mà thiếu ngày thu đủ.
+- `overdue` chỉ đúng khi còn phải thu và hạn thanh toán đã qua tại thời điểm request. `paidOnTime` chỉ có cho khoản đã thu đủ và so sánh ngày thu đủ với hạn thanh toán.
+- `GET /api/v1/receivables` hỗ trợ tìm theo dự án/mã/nhà mạng/kỳ, lọc trạng thái/nhà mạng/project và trả KPI toàn project scope cùng danh sách đã lọc/phân trang bằng một aggregation `$facet`.
+- Permission `receivables.read/manage` tách quyền đọc và ghi; người không có `projects.manage` chỉ thấy khoản thuộc project mà mình là thành viên.
+- V1 chưa có xóa, mã/số hóa đơn, thuế/tiền tệ, thanh toán nhiều lần thành ledger, file chứng từ, import, chống trùng kỳ, phê duyệt, khóa sổ, nhắc hạn hoặc tự đối soát doanh thu.
+- Cần khách xác nhận nguồn chuẩn, timezone chốt quá hạn, điều kiện tính đúng hạn, xử lý giảm trừ/hoàn tiền, một khoản có nhiều lần thu hay không, và quyền sửa số đã khóa.
 
 ## Contract tạm thời cho dashboard v1
 

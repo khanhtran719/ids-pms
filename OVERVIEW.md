@@ -34,6 +34,8 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 - NestJS tính hoàn vốn từ CAPEX và `revenue_actuals` đến hết năm được chọn trong một aggregation theo project scope, có pagination và không query N+1.
 - Angular có trang Cơ hội kinh doanh v1 theo mockup: KPI 4 giai đoạn, cảnh báo thiếu người phụ trách/tương tác cuối, tìm kiếm, lọc, phân trang và form tạo/cập nhật hồ sơ pipeline.
 - NestJS lưu cơ hội độc lập trong `opportunities`, phân quyền đọc/quản lý toàn pipeline và trả overview, danh sách cùng danh mục owner bằng một aggregation `$facet`; chưa tự chuyển cơ hội thắng thầu thành project.
+- Angular có trang Công nợ v1 theo mockup: KPI phải thu/đã thu/còn lại/quá hạn/đúng hạn, tìm kiếm, lọc, phân trang và form nhập hoặc cập nhật khoản phải thu thủ công theo hợp đồng.
+- NestJS lưu khoản phải thu trong `receivables`; trạng thái, số còn lại, quá hạn và thu đúng hạn được dẫn xuất khi đọc. Danh sách, KPI và nhà mạng dùng một aggregation `$facet` theo project scope, không query N+1.
 - Mật khẩu hash bằng Argon2id; refresh token chỉ lưu dạng SHA-256 hash; endpoint auth có throttling và CSRF custom header.
 - Swagger được phục vụ tại `/api/docs`.
 - API có request ID, error contract, structured request log, security headers, body limit, CORS allowlist và rate limit mặc định.
@@ -42,7 +44,7 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 - Contract envelope chung nằm trong `libs/api-contracts`; Nx tags kiểm soát hướng phụ thuộc web/API/shared.
 - Unit test, API e2e và Chromium e2e đã được thiết lập.
 
-Project hiện giữ các số tổng hợp tùy chọn như số hợp đồng, doanh thu, chi phí và CPĐT để dựng portfolio theo mockup. Module nguồn hợp đồng nhà mạng, doanh thu/chi phí, hoàn vốn read-only, CRM cơ hội và bình luận nội bộ theo dự án đã có lát cắt v1; các module công nợ, tài liệu, thông báo và báo cáo nâng cao chưa được triển khai. Phạm vi quan sát từ mockup và các điểm chưa chốt được ghi tại `docs/mockup-functional-scope.md`.
+Project hiện giữ các số tổng hợp tùy chọn như số hợp đồng, doanh thu, chi phí và CPĐT để dựng portfolio theo mockup. Module nguồn hợp đồng nhà mạng, doanh thu/chi phí, công nợ thủ công, hoàn vốn read-only, CRM cơ hội và bình luận nội bộ theo dự án đã có lát cắt v1; các module tài liệu, thông báo và báo cáo nâng cao chưa được triển khai. Phạm vi quan sát từ mockup và các điểm chưa chốt được ghi tại `docs/mockup-functional-scope.md`.
 
 ## Kiến trúc
 
@@ -101,7 +103,8 @@ Thứ tự phát triển được đề xuất, chưa đồng nghĩa với yêu 
 8. Hoàn vốn — đã triển khai báo cáo read-only v1 từ CAPEX và doanh thu lũy kế; công thức dòng tiền chính thức vẫn chờ xác nhận.
 9. Cơ hội kinh doanh — đã triển khai hồ sơ/pipeline v1; chuyển thành project, xác suất và lịch sử hoạt động chờ xác nhận.
 10. Bình luận/hoạt động nội bộ theo dự án — đã triển khai v1; chỉnh sửa/xóa, mention, file và notification chờ khách xác nhận.
-11. Công nợ, tài liệu và notification sau khi chốt workflow và nguồn dữ liệu.
+11. Công nợ — đã triển khai lát cắt nhập thủ công v1; hóa đơn, tự sinh kỳ, import, duyệt/khóa và notification chờ khách xác nhận.
+12. Tài liệu và notification sau khi chốt workflow và nguồn dữ liệu.
 
 ## Điểm truy cập local
 

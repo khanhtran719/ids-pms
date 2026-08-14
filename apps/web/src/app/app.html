@@ -37,6 +37,11 @@
       <a routerLink="/payback" routerLinkActive="active"
         ><span aria-hidden="true">%</span>Hoàn vốn</a
       >
+      } @if (auth.hasPermission('receivables.read') &&
+      auth.hasPermission('projects.read')) {
+      <a routerLink="/receivables" routerLinkActive="active"
+        ><span aria-hidden="true">◫</span>Công nợ</a
+      >
       } @if (auth.hasPermission('opportunities.read')) {
       <a routerLink="/opportunities" routerLinkActive="active"
         ><span aria-hidden="true">↗</span>Cơ hội kinh doanh</a

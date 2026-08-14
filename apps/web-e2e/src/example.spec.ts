@@ -16,6 +16,7 @@ test('redirects an anonymous visitor to the accessible login page', async ({
 test('logs an administrator in and exposes authorized navigation', async ({
   page,
 }) => {
+  test.setTimeout(45_000);
   await page.goto('/login');
   await page.getByLabel('Email').fill('admin.e2e@example.test');
   await page
@@ -128,7 +129,43 @@ test('logs an administrator in and exposes authorized navigation', async ({
     .filter({ hasText: 'Q1' });
   await expect(firstQuarter).toContainText('120,000,000');
 
-  await page.getByRole('link', { name: 'Danh sách dự án' }).click();
+  await page.getByRole('link', { name: 'Hợp đồng', exact: true }).click();
+  await expect(
+    page.getByRole('heading', { name: 'Hợp đồng nhà mạng' }),
+  ).toBeVisible();
+  await page.getByRole('button', { name: 'Thêm hợp đồng' }).click();
+  const contractDialog = page.getByRole('dialog', { name: 'Thêm hợp đồng' });
+  await contractDialog
+    .getByLabel('Dự án')
+    .selectOption({ label: 'WEB-E2E · Web E2E Project' });
+  await contractDialog.getByLabel('Nhà mạng').fill('Viettel');
+  await contractDialog.getByLabel('Khối lượng').fill('100');
+  await contractDialog.getByRole('button', { name: 'Lưu hợp đồng' }).click();
+  await expect(page.getByText('Web E2E Project')).toBeVisible();
+
+  await page.getByRole('link', { name: 'Công nợ' }).click();
+  await expect(page.getByRole('heading', { name: 'Công nợ' })).toBeVisible();
+  await page.getByRole('button', { name: 'Thêm khoản phải thu' }).click();
+  const receivableDialog = page.getByRole('dialog', {
+    name: 'Thêm khoản phải thu',
+  });
+  await receivableDialog
+    .getByLabel('Hợp đồng nhà mạng')
+    .selectOption({ label: 'WEB-E2E · Web E2E Project · Viettel' });
+  await receivableDialog.getByLabel('Kỳ phải thu').fill('Q3/2026');
+  await receivableDialog.getByLabel('Phải thu (VND)').fill('100000000');
+  await receivableDialog.getByLabel('Đã thu (VND)').fill('40000000');
+  await receivableDialog.getByLabel('Hạn thanh toán').fill('2026-08-01');
+  await receivableDialog
+    .getByRole('button', { name: 'Lưu khoản phải thu' })
+    .click();
+  const receivableRow = page.locator('tbody tr').filter({
+    hasText: 'Web E2E Project',
+  });
+  await expect(receivableRow).toContainText('Q3/2026');
+  await expect(receivableRow).toContainText('Quá hạn');
+
+  await page.getByRole('link', { name: 'Dự án', exact: true }).click();
   await page.getByLabel('Tìm dự án').fill('IDS E2E Investor');
   await page
     .getByRole('region', { name: 'Bộ lọc danh mục dự án' })

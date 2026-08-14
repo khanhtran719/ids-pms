@@ -1,0 +1,182 @@
+<header class="page-header">
+  <div>
+    <p class="eyebrow">Theo dõi dòng tiền</p>
+    <h1>Công nợ</h1>
+    <p>
+      Quản lý phải thu, số đã thu và các khoản quá hạn theo dự án, nhà mạng.
+    </p>
+  </div>
+  @if (auth.hasPermission('receivables.manage')) {
+  <button
+    class="primary-button"
+    data-action="create"
+    type="button"
+    (click)="openCreate()"
+  >
+    Thêm khoản phải thu
+  </button>
+  }
+</header>
+
+@if (state(); as current) { @if (current.kind === 'ready') {
+<section class="metrics" aria-label="Tổng quan công nợ">
+  <article>
+    <span>Tổng phải thu</span
+    ><strong>{{ money(current.value.overview.totalDue) }}</strong
+    ><small>{{ current.value.meta.totalItems }} khoản</small>
+  </article>
+  <article>
+    <span>Còn phải thu</span
+    ><strong>{{ money(current.value.overview.totalOutstanding) }}</strong
+    ><small>đã thu {{ money(current.value.overview.totalPaid) }}</small>
+  </article>
+  <article class="critical">
+    <span>Quá hạn</span
+    ><strong>{{ money(current.value.overview.overdueOutstanding) }}</strong
+    ><small>{{ current.value.overview.overdueItems }} khoản cần xử lý</small>
+  </article>
+  <article>
+    <span>Thu đúng hạn</span
+    ><strong
+      >{{ current.value.overview.onTimeRate === undefined ? 'Chưa đủ dữ liệu' :
+      ((current.value.overview.onTimeRate * 100).toFixed(0) + '%') }}</strong
+    ><small
+      >{{ current.value.overview.onTimePaidItems }} / {{
+      current.value.overview.paidItems }} khoản đã thu</small
+    >
+  </article>
+</section>
+} }
+
+<aside class="source-note">
+  <strong>Nguồn dữ liệu v1:</strong> nhập thủ công theo hợp đồng nhà mạng. Hệ
+  thống chưa tự sinh kỳ phải thu cho đến khi quy tắc nghiệp vụ được khách hàng
+  xác nhận.
+</aside>
+
+<section class="toolbar" aria-label="Bộ lọc công nợ">
+  <div class="field field--search">
+    <label for="receivableSearch">Tìm kiếm</label
+    ><input
+      id="receivableSearch"
+      [formControl]="searchFilter"
+      placeholder="Dự án, mã, nhà mạng, kỳ…"
+    />
+  </div>
+  <div class="field">
+    <label for="receivableStatus">Trạng thái</label
+    ><select id="receivableStatus" [formControl]="statusFilter">
+      <option value="">Tất cả</option>
+      <option value="overdue">Quá hạn</option>
+      <option value="unpaid">Chưa thu</option>
+      <option value="partial">Thu một phần</option>
+      <option value="paid">Đã thu</option>
+    </select>
+  </div>
+  <div class="field">
+    <label for="receivableCarrier">Nhà mạng</label
+    ><select id="receivableCarrier" [formControl]="carrierFilter">
+      <option value="">Tất cả nhà mạng</option>
+      @if (state(); as current) { @if (current.kind === 'ready') { @for (carrier
+      of current.value.availableCarriers; track carrier) {
+      <option [value]="carrier">{{ carrier }}</option>
+      } } }
+    </select>
+  </div>
+</section>
+
+@switch (state().kind) { @case ('loading') {
+<div class="state-panel" aria-busy="true">Đang tải công nợ…</div>
+} @case ('error') {
+<div class="state-panel state-panel--error" role="alert">
+  <span>Không thể tải danh sách công nợ.</span
+  ><button type="button" (click)="load()">Thử lại</button>
+</div>
+} @case ('ready') { @if (state(); as current) { @if (current.kind === 'ready') {
+@if (!current.value.data.length) {
+<section class="empty" role="status">
+  <h2>Chưa có khoản phải thu phù hợp</h2>
+  <p>Thử đổi bộ lọc hoặc nhập khoản phải thu đầu tiên.</p>
+</section>
+} @else {
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Dự án</th>
+        <th>Nhà mạng</th>
+        <th>Kỳ</th>
+        <th class="number">Phải thu</th>
+        <th class="number">Đã thu</th>
+        <th class="number">Còn lại</th>
+        <th>Hạn thanh toán</th>
+        <th>Trạng thái</th>
+        @if (auth.hasPermission('receivables.manage')) {
+        <th>Thao tác</th>
+        }
+      </tr>
+    </thead>
+    <tbody>
+      @for (item of current.value.data; track item.id) {
+      <tr [class.overdue-row]="item.overdue">
+        <td>
+          <strong>{{ item.projectName }}</strong
+          ><small>{{ item.projectCode }}</small>
+        </td>
+        <td><b>{{ item.carrier }}</b></td>
+        <td>{{ item.periodLabel }}</td>
+        <td class="number">{{ money(item.amountDue) }}</td>
+        <td class="number">{{ money(item.amountPaid) }}</td>
+        <td class="number outstanding">{{ money(item.outstandingAmount) }}</td>
+        <td>{{ date(item.dueDate) }}</td>
+        <td>
+          <span
+            class="status"
+            [class.status--overdue]="item.overdue"
+            [class.status--paid]="item.status === 'paid'"
+            >{{ statusLabel(item) }}</span
+          >
+        </td>
+        @if (auth.hasPermission('receivables.manage')) {
+        <td>
+          <button class="edit-button" type="button" (click)="openEdit(item)">
+            Cập nhật
+          </button>
+        </td>
+        }
+      </tr>
+      }
+    </tbody>
+  </table>
+</div>
+<nav class="pagination" aria-label="Phân trang công nợ">
+  <span
+    >Trang {{ current.value.meta.page }} / {{ current.value.meta.totalPages || 1
+    }}</span
+  >
+  <div>
+    <button
+      type="button"
+      (click)="previous()"
+      [disabled]="!current.value.meta.hasPreviousPage"
+    >
+      Trước</button
+    ><button
+      type="button"
+      (click)="next()"
+      [disabled]="!current.value.meta.hasNextPage"
+    >
+      Sau
+    </button>
+  </div>
+</nav>
+} } } } } @if (editor(); as currentEditor) {
+<app-receivable-editor
+  [contracts]="contractChoices()"
+  [receivable]="currentEditor === 'new' ? null : currentEditor"
+  [saving]="saving()"
+  [error]="operationError()"
+  (submitted)="save($event)"
+  (closed)="closeEditor()"
+/>
+}

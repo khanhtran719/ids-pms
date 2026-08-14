@@ -81,6 +81,18 @@ export const appRoutes: Route[] = [
       ),
   },
   {
+    path: 'receivables',
+    canActivate: [
+      authGuard,
+      permissionGuard('projects.read'),
+      permissionGuard('receivables.read'),
+    ],
+    loadComponent: () =>
+      import('./features/receivables/receivables.page').then(
+        (module) => module.ReceivablesPage,
+      ),
+  },
+  {
     path: 'payback',
     canActivate: [
       authGuard,

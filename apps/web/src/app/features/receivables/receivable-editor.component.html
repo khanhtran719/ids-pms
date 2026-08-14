@@ -1,0 +1,118 @@
+<div class="dialog-backdrop">
+  <section
+    class="editor"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="receivableEditorTitle"
+  >
+    <header>
+      <div>
+        <p class="eyebrow">Ghi nhận thủ công</p>
+        <h2 id="receivableEditorTitle">
+          {{ receivable() ? 'Cập nhật khoản phải thu' : 'Thêm khoản phải thu' }}
+        </h2>
+      </div>
+      <button type="button" (click)="closed.emit()" aria-label="Đóng">×</button>
+    </header>
+    <form [formGroup]="form" (ngSubmit)="submit()">
+      @if (receivable(); as item) {
+        <div class="contract-summary">
+          <strong>{{ item.carrier }} · {{ item.projectName }}</strong>
+          <small
+            >{{ item.projectCode }} · Hợp đồng không thể đổi sau khi tạo</small
+          >
+        </div>
+      } @else {
+        <div class="field field--wide">
+          <label for="receivableContract">Hợp đồng nhà mạng</label>
+          <select
+            id="receivableContract"
+            aria-label="Hợp đồng nhà mạng"
+            formControlName="carrierContractId"
+          >
+            <option value="">Chọn hợp đồng</option>
+            @for (contract of contracts(); track contract.id) {
+              <option [value]="contract.id">
+                {{ contract.projectCode }} · {{ contract.projectName }} ·
+                {{ contract.carrier }}
+              </option>
+            }
+          </select>
+        </div>
+      }
+      <div class="form-grid">
+        <div class="field field--wide">
+          <label for="receivablePeriod">Kỳ phải thu</label>
+          <input
+            id="receivablePeriod"
+            aria-label="Kỳ phải thu"
+            formControlName="periodLabel"
+            placeholder="Ví dụ: Q3/2026"
+          />
+        </div>
+        <div class="field">
+          <label for="amountDue">Phải thu (VND)</label>
+          <input
+            id="amountDue"
+            aria-label="Phải thu (VND)"
+            type="number"
+            min="1"
+            formControlName="amountDue"
+          />
+        </div>
+        <div class="field">
+          <label for="amountPaid">Đã thu (VND)</label>
+          <input
+            id="amountPaid"
+            aria-label="Đã thu (VND)"
+            type="number"
+            min="0"
+            formControlName="amountPaid"
+          />
+        </div>
+        <div class="field">
+          <label for="dueDate">Hạn thanh toán</label>
+          <input
+            id="dueDate"
+            aria-label="Hạn thanh toán"
+            type="date"
+            formControlName="dueDate"
+          />
+        </div>
+        <div class="field">
+          <label for="paidDate">Ngày thu đủ</label>
+          <input
+            id="paidDate"
+            aria-label="Ngày thu đủ"
+            type="date"
+            formControlName="paidDate"
+          />
+        </div>
+        <div class="field field--wide">
+          <label for="receivableNote">Ghi chú</label>
+          <textarea
+            id="receivableNote"
+            rows="3"
+            formControlName="note"
+          ></textarea>
+        </div>
+      </div>
+      <p class="form-note">
+        Trạng thái và số còn phải thu được hệ thống tự tính từ dữ liệu trên.
+      </p>
+      @if (operationError() || error()) {
+        <p class="operation-error" role="alert">
+          {{ operationError() || error() }}
+        </p>
+      }
+      <footer>
+        <button class="secondary-button" type="button" (click)="closed.emit()">
+          Hủy
+        </button>
+        <button class="primary-button" type="submit" [disabled]="saving()">
+          {{ saving() ? 'Đang lưu…' : 'Lưu khoản phải thu' }}
+        </button>
+      </footer>
+    </form>
+  </section>
+</div>

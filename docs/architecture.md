@@ -92,3 +92,12 @@ Các feature lớn lazy-load theo route. `core/` chỉ dành cho singleton toàn
 4. Số thực tế dùng upsert atomic theo unique index `projectId + fiscalYear + quarter`. Business service xác nhận project scope trước khi ghi.
 5. Doanh thu v1 là nguồn chi tiết độc lập, chưa tự suy từ hợp đồng và chưa đồng bộ các snapshot tài chính cũ trên project.
 6. Project detail dùng `projectId` để lấy đúng một báo cáo bốn quý; project chưa có actual vẫn được trả về với giá trị 0. Sau khi upsert, Angular chỉ tải lại card doanh thu thay vì tải lại project, task, hợp đồng và membership.
+
+## Luồng công nợ
+
+1. Angular tải một response gồm KPI, danh sách, pagination và danh mục nhà mạng; tìm kiếm debounce 300 ms, các bộ lọc đặt lại page trước khi request.
+2. API scope `receivables` theo `project_memberships`, lookup project và hợp đồng một lần, sau đó dẫn xuất `outstandingAmount`, `status`, `overdue` và `paidOnTime` trong pipeline.
+3. `$facet` trả page đã lọc, total, KPI toàn project scope và danh mục nhà mạng trong một aggregation. Application service không duyệt lại collection hoặc query từng dòng.
+4. Khi tạo, repository giải quyết hợp đồng, project và quyền truy cập trong một aggregate rồi lưu `projectId` cùng `carrierContractId`. Khi cập nhật, service merge snapshot hiện tại và kiểm tra invariant số tiền/ngày trước atomic update.
+5. UI chỉ cho người có `receivables.manage` mở editor; backend vẫn là nơi cưỡng chế quyền. Sau write thành công, Angular đóng dialog và tải lại duy nhất nguồn công nợ.
+6. V1 là snapshot thu tiền thủ công, chưa phải payment ledger và không tự sinh từ điều khoản hợp đồng.

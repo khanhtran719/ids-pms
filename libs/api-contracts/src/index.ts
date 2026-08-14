@@ -54,6 +54,8 @@ export type PermissionCode =
   | 'carrier-contracts.manage'
   | 'revenue.read'
   | 'revenue.manage'
+  | 'receivables.read'
+  | 'receivables.manage'
   | 'opportunities.read'
   | 'opportunities.manage';
 
@@ -408,6 +410,74 @@ export interface UpdateCarrierContractRequest {
   paymentCycle?: CarrierPaymentCycle | null;
   startDate?: string | null;
   endDate?: string | null;
+}
+
+export type ReceivableStatus = 'unpaid' | 'partial' | 'paid';
+export type ReceivableStatusFilter = ReceivableStatus | 'overdue';
+
+export interface Receivable {
+  id: string;
+  projectId: string;
+  projectCode: string;
+  projectName: string;
+  carrierContractId: string;
+  carrier: string;
+  periodLabel: string;
+  amountDue: number;
+  amountPaid: number;
+  outstandingAmount: number;
+  dueDate: string;
+  paidDate?: string;
+  status: ReceivableStatus;
+  overdue: boolean;
+  paidOnTime?: boolean;
+  note?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ReceivableOverview {
+  totalDue: number;
+  totalPaid: number;
+  totalOutstanding: number;
+  overdueOutstanding: number;
+  overdueItems: number;
+  paidItems: number;
+  onTimePaidItems: number;
+  onTimeRate?: number;
+}
+
+export interface ReceivableListResponse extends PaginatedResponse<Receivable> {
+  overview: ReceivableOverview;
+  availableCarriers: string[];
+}
+
+export interface ListReceivablesRequest {
+  page?: number;
+  limit?: number;
+  search?: string;
+  status?: ReceivableStatusFilter;
+  carrier?: string;
+  projectId?: string;
+}
+
+export interface CreateReceivableRequest {
+  carrierContractId: string;
+  periodLabel: string;
+  amountDue: number;
+  amountPaid?: number;
+  dueDate: string;
+  paidDate?: string;
+  note?: string;
+}
+
+export interface UpdateReceivableRequest {
+  periodLabel?: string;
+  amountDue?: number;
+  amountPaid?: number;
+  dueDate?: string;
+  paidDate?: string | null;
+  note?: string | null;
 }
 
 export type FiscalQuarter = 1 | 2 | 3 | 4;

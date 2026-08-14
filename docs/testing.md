@@ -15,7 +15,7 @@ Baseline được khóa riêng theo ứng dụng:
 | API      |        91% |      73% |       93% |   92% |
 | Web      |        89% |      71% |       86% |   90% |
 
-Đây là regression floor, không phải mức trần. Sau lát cắt Data Quality v1, API đạt 92.91% statements, 76.00% branches, 94.73% functions và 93.42% lines; Web đạt 90.87%, 79.39%, 88.16% và 92.38% tương ứng. Mục tiêu kế tiếp là đưa branch coverage ổn định trên 80%, ưu tiên authorization, transaction, validation và state bất đồng bộ. Khi coverage tăng ổn định, nâng threshold cùng thay đổi test tương ứng; không hạ threshold hoặc thêm exclusion chỉ để làm CI xanh.
+Đây là regression floor, không phải mức trần. Sau lát cắt Công nợ v1, API đạt 92.95% statements, 78.57% branches, 95.27% functions và 93.82% lines; Web đạt 89.67%, 75.31%, 87.01% và 91.80% tương ứng. Mục tiêu kế tiếp là đưa branch coverage ổn định trên 80%, ưu tiên authorization, transaction, validation và state bất đồng bộ. Khi coverage tăng ổn định, nâng threshold cùng thay đổi test tương ứng; không hạ threshold hoặc thêm exclusion chỉ để làm CI xanh.
 
 Các lệnh:
 
@@ -36,6 +36,8 @@ Projects API e2e kiểm tra tạo project/owner trong transaction, code trùng, 
 Tasks API e2e kiểm tra khởi tạo 5 bước idempotent, scope task theo membership, quyền read-only member, rule ngày hoàn thành thực tế và filter trạng thái. Browser e2e tiếp tục hành trình project bằng việc mở Tiến độ, khởi tạo kế hoạch và nhìn thấy đủ 5 bước trên Angular.
 
 Data Quality API e2e kiểm tra aggregation thật trên MongoDB, scope membership, tìm kiếm/loại cảnh báo, quy tắc đếm kế hoạch thiếu/task quá hạn và validation query. Browser e2e mở trang Chất lượng từ navigation, nhìn thấy project vừa tạo cùng cảnh báo CAPEX/kế hoạch dẫn xuất.
+
+Công nợ API e2e kiểm tra tạo thủ công từ hợp đồng, project scope trước/sau khi thêm membership, quyền read-only member, lọc quá hạn, chống thu vượt và tất toán đúng hạn. Browser e2e tạo hợp đồng cho project vừa tạo, nhập khoản phải thu qua Angular và xác nhận dòng quá hạn trên bảng.
 
 Chạy local:
 

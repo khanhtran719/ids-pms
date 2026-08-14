@@ -70,3 +70,11 @@ Task status là `todo`, `in_progress`, `done`. `plannedEndDate` không được 
 - Endpoint yêu cầu đồng thời `projects.read` và `tasks.read`; người có `projects.manage` xem toàn bộ, người còn lại chỉ xem project đã có membership.
 
 Response có `{ data, meta, summary }`. `summary` không thay đổi theo search/issue filter để luôn phản ánh toàn scope truy cập; `data` và `meta` phản ánh bộ lọc hiện tại. Tất cả phép tính và pagination chạy trong một MongoDB aggregation, không tải collection về application memory.
+
+## Công nợ
+
+- `GET /api/v1/receivables`: yêu cầu `receivables.read` và `projects.read`; hỗ trợ `page`, `limit`, `search`, `status`, `carrier`, `projectId` và trả thêm `overview`, `availableCarriers`.
+- `POST /api/v1/receivables`: yêu cầu `receivables.manage` và `projects.read`; tạo khoản phải thu thủ công từ `carrierContractId`.
+- `PATCH /api/v1/receivables/:receivableId`: cập nhật kỳ, số tiền, hạn, ngày thu đủ hoặc ghi chú; không cho đổi hợp đồng.
+
+`status` lọc nhận `unpaid`, `partial`, `paid`, `overdue`; `overdue` là cờ dẫn xuất, không phải trạng thái lưu. Số đã thu phải nằm trong khoảng từ 0 đến số phải thu; thu đủ bắt buộc có `paidDate`, còn số đã thu bằng 0 không được có `paidDate`. Mã lỗi nghiệp vụ ổn định gồm `RECEIVABLE_AMOUNT_INVALID`, `RECEIVABLE_PAID_DATE_REQUIRED`, `RECEIVABLE_PAID_DATE_UNEXPECTED`, `RECEIVABLE_DATE_INVALID`, `RECEIVABLE_CONTRACT_NOT_FOUND`, `RECEIVABLE_NOT_FOUND` và `RECEIVABLE_UPDATE_EMPTY`.

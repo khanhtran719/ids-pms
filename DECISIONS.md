@@ -163,6 +163,15 @@ Tài liệu này ghi lại các quyết định dài hạn. Không dùng nó tha
 - Lý do: cung cấp nhật ký cộng tác tối thiểu nhưng không khóa vào workflow chưa chốt; dữ liệu bất biến giữ ngữ cảnh audit, author snapshot loại bỏ join user trên từng dòng và truy vấn theo project tránh N+1.
 - Hệ quả và trade-off: tên/email cũ không đổi khi hồ sơ user thay đổi; chưa phải audit history tự động của project/task và không dùng lại cho activity log của CRM. Chỉnh sửa/xóa, moderation, mention, notification, file và retention policy phải được khách xác nhận trước khi mở rộng contract.
 
+## ADR-020 — Công nợ v1 nhập thủ công và dẫn xuất trạng thái khi đọc
+
+- Trạng thái: Accepted, temporary
+- Ngày: 2026-08-14
+- Bối cảnh: mockup cần KPI phải thu/đã thu/còn lại/quá hạn nhưng chính mockup xác nhận file nguồn chưa có hóa đơn, hạn thanh toán hoặc số đã thu. Khách chưa chốt cách sinh kỳ từ hợp đồng, một hay nhiều lần thu, thuế/tiền tệ, phê duyệt hoặc khóa sổ.
+- Quyết định: tạo collection `receivables` tham chiếu `carrierContractId` và `projectId`; v1 chỉ nhập/cập nhật thủ công kỳ, số phải thu, số đã thu, hạn, ngày thu đủ và ghi chú. Trạng thái, số còn lại, quá hạn và đúng hạn không lưu bản sao mà được dẫn xuất trong một aggregation theo project scope. Dùng permission `receivables.read/manage`; không có API xóa hoặc tự sinh kỳ.
+- Lý do: cung cấp lát cắt có thể sử dụng và đối soát ngay mà không phát minh workflow tài chính chưa được xác nhận. Tham chiếu hợp đồng giữ ngữ cảnh dự án/nhà mạng, còn một `$facet` trả danh sách, KPI, total và nhà mạng trong một query để tránh N+1.
+- Hệ quả và trade-off: `amountPaid` hiện là snapshot tổng thay vì ledger nhiều lần thu; chưa có invoice, giảm trừ/hoàn tiền, chứng từ, import, chống trùng kỳ, audit từng lần thay đổi, duyệt/khóa hoặc notification. Nếu khách yêu cầu payment ledger hay auto-generation, phải bổ sung contract/migration và ADR mới thay vì suy diễn từ v1.
+
 ## Mẫu ADR mới
 
 ```text

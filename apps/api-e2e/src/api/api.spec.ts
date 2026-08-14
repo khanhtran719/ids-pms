@@ -867,6 +867,123 @@ describe('Revenue actual lifecycle', () => {
   });
 });
 
+describe('Receivable lifecycle', () => {
+  it('creates, scopes, filters and settles a manual receivable', async () => {
+    const project = await axios.post(
+      '/api/v1/projects',
+      { code: 'AR-E2E', name: 'Receivable E2E' },
+      { headers: lifecycleAdminAuthorization },
+    );
+    const projectId = project.data.id as string;
+    const contract = await axios.post(
+      '/api/v1/carrier-contracts',
+      {
+        projectId,
+        carrier: 'MobiFone',
+        serviceType: 'teldata',
+        quantity: 80,
+      },
+      { headers: lifecycleAdminAuthorization },
+    );
+    const created = await axios.post(
+      '/api/v1/receivables',
+      {
+        carrierContractId: contract.data.id as string,
+        periodLabel: 'Q3/2026',
+        amountDue: 100_000_000,
+        amountPaid: 40_000_000,
+        dueDate: '2026-08-01',
+      },
+      { headers: lifecycleAdminAuthorization },
+    );
+    expect(created.data).toMatchObject({
+      projectId,
+      projectCode: 'AR-E2E',
+      carrier: 'MobiFone',
+      status: 'partial',
+      outstandingAmount: 60_000_000,
+      overdue: true,
+    });
+
+    const outsideScope = await axios.get('/api/v1/receivables', {
+      headers: lifecycleMemberAuthorization,
+    });
+    expect(outsideScope.data.meta.totalItems).toBe(0);
+
+    await axios.post(
+      `/api/v1/projects/${projectId}/members`,
+      { userId: lifecycleMemberId, role: 'member' },
+      { headers: lifecycleAdminAuthorization },
+    );
+    const scoped = await axios.get(
+      `/api/v1/receivables?projectId=${projectId}&carrier=MobiFone&status=overdue`,
+      { headers: lifecycleMemberAuthorization },
+    );
+    expect(scoped.data).toMatchObject({
+      data: [
+        expect.objectContaining({
+          id: created.data.id,
+          status: 'partial',
+          overdue: true,
+        }),
+      ],
+      overview: {
+        totalDue: 100_000_000,
+        totalPaid: 40_000_000,
+        totalOutstanding: 60_000_000,
+        overdueOutstanding: 60_000_000,
+        overdueItems: 1,
+        paidItems: 0,
+        onTimePaidItems: 0,
+      },
+      availableCarriers: ['MobiFone'],
+      meta: expect.objectContaining({ totalItems: 1 }),
+    });
+
+    const memberWrite = await axios.patch(
+      `/api/v1/receivables/${created.data.id as string}`,
+      { amountPaid: 50_000_000 },
+      { headers: lifecycleMemberAuthorization, validateStatus: () => true },
+    );
+    expect(memberWrite.status).toBe(403);
+
+    const overpayment = await axios.patch(
+      `/api/v1/receivables/${created.data.id as string}`,
+      { amountPaid: 100_000_001, paidDate: '2026-07-20' },
+      { headers: lifecycleAdminAuthorization, validateStatus: () => true },
+    );
+    expect(overpayment.status).toBe(400);
+    expect(overpayment.data.code).toBe('RECEIVABLE_AMOUNT_INVALID');
+
+    const settled = await axios.patch(
+      `/api/v1/receivables/${created.data.id as string}`,
+      { amountPaid: 100_000_000, paidDate: '2026-07-20' },
+      { headers: lifecycleAdminAuthorization },
+    );
+    expect(settled.data).toMatchObject({
+      status: 'paid',
+      outstandingAmount: 0,
+      overdue: false,
+      paidOnTime: true,
+    });
+
+    const paid = await axios.get(
+      `/api/v1/receivables?projectId=${projectId}&status=paid`,
+      { headers: lifecycleMemberAuthorization },
+    );
+    expect(paid.data.overview).toMatchObject({
+      totalDue: 100_000_000,
+      totalPaid: 100_000_000,
+      totalOutstanding: 0,
+      overdueOutstanding: 0,
+      overdueItems: 0,
+      paidItems: 1,
+      onTimePaidItems: 1,
+      onTimeRate: 1,
+    });
+  });
+});
+
 describe('Dashboard snapshot', () => {
   it('returns one scoped portfolio aggregation and validates the fiscal year', async () => {
     const snapshot = await axios.get('/api/v1/dashboard?fiscalYear=2025', {
@@ -881,8 +998,8 @@ describe('Dashboard snapshot', () => {
         totalCost: 200_000_000,
         grossProfit: 220_000_000,
         projectsWithRevenue: 1,
-        totalCarrierContracts: 1,
-        teldataContracts: 1,
+        totalCarrierContracts: 2,
+        teldataContracts: 2,
       }),
       quarters: [
         expect.objectContaining({ quarter: 1, revenue: 120_000_000 }),
@@ -900,9 +1017,10 @@ describe('Dashboard snapshot', () => {
           revenue: 420_000_000,
         }),
       ],
-      carrierContractsByCarrier: [
+      carrierContractsByCarrier: expect.arrayContaining([
+        expect.objectContaining({ carrier: 'MobiFone', contracts: 1 }),
         expect.objectContaining({ carrier: 'Viettel', contracts: 1 }),
-      ],
+      ]),
       opportunityOverview: {
         totalOpportunities: 0,
         feasibleOpportunities: 0,
