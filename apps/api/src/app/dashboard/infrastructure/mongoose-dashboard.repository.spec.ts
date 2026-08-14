@@ -48,6 +48,18 @@ describe('MongooseDashboardRepository', () => {
             { _id: 'Viettel', contracts: 2 },
             { _id: 'VNPT', contracts: 1 },
           ],
+          opportunityOverview: [
+            {
+              totalOpportunities: 7,
+              feasibleOpportunities: 4,
+              missingOwner: 2,
+              missingLastInteraction: 3,
+              stage1: 2,
+              stage2: 1,
+              stage3: 3,
+              stage4: 1,
+            },
+          ],
         },
       ]),
     };
@@ -58,6 +70,7 @@ describe('MongooseDashboardRepository', () => {
     const result = await repository.getSnapshot({
       actorId: actorId.toString(),
       canManageAll: false,
+      canReadOpportunities: true,
       fiscalYear: 2025,
       asOf: new Date('2026-08-14T00:00:00.000Z'),
     });
@@ -79,6 +92,9 @@ describe('MongooseDashboardRepository', () => {
           $lookup: expect.objectContaining({ from: 'revenue_actuals' }),
         }),
         expect.objectContaining({ $facet: expect.any(Object) }),
+        expect.objectContaining({
+          $lookup: expect.objectContaining({ from: 'opportunities' }),
+        }),
       ]),
     );
     expect(result).toEqual({
@@ -125,6 +141,18 @@ describe('MongooseDashboardRepository', () => {
         { carrier: 'Viettel', contracts: 2 },
         { carrier: 'VNPT', contracts: 1 },
       ],
+      opportunityOverview: {
+        totalOpportunities: 7,
+        feasibleOpportunities: 4,
+        missingOwner: 2,
+        missingLastInteraction: 3,
+        stages: [
+          { stage: 1, total: 2 },
+          { stage: 2, total: 1 },
+          { stage: 3, total: 3 },
+          { stage: 4, total: 1 },
+        ],
+      },
     });
   });
 
@@ -137,6 +165,7 @@ describe('MongooseDashboardRepository', () => {
     const result = await repository.getSnapshot({
       actorId: actorId.toString(),
       canManageAll: true,
+      canReadOpportunities: false,
       fiscalYear: 2025,
       asOf: new Date('2026-08-14T00:00:00.000Z'),
     });
@@ -145,9 +174,50 @@ describe('MongooseDashboardRepository', () => {
       Record<string, unknown>
     >;
     expect(JSON.stringify(pipeline)).not.toContain('project_memberships');
+    expect(JSON.stringify(pipeline)).not.toContain('opportunities');
+    expect(result.opportunityOverview).toBeUndefined();
     expect(result.overview.totalProjects).toBe(0);
     expect(result.overview.grossMargin).toBeUndefined();
     expect(result.quarters).toHaveLength(4);
     expect(result.operationalStatuses).toHaveLength(4);
+  });
+
+  it('returns a stable empty CRM overview when the permitted pipeline is empty', async () => {
+    const projects = {
+      aggregate: jest.fn().mockResolvedValue([
+        {
+          overview: [],
+          quarters: [],
+          operationalStatuses: [],
+          topRevenueProjects: [],
+          carrierContractsByCarrier: [],
+          opportunityOverview: [],
+        },
+      ]),
+    };
+    const repository = new MongooseDashboardRepository(
+      projects as unknown as Model<ProjectEntity>,
+    );
+
+    const result = await repository.getSnapshot({
+      actorId: actorId.toString(),
+      canManageAll: true,
+      canReadOpportunities: true,
+      fiscalYear: 2025,
+      asOf: new Date('2026-08-14T00:00:00.000Z'),
+    });
+
+    expect(result.opportunityOverview).toEqual({
+      totalOpportunities: 0,
+      feasibleOpportunities: 0,
+      missingOwner: 0,
+      missingLastInteraction: 0,
+      stages: [
+        { stage: 1, total: 0 },
+        { stage: 2, total: 0 },
+        { stage: 3, total: 0 },
+        { stage: 4, total: 0 },
+      ],
+    });
   });
 });

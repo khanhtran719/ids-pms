@@ -30,6 +30,14 @@ const SUMMARY: DataQualitySummary = {
   missingActualEndTasks: 0,
 };
 
+const OPPORTUNITY_QUALITY = {
+  totalOpportunities: 7,
+  affectedOpportunities: 4,
+  totalIssues: 5,
+  missingOwner: 2,
+  missingLastInteraction: 3,
+};
+
 describe('DataQualityService', () => {
   it('returns an accessible paginated report with normalized filters', async () => {
     const repository: jest.Mocked<DataQualityRepository> = {
@@ -37,13 +45,14 @@ describe('DataQualityService', () => {
         issues: [ISSUE],
         totalItems: 1,
         summary: SUMMARY,
+        opportunityQuality: OPPORTUNITY_QUALITY,
       }),
     };
     const service = new DataQualityService(repository);
 
     const report = await service.getReport(
       'user-1',
-      ['projects.read', 'tasks.read'],
+      ['projects.read', 'tasks.read', 'opportunities.read'],
       2,
       20,
       'missing_task_plan',
@@ -53,6 +62,7 @@ describe('DataQualityService', () => {
     expect(repository.getReport).toHaveBeenCalledWith({
       actorId: 'user-1',
       canManageAll: false,
+      canReadOpportunities: true,
       page: 2,
       limit: 20,
       skip: 20,
@@ -71,6 +81,7 @@ describe('DataQualityService', () => {
         hasPreviousPage: true,
       },
       summary: SUMMARY,
+      opportunityQuality: OPPORTUNITY_QUALITY,
     });
   });
 
@@ -97,6 +108,7 @@ describe('DataQualityService', () => {
       expect.objectContaining({
         actorId: 'admin-1',
         canManageAll: true,
+        canReadOpportunities: false,
         page: 1,
         limit: 50,
         skip: 0,

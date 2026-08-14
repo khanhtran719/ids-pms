@@ -297,6 +297,15 @@ export interface DataQualityProjectIssue {
 export interface DataQualityReportResponse
   extends PaginatedResponse<DataQualityProjectIssue> {
   summary: DataQualitySummary;
+  opportunityQuality?: OpportunityDataQualitySummary;
+}
+
+export interface OpportunityDataQualitySummary {
+  totalOpportunities: number;
+  affectedOpportunities: number;
+  totalIssues: number;
+  missingOwner: number;
+  missingLastInteraction: number;
 }
 
 export interface ListDataQualityRequest {
@@ -483,6 +492,7 @@ export interface DashboardResponse {
   operationalStatuses: DashboardOperationalStatusSummary[];
   topRevenueProjects: DashboardTopRevenueProject[];
   carrierContractsByCarrier: DashboardCarrierContractsSummary[];
+  opportunityOverview?: OpportunityOverview;
 }
 
 export type PaybackStatus = 'paid_back' | 'not_paid_back';

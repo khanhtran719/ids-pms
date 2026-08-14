@@ -20,14 +20,14 @@ IDS PMS là hệ thống web quản lý dự án nội bộ. Phạm vi nghiệp 
 - Angular có trang Tiến độ thi công bám mockup IDS: KPI, lọc trạng thái, nhóm 5 bước theo dự án, khởi tạo kế hoạch và cập nhật ngày/trạng thái.
 - NestJS có task list theo project scope, khởi tạo 5 bước idempotent và ràng buộc task hoàn thành phải có ngày kết thúc thực tế.
 - Task list join project/membership và tính overview bằng một MongoDB aggregation `$facet`, không query N+1.
-- Angular có trang Chất lượng dữ liệu v1: KPI theo phạm vi truy cập, tìm kiếm, lọc cảnh báo, phân trang và liên kết về dự án cần xử lý.
-- NestJS tổng hợp xung đột nguồn, thiếu CAPEX, thiếu kế hoạch 5 bước, task quá hạn và thiếu ngày thực tế bằng một aggregation `$facet`; không lưu bản sao cảnh báo và không query N+1.
+- Angular có trang Chất lượng dữ liệu v1: KPI theo phạm vi truy cập, tìm kiếm, lọc cảnh báo, phân trang, liên kết về dự án cần xử lý và khối chất lượng CRM cho hồ sơ thiếu owner/tương tác cuối.
+- NestJS tổng hợp xung đột nguồn, thiếu CAPEX, thiếu kế hoạch 5 bước, task quá hạn, thiếu ngày thực tế và chất lượng CRM bằng một aggregation; `$lookup` cơ hội chạy một lần sau `$facet`, không lưu bản sao cảnh báo và không query N+1.
 - Angular có trang Hợp đồng nhà mạng theo mockup với KPI, bộ lọc, phân trang, thêm hợp đồng và cập nhật điều khoản; có thể mở từ chi tiết dự án với scope dự án được giữ trên URL.
 - NestJS lưu hợp đồng theo project scope; danh sách, KPI và danh mục nhà mạng dùng một aggregation `$facet`, không query N+1.
 - Angular có trang Doanh thu v1 theo mockup: KPI năm tài chính, so sánh doanh thu/chi phí theo quý, tìm kiếm, phân trang và ghi nhận số thực tế cho từng dự án/quý.
 - Trang chi tiết dự án hiển thị doanh thu/chi phí/lợi nhuận Q1-Q4 theo năm, cho phép người có quyền cập nhật từng quý mà không tải lại toàn bộ workspace.
 - NestJS lưu số thực tế trong `revenue_actuals`, upsert theo `projectId + fiscalYear + quarter`; báo cáo, tổng theo quý và độ phủ dự án dùng một aggregation `$facet`, không query N+1.
-- Dashboard tổng hợp KPI tài chính, vận hành, hợp đồng, task quá hạn, chất lượng dữ liệu, doanh thu theo quý và xếp hạng bằng một API/aggregation theo project scope; UI có loading/error/empty state và đổi năm tài chính.
+- Dashboard tổng hợp KPI tài chính, vận hành, hợp đồng, task quá hạn, chất lượng dữ liệu, CRM, doanh thu theo quý và xếp hạng bằng một API/aggregation theo project scope; UI có loading/error/empty state và đổi năm tài chính.
 - Angular có báo cáo Hoàn vốn v1 read-only: KPI độ phủ CAPEX, lọc theo kết luận/năm, doanh thu lũy kế và tỷ lệ thu hồi vốn theo dự án.
 - NestJS tính hoàn vốn từ CAPEX và `revenue_actuals` đến hết năm được chọn trong một aggregation theo project scope, có pagination và không query N+1.
 - Angular có trang Cơ hội kinh doanh v1 theo mockup: KPI 4 giai đoạn, cảnh báo thiếu người phụ trách/tương tác cuối, tìm kiếm, lọc, phân trang và form tạo/cập nhật hồ sơ pipeline.

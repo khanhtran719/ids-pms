@@ -34,6 +34,7 @@ export class DataQualityService {
       ...pagination,
       actorId,
       canManageAll: permissions.includes('projects.manage'),
+      canReadOpportunities: permissions.includes('opportunities.read'),
       asOf: new Date(),
       ...(issueType ? { issueType } : {}),
       ...(search ? { search } : {}),
@@ -46,6 +47,9 @@ export class DataQualityService {
         result.totalItems,
       ),
       summary: result.summary,
+      ...(result.opportunityQuality
+        ? { opportunityQuality: result.opportunityQuality }
+        : {}),
     };
   }
 }

@@ -4,6 +4,7 @@ import type {
   DataQualityIssueType,
   DataQualityProjectIssue,
   DataQualitySummary,
+  OpportunityDataQualitySummary,
 } from '@project-ql/api-contracts';
 import { Model, PipelineStage, Types } from 'mongoose';
 import { ProjectEntity } from '../../projects/infrastructure/project.schemas';
@@ -30,6 +31,7 @@ interface DataQualityFacetResult {
   data: DataQualityRow[];
   total: Array<{ value: number }>;
   summary: DataQualitySummary[];
+  opportunityQuality?: OpportunityDataQualitySummary[];
 }
 
 const EMPTY_SUMMARY: DataQualitySummary = {
@@ -56,6 +58,7 @@ export class MongooseDataQualityRepository
     issues: DataQualityProjectIssue[];
     totalItems: number;
     summary: DataQualitySummary;
+    opportunityQuality?: OpportunityDataQualitySummary;
   }> {
     const issueMatch = this.issueMatch(query);
     const pipeline: PipelineStage[] = [
@@ -281,6 +284,9 @@ export class MongooseDataQualityRepository
           ],
         },
       },
+      ...(query.canReadOpportunities
+        ? [this.opportunityQualityLookup()]
+        : []),
     ];
     const [result] =
       await this.projects.aggregate<DataQualityFacetResult>(pipeline);
@@ -288,6 +294,73 @@ export class MongooseDataQualityRepository
       issues: (result?.data ?? []).map((row) => this.toIssue(row)),
       totalItems: result?.total[0]?.value ?? 0,
       summary: result?.summary[0] ?? EMPTY_SUMMARY,
+      ...(query.canReadOpportunities
+        ? {
+            opportunityQuality:
+              result?.opportunityQuality?.[0] ??
+              this.emptyOpportunityQuality(),
+          }
+        : {}),
+    };
+  }
+
+  private opportunityQualityLookup(): PipelineStage {
+    const missingOwner = {
+      $eq: [
+        { $trim: { input: { $ifNull: ['$ownerName', ''] } } },
+        '',
+      ],
+    };
+    const missingLastInteraction = {
+      $eq: [{ $ifNull: ['$lastInteractionDate', null] }, null],
+    };
+    return {
+      $lookup: {
+        from: 'opportunities',
+        pipeline: [
+          {
+            $group: {
+              _id: null,
+              totalOpportunities: { $sum: 1 },
+              affectedOpportunities: {
+                $sum: {
+                  $cond: [
+                    { $or: [missingOwner, missingLastInteraction] },
+                    1,
+                    0,
+                  ],
+                },
+              },
+              totalIssues: {
+                $sum: {
+                  $add: [
+                    { $cond: [missingOwner, 1, 0] },
+                    { $cond: [missingLastInteraction, 1, 0] },
+                  ],
+                },
+              },
+              missingOwner: {
+                $sum: { $cond: [missingOwner, 1, 0] },
+              },
+              missingLastInteraction: {
+                $sum: { $cond: [missingLastInteraction, 1, 0] },
+              },
+            },
+          },
+          { $project: { _id: 0 } },
+        ],
+        as: 'opportunityQuality',
+      },
+    };
+  }
+
+  private emptyOpportunityQuality(): OpportunityDataQualitySummary {
+    return {
+      totalOpportunities: 0,
+      affectedOpportunities: 0,
+      totalIssues: 0,
+      missingOwner: 0,
+      missingLastInteraction: 0,
     };
   }
 

@@ -39,6 +39,15 @@ describe('MongooseDataQualityRepository', () => {
               missingActualEndTasks: 0,
             },
           ],
+          opportunityQuality: [
+            {
+              totalOpportunities: 7,
+              affectedOpportunities: 4,
+              totalIssues: 5,
+              missingOwner: 2,
+              missingLastInteraction: 3,
+            },
+          ],
         },
       ]),
     };
@@ -49,6 +58,7 @@ describe('MongooseDataQualityRepository', () => {
     const report = await repository.getReport({
       actorId: actorId.toString(),
       canManageAll: false,
+      canReadOpportunities: true,
       page: 1,
       limit: 20,
       skip: 0,
@@ -68,6 +78,9 @@ describe('MongooseDataQualityRepository', () => {
           $lookup: expect.objectContaining({ from: 'tasks' }),
         }),
         expect.objectContaining({ $facet: expect.any(Object) }),
+        expect.objectContaining({
+          $lookup: expect.objectContaining({ from: 'opportunities' }),
+        }),
       ]),
     );
     expect(report).toEqual({
@@ -85,6 +98,13 @@ describe('MongooseDataQualityRepository', () => {
         affectedProjects: 2,
         totalIssues: 5,
       }),
+      opportunityQuality: {
+        totalOpportunities: 7,
+        affectedOpportunities: 4,
+        totalIssues: 5,
+        missingOwner: 2,
+        missingLastInteraction: 3,
+      },
     });
   });
 
@@ -97,6 +117,7 @@ describe('MongooseDataQualityRepository', () => {
     const report = await repository.getReport({
       actorId: actorId.toString(),
       canManageAll: true,
+      canReadOpportunities: false,
       page: 1,
       limit: 20,
       skip: 0,
@@ -125,6 +146,40 @@ describe('MongooseDataQualityRepository', () => {
         overdueTasks: 0,
         missingActualEndTasks: 0,
       },
+    });
+  });
+
+  it('returns stable empty CRM quality totals when the permitted pipeline is empty', async () => {
+    const projects = {
+      aggregate: jest.fn().mockResolvedValue([
+        {
+          data: [],
+          total: [],
+          summary: [],
+          opportunityQuality: [],
+        },
+      ]),
+    };
+    const repository = new MongooseDataQualityRepository(
+      projects as unknown as Model<ProjectEntity>,
+    );
+
+    const report = await repository.getReport({
+      actorId: actorId.toString(),
+      canManageAll: true,
+      canReadOpportunities: true,
+      page: 1,
+      limit: 20,
+      skip: 0,
+      asOf: new Date('2026-08-11T00:00:00.000Z'),
+    });
+
+    expect(report.opportunityQuality).toEqual({
+      totalOpportunities: 0,
+      affectedOpportunities: 0,
+      totalIssues: 0,
+      missingOwner: 0,
+      missingLastInteraction: 0,
     });
   });
 });

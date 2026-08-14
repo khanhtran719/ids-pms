@@ -62,6 +62,11 @@ test('logs an administrator in and exposes authorized navigation', async ({
   await expect(page.getByText('Web E2E Opportunity')).toBeVisible();
   await expect(page.getByText('● khả thi')).toBeVisible();
 
+  await page.getByRole('link', { name: 'Tổng quan', exact: true }).click();
+  const opportunityMetric = page.locator('.metric--pipeline');
+  await expect(opportunityMetric).toContainText('1 cơ hội');
+  await expect(opportunityMetric).toContainText('1 đã đánh giá khả thi');
+
   await page.getByRole('link', { name: 'Người dùng' }).click();
   await expect(page).toHaveURL(/\/users$/);
   await expect(page.getByText('admin.e2e@example.test')).toBeVisible();
@@ -149,6 +154,9 @@ test('logs an administrator in and exposes authorized navigation', async ({
   const qualityChips = qualityRow.locator('.issue-chips');
   await expect(qualityChips.getByText('Thiếu CAPEX')).toBeVisible();
   await expect(qualityChips.getByText('Thiếu kế hoạch')).toBeVisible();
+  const crmQuality = page.locator('.crm-quality');
+  await expect(crmQuality).toContainText('1/1');
+  await expect(crmQuality).toContainText('Thiếu tương tác cuối1');
   await page.setViewportSize({ width: 390, height: 844 });
   await expect(qualityRow).toBeVisible();
   expect(

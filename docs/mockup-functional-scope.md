@@ -18,7 +18,7 @@ Nếu mockup mâu thuẫn với yêu cầu mới của khách hàng, yêu cầu 
 | Công nợ            | Phải thu, đã thu, còn nợ, quá hạn theo hợp đồng/kỳ                                | Chưa triển khai                                                                                                                                           | Mockup xác nhận file nguồn chưa có hóa đơn, hạn thanh toán và số đã thu                           |
 | Hoàn vốn           | So sánh CPĐT với doanh thu lũy kế                                                 | Đã triển khai báo cáo read-only v1 theo project scope, năm, kết luận và pagination                                                                        | Nhiều dự án thiếu CPĐT; cần chốt CAPEX gồm khoản nào và cách tính hoàn vốn                        |
 | Cơ hội kinh doanh  | Pipeline cơ hội theo vùng, giai đoạn, người phụ trách và tính khả thi             | Đã triển khai v1: KPI 4 giai đoạn, list/filter/pagination, create/update và cảnh báo dữ liệu thiếu                                                        | Quy tắc chuyển giai đoạn, xác suất, owner, lịch sử hoạt động và chuyển thành project              |
-| Chất lượng dữ liệu | Theo dõi mã thiếu, xung đột nguồn, thiếu CAPEX/kế hoạch/ngày thật/owner           | Đã triển khai dashboard read-only v1 cho xung đột, CAPEX và tiến độ; chưa có mã thiếu/owner do invariant hiện tại                                         | Quyền sửa dữ liệu, quy trình đối soát, nguồn ưu tiên và cách đóng cảnh báo                        |
+| Chất lượng dữ liệu | Theo dõi mã thiếu, xung đột nguồn, thiếu CAPEX/kế hoạch/ngày thật/owner           | Đã triển khai read-only v1 cho xung đột, CAPEX, tiến độ và CRM thiếu owner/tương tác cuối; chưa có workflow đóng cảnh báo                                  | Quyền sửa dữ liệu, quy trình đối soát, nguồn ưu tiên và cách đóng cảnh báo                        |
 
 ## Contract tạm thời cho tiến độ thi công
 
@@ -96,7 +96,7 @@ Quy tắc đang áp dụng:
 - KPI gồm tổng doanh thu/chi phí/lợi nhuận/biên lợi nhuận, dự án có doanh thu, dự án đã vận hành, hợp đồng Teldata/IBS, task quá hạn, project thiếu CAPEX và project xung đột dữ liệu.
 - Biểu đồ quý dùng `revenue_actuals` đúng năm; hợp đồng dùng collection chi tiết thay vì snapshot trên project. Task quá hạn được tính tại thời điểm request.
 - Luôn trả đủ bốn quý và bốn trạng thái vận hành với giá trị 0 khi chưa có dữ liệu. Top doanh thu giới hạn 8 project; danh sách hợp đồng được gom theo nhà mạng.
-- FY2025 là mặc định UI tạm thời theo mockup. Cơ hội kinh doanh không xuất hiện trên Dashboard v1 vì CRM/opportunity chưa có contract và nguồn dữ liệu.
+- FY2025 là mặc định UI tạm thời theo mockup. Dashboard hiện lấy tổng pipeline CRM toàn cục khi người dùng có `opportunities.read`; số dự án còn tuân theo project scope.
 - Đây là dashboard vận hành gần thời gian thực, chưa phải báo cáo kế toán đã khóa kỳ. Công thức, timezone chốt ngày, tiền tệ, quyền xem số nhạy cảm và refresh/cache vẫn phải được khách xác nhận.
 
 ## Contract tạm thời cho hoàn vốn v1

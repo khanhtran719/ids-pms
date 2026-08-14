@@ -23,6 +23,7 @@ export class DashboardService {
     return this.repository.getSnapshot({
       actorId,
       canManageAll: permissions.includes('projects.manage'),
+      canReadOpportunities: permissions.includes('opportunities.read'),
       fiscalYear,
       asOf: new Date(),
     });

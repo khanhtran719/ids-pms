@@ -30,7 +30,8 @@ export class DashboardController {
     summary: 'Get one scoped portfolio dashboard snapshot',
   })
   @ApiOkResponse({
-    description: 'Portfolio KPIs, trends and rankings for one fiscal year',
+    description:
+      'Portfolio KPIs, trends, rankings and optional CRM pipeline overview',
   })
   getSnapshot(
     @Req() request: AuthenticatedRequest,

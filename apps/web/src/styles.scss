@@ -2,6 +2,68 @@
   box-sizing: border-box;
 }
 
+app-data-quality-page .crm-quality {
+  display: grid;
+  grid-template-columns: minmax(13rem, 1fr) minmax(22rem, 1.2fr);
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid #cfded9;
+  border-left: 3px solid #3381a5;
+  border-radius: 0.7rem;
+  padding: 0.9rem 1rem;
+  color: inherit;
+  background: #fff;
+  text-decoration: none;
+}
+app-data-quality-page .crm-quality > div,
+app-data-quality-page .crm-quality dl div {
+  display: grid;
+  gap: 0.25rem;
+}
+app-data-quality-page .crm-quality__kicker {
+  color: #39718a;
+  font-size: 0.67rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+app-data-quality-page .crm-quality strong {
+  color: #23322e;
+  font-size: 0.95rem;
+}
+app-data-quality-page .crm-quality small,
+app-data-quality-page .crm-quality dt {
+  color: #77837f;
+  font-size: 0.68rem;
+}
+app-data-quality-page .crm-quality dl {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.65rem;
+  margin: 0;
+}
+app-data-quality-page .crm-quality dd {
+  margin: 0;
+  color: #24473f;
+  font-size: 1rem;
+  font-weight: 800;
+}
+app-data-quality-page .crm-quality:hover {
+  border-color: #8eb8aa;
+}
+
+@media (max-width: 48rem) {
+  app-data-quality-page .crm-quality {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 38rem) {
+  app-data-quality-page .crm-quality dl {
+    grid-template-columns: 1fr;
+  }
+}
+
 html {
   min-width: 20rem;
   background: #f7f7f4;

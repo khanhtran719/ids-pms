@@ -145,6 +145,15 @@ Tài liệu này ghi lại các quyết định dài hạn. Không dùng nó tha
 - Lý do: giữ được pipeline và dữ liệu cơ hội qua các giai đoạn mà không giả định workflow chưa được xác nhận. Collection độc lập phù hợp vì cơ hội tồn tại trước project và tránh nhúng danh sách tăng trưởng vào entity khác.
 - Hệ quả và trade-off: chưa có win/loss rate, xác suất, giá trị dự kiến, activity log, user assignment chuẩn, chống trùng hoặc conversion transaction. Khi khách chốt conversion, bổ sung liên kết `convertedProjectId`, lịch sử trạng thái và transaction trong ADR mới; không tái sử dụng `ownerName` như định danh user.
 
+## ADR-018 — Báo cáo chéo đọc CRM bằng lookup có điều kiện sau facet
+
+- Trạng thái: Accepted, temporary
+- Ngày: 2026-08-14
+- Bối cảnh: Dashboard và Chất lượng dữ liệu cần phản ánh nguồn CRM mới nhưng không được tăng request phía client, chạy query theo từng project hoặc làm lộ pipeline cho tài khoản thiếu quyền CRM.
+- Quyết định: hai báo cáo giữ một endpoint và một aggregation. Phần project được scope/tổng hợp trước bằng `$facet`; khi token có `opportunities.read`, một `$lookup` không tương quan chạy sau `$facet` để tính overview pipeline hoặc số hồ sơ thiếu `ownerName`/`lastInteractionDate`. Nếu thiếu quyền, stage và field CRM được bỏ hoàn toàn khỏi response.
+- Lý do: giữ snapshot màn hình trong một round trip, lookup chỉ chạy một lần thay vì theo từng project, tái sử dụng collection nguồn và thực thi permission tại backend.
+- Hệ quả và trade-off: KPI project có membership scope còn CRM hiện là scope toàn cục theo ADR-017 nên UI phải ghi nhận đây là hai phạm vi khác nhau. Aggregation đọc thêm collection; cần đo `explain` và cân nhắc cache/materialized reporting khi dữ liệu thật đủ lớn.
+
 ## Mẫu ADR mới
 
 ```text

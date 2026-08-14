@@ -49,6 +49,18 @@ const SNAPSHOT: DashboardResponse = {
     },
   ],
   carrierContractsByCarrier: [{ carrier: 'Viettel', contracts: 2 }],
+  opportunityOverview: {
+    totalOpportunities: 7,
+    feasibleOpportunities: 4,
+    missingOwner: 2,
+    missingLastInteraction: 3,
+    stages: [
+      { stage: 1, total: 2 },
+      { stage: 2, total: 1 },
+      { stage: 3, total: 3 },
+      { stage: 4, total: 1 },
+    ],
+  },
 };
 
 describe('DashboardPage', () => {
@@ -85,6 +97,7 @@ describe('DashboardPage', () => {
           'tasks.read',
           'carrier-contracts.read',
           'revenue.read',
+          'opportunities.read',
         ],
       },
     });
@@ -112,6 +125,11 @@ describe('DashboardPage', () => {
     expect(content).toContain('IDS Riverside');
     expect(content).toContain('Viettel');
     expect(content).toContain('Doanh thu và chi phí theo quý');
+    expect(content).toContain('7 cơ hội');
+    expect(content).toContain('1 đã trúng thầu');
+    expect(
+      fixture.nativeElement.querySelector('a[href="/opportunities"]'),
+    ).not.toBeNull();
   });
 
   it('renders health error/retry and ready states independently', async () => {

@@ -92,6 +92,16 @@
       <strong>{{ state.value.overview.dataConflictProjects }}</strong>
       <small>Dự án cần đối soát nguồn</small>
     </a>
+    @if (state.value.opportunityOverview; as opportunities) {
+    <a class="metric metric--pipeline" routerLink="/opportunities">
+      <span class="metric-kicker">Cơ hội kinh doanh</span>
+      <strong>{{ opportunities.totalOpportunities }} cơ hội</strong>
+      <small
+        >{{ opportunities.stages[3].total }} đã trúng thầu · {{
+        opportunities.feasibleOpportunities }} đã đánh giá khả thi</small
+      >
+    </a>
+    }
   </section>
 
   <app-dashboard-analysis

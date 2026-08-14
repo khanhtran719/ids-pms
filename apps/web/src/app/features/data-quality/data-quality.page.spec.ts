@@ -43,6 +43,13 @@ const RESPONSE: DataQualityReportResponse = {
     overdueTasks: 1,
     missingActualEndTasks: 0,
   },
+  opportunityQuality: {
+    totalOpportunities: 7,
+    affectedOpportunities: 4,
+    totalIssues: 5,
+    missingOwner: 2,
+    missingLastInteraction: 3,
+  },
 };
 
 describe('DataQualityPage', () => {
@@ -64,7 +71,7 @@ describe('DataQualityPage', () => {
       displayName: 'Member',
       status: 'active',
       roleCodes: ['member'],
-      permissions: ['projects.read', 'tasks.read'],
+      permissions: ['projects.read', 'tasks.read', 'opportunities.read'],
     } satisfies AuthUser);
     fixture = TestBed.createComponent(DataQualityPage);
     fixture.detectChanges();
@@ -82,6 +89,11 @@ describe('DataQualityPage', () => {
     expect(fixture.nativeElement.textContent).toContain('Thiếu kế hoạch');
     expect(
       fixture.nativeElement.querySelector('a[href="/projects/project-1"]'),
+    ).not.toBeNull();
+    expect(fixture.nativeElement.textContent).toContain('Hồ sơ CRM cần bổ sung');
+    expect(fixture.nativeElement.textContent).toContain('4/7');
+    expect(
+      fixture.nativeElement.querySelector('a[href="/opportunities"]'),
     ).not.toBeNull();
   });
 

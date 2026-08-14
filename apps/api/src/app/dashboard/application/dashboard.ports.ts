@@ -3,6 +3,7 @@ import type { DashboardResponse } from '@project-ql/api-contracts';
 export interface DashboardSnapshotQuery {
   actorId: string;
   canManageAll: boolean;
+  canReadOpportunities: boolean;
   fiscalYear: number;
   asOf: Date;
 }

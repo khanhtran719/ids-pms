@@ -32,6 +32,31 @@
 </section>
 } }
 
+@if (state(); as current) { @if (current.kind === 'ready' &&
+current.value.opportunityQuality; as crm) {
+<a class="crm-quality" routerLink="/opportunities">
+  <div>
+    <span class="crm-quality__kicker">Chất lượng pipeline</span>
+    <strong>Hồ sơ CRM cần bổ sung</strong>
+    <small>Đi tới Cơ hội kinh doanh để cập nhật dữ liệu nguồn.</small>
+  </div>
+  <dl>
+    <div>
+      <dt>Cơ hội bị ảnh hưởng</dt>
+      <dd>{{ crm.affectedOpportunities }}/{{ crm.totalOpportunities }}</dd>
+    </div>
+    <div>
+      <dt>Thiếu phụ trách</dt>
+      <dd>{{ crm.missingOwner }}</dd>
+    </div>
+    <div>
+      <dt>Thiếu tương tác cuối</dt>
+      <dd>{{ crm.missingLastInteraction }}</dd>
+    </div>
+  </dl>
+</a>
+} }
+
 <section class="toolbar" aria-label="Bộ lọc chất lượng dữ liệu">
   <div class="field field--search">
     <label for="qualitySearch">Tìm dự án</label>

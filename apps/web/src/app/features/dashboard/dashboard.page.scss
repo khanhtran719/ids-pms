@@ -152,6 +152,9 @@ button {
 .metric--danger {
   border-left: 3px solid #bc5353;
 }
+.metric--pipeline {
+  border-left: 3px solid #3381a5;
+}
 a.metric:hover {
   border-color: #9fc8bc;
   transform: translateY(-1px);

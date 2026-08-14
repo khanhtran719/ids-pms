@@ -6,6 +6,7 @@ import type {
   DashboardResponse,
   DashboardTopRevenueProject,
   FiscalQuarter,
+  OpportunityOverview,
   ProjectOperationalStatus,
   RevenueQuarterSummary,
 } from '@project-ql/api-contracts';
@@ -46,6 +47,18 @@ interface DashboardFacetResult {
     cost: number;
   }>;
   carrierContractsByCarrier: Array<{ _id: string; contracts: number }>;
+  opportunityOverview?: DashboardOpportunityOverviewRow[];
+}
+
+interface DashboardOpportunityOverviewRow {
+  totalOpportunities: number;
+  feasibleOpportunities: number;
+  missingOwner: number;
+  missingLastInteraction: number;
+  stage1: number;
+  stage2: number;
+  stage3: number;
+  stage4: number;
 }
 
 const EMPTY_OVERVIEW_ROW: DashboardOverviewRow = {
@@ -69,6 +82,17 @@ const OPERATIONAL_STATUSES: ProjectOperationalStatus[] = [
   'partial',
   'operational',
 ];
+
+const EMPTY_OPPORTUNITY_OVERVIEW_ROW: DashboardOpportunityOverviewRow = {
+  totalOpportunities: 0,
+  feasibleOpportunities: 0,
+  missingOwner: 0,
+  missingLastInteraction: 0,
+  stage1: 0,
+  stage2: 0,
+  stage3: 0,
+  stage4: 0,
+};
 
 @Injectable()
 export class MongooseDashboardRepository implements DashboardRepository {
@@ -206,6 +230,9 @@ export class MongooseDashboardRepository implements DashboardRepository {
           ],
         },
       },
+      ...(query.canReadOpportunities
+        ? [this.opportunityOverviewLookup()]
+        : []),
     ];
     const [result] =
       await this.projects.aggregate<DashboardFacetResult>(pipeline);
@@ -223,6 +250,70 @@ export class MongooseDashboardRepository implements DashboardRepository {
       carrierContractsByCarrier: (result?.carrierContractsByCarrier ?? []).map(
         (row) => ({ carrier: row._id, contracts: row.contracts }),
       ),
+      ...(query.canReadOpportunities
+        ? {
+            opportunityOverview: this.toOpportunityOverview(
+              result?.opportunityOverview?.[0] ??
+                EMPTY_OPPORTUNITY_OVERVIEW_ROW,
+            ),
+          }
+        : {}),
+    };
+  }
+
+  private opportunityOverviewLookup(): PipelineStage {
+    const stageCount = (stage: number) => ({
+      $sum: { $cond: [{ $eq: ['$stage', stage] }, 1, 0] },
+    });
+    return {
+      $lookup: {
+        from: 'opportunities',
+        pipeline: [
+          {
+            $group: {
+              _id: null,
+              totalOpportunities: { $sum: 1 },
+              feasibleOpportunities: {
+                $sum: { $cond: [{ $eq: ['$feasible', true] }, 1, 0] },
+              },
+              missingOwner: {
+                $sum: {
+                  $cond: [
+                    {
+                      $eq: [
+                        { $trim: { input: { $ifNull: ['$ownerName', ''] } } },
+                        '',
+                      ],
+                    },
+                    1,
+                    0,
+                  ],
+                },
+              },
+              missingLastInteraction: {
+                $sum: {
+                  $cond: [
+                    {
+                      $eq: [
+                        { $ifNull: ['$lastInteractionDate', null] },
+                        null,
+                      ],
+                    },
+                    1,
+                    0,
+                  ],
+                },
+              },
+              stage1: stageCount(1),
+              stage2: stageCount(2),
+              stage3: stageCount(3),
+              stage4: stageCount(4),
+            },
+          },
+          { $project: { _id: 0 } },
+        ],
+        as: 'opportunityOverview',
+      },
     };
   }
 
@@ -408,6 +499,21 @@ export class MongooseDashboardRepository implements DashboardRepository {
       revenue: row.revenue,
       cost: row.cost,
       grossProfit: row.revenue - row.cost,
+    };
+  }
+
+  private toOpportunityOverview(
+    row: DashboardOpportunityOverviewRow,
+  ): OpportunityOverview {
+    return {
+      totalOpportunities: row.totalOpportunities,
+      feasibleOpportunities: row.feasibleOpportunities,
+      missingOwner: row.missingOwner,
+      missingLastInteraction: row.missingLastInteraction,
+      stages: ([1, 2, 3, 4] as const).map((stage) => ({
+        stage,
+        total: row[`stage${stage}`],
+      })),
     };
   }
 }

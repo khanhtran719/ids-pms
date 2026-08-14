@@ -45,13 +45,14 @@ describe('DashboardService', () => {
 
     const result = await service.getSnapshot(
       'user-1',
-      ['projects.read', 'revenue.read'],
+      ['projects.read', 'revenue.read', 'opportunities.read'],
       2025,
     );
 
     expect(repository.getSnapshot).toHaveBeenCalledWith({
       actorId: 'user-1',
       canManageAll: false,
+      canReadOpportunities: true,
       fiscalYear: 2025,
       asOf: expect.any(Date),
     });
@@ -67,7 +68,10 @@ describe('DashboardService', () => {
     await service.getSnapshot('manager-1', ['projects.manage'], 2025);
 
     expect(repository.getSnapshot).toHaveBeenCalledWith(
-      expect.objectContaining({ canManageAll: true }),
+      expect.objectContaining({
+        canManageAll: true,
+        canReadOpportunities: false,
+      }),
     );
   });
 });

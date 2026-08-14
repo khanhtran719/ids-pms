@@ -602,6 +602,13 @@ describe('Data quality report lifecycle', () => {
         totalIssues: expect.any(Number),
         overdueTasks: expect.any(Number),
       }),
+      opportunityQuality: {
+        totalOpportunities: 0,
+        affectedOpportunities: 0,
+        totalIssues: 0,
+        missingOwner: 0,
+        missingLastInteraction: 0,
+      },
     });
 
     const invalidFilter = await axios.get(
@@ -827,6 +834,18 @@ describe('Dashboard snapshot', () => {
       carrierContractsByCarrier: [
         expect.objectContaining({ carrier: 'Viettel', contracts: 1 }),
       ],
+      opportunityOverview: {
+        totalOpportunities: 0,
+        feasibleOpportunities: 0,
+        missingOwner: 0,
+        missingLastInteraction: 0,
+        stages: [
+          { stage: 1, total: 0 },
+          { stage: 2, total: 0 },
+          { stage: 3, total: 0 },
+          { stage: 4, total: 0 },
+        ],
+      },
     });
 
     const invalid = await axios.get('/api/v1/dashboard?fiscalYear=1999', {

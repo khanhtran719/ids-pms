@@ -25,7 +25,8 @@ export class DataQualityController {
     summary: 'Get accessible project data-quality summary and issues',
   })
   @ApiOkResponse({
-    description: 'Paginated project issues with a scope-wide summary',
+    description:
+      'Paginated project issues with project and optional CRM quality summaries',
   })
   getReport(
     @Req() request: AuthenticatedRequest,
